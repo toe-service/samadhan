@@ -24,7 +24,5 @@ public class GaadiController {
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) throws Exception {
        String resp = gaadiService.login(loginRequest);
        return ResponseEntity.ok(resp);
-
-
     }
 }
