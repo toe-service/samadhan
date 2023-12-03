@@ -84,7 +84,7 @@ public class TokenApi {
     }
 
 
-    public boolean verifyUserToken(String idToken) throws FirebaseAuthException {
+    public boolean verifyFirebaseToken(String idToken) throws FirebaseAuthException {
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
             decodedToken.getUid();
