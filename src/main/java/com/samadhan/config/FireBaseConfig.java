@@ -24,7 +24,8 @@ public class FireBaseConfig {
     private File getServiceAccountKeyFile() {
         try {
             ClassLoader classLoader = SamadhanApplication.class.getClassLoader();
-            return new File(Objects.requireNonNull(classLoader.getResource("serviceAccountKey.json")).getFile());
+      return new File(serviceAccountKeyPath);
+//      return new File(Objects.requireNonNull(classLoader.getResource("serviceAccountKey.json")).getFile());
         } catch (Exception exp) {
             return new File(serviceAccountKeyPath);
         }
