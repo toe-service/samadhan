@@ -4,7 +4,9 @@ import com.samadhan.entity.Login;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.repository.LoginRepo;
 import com.samadhan.request.LoginRequest;
+import com.samadhan.response.GeneralResponse;
 import com.samadhan.security.TokenApi;
+import com.samadhan.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ public class GaadiService {
     private LoginRepo loginRepo;
     @Autowired
     private TokenApi tokenApi;
+    @Autowired
+    private Utils utils;
 
     public String login(LoginRequest loginRequest) throws Exception {
         try {
@@ -26,6 +30,19 @@ public class GaadiService {
             return exp.getMessage();
         }
 
+    }
+
+    public GeneralResponse verifyToken(String token) {
+        try {
+            if(tokenApi.verifyFirebaseToken(token)) {
+                return utils.getSuccessResponse("token is valid");
+            } else {
+               return utils.getUnauthorizeResponse();
+            }
+        } catch (Exception exp) {
+            //log error
+            return utils.getFailureResponse(exp);
+        }
     }
 
 }

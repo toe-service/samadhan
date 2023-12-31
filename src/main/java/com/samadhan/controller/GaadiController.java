@@ -2,6 +2,7 @@ package com.samadhan.controller;
 
 
 import com.samadhan.request.LoginRequest;
+import com.samadhan.response.GeneralResponse;
 import com.samadhan.service.GaadiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,5 +25,11 @@ public class GaadiController {
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) throws Exception {
        String resp = gaadiService.login(loginRequest);
        return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping(value = "/verify-token")
+    public ResponseEntity<GeneralResponse> verifyToken(@RequestParam String token) {
+        GeneralResponse generalResponse = gaadiService.verifyToken(token);
+        return ResponseEntity.status(generalResponse.statusCode).body(generalResponse);
     }
 }

@@ -24,7 +24,8 @@ public class FireBaseConfig {
     private File getServiceAccountKeyFile() {
         try {
             ClassLoader classLoader = SamadhanApplication.class.getClassLoader();
-            return new File(Objects.requireNonNull(classLoader.getResource("serviceAccountKey.json")).getFile());
+      return new File(serviceAccountKeyPath);
+//      return new File(Objects.requireNonNull(classLoader.getResource("serviceAccountKey.json")).getFile());
         } catch (Exception exp) {
             return new File(serviceAccountKeyPath);
         }
@@ -33,6 +34,7 @@ public class FireBaseConfig {
     @Bean
     public void loadFireBaseConfigs() throws IOException {
        File file = getServiceAccountKeyFile();
+        System.out.println("file path is "+file.getAbsolutePath());
         FileInputStream serviceAccount = new FileInputStream(file.getAbsolutePath());
         FirebaseOptions options =  new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
