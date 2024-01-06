@@ -11,6 +11,14 @@ public class Payloads {
         return new LoginRequest("1234567890", "0987");
     }
 
+    public static LoginRequest getLoginRequestWrongOtp() {
+        return new LoginRequest("1234567890", "wrong otp");
+    }
+
+    public static LoginRequest getLoginRequestNotExist() {
+        return new LoginRequest("not exist", "0987");
+    }
+
     public static Login getLoginDetails(Optional<String> otp) {
         Login login = new Login();
         login.setMobile("1234567890");

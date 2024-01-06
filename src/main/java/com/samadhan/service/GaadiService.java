@@ -35,13 +35,13 @@ public class GaadiService {
     public GeneralResponse verifyToken(String token) {
         try {
             if(tokenApi.verifyFirebaseToken(token)) {
-                return utils.getSuccessResponse("token is valid");
+                return Utils.getSuccessResponse("token is valid");
             } else {
-               return utils.getUnauthorizeResponse();
+               return Utils.getUnauthorizeResponse();
             }
         } catch (Exception exp) {
             //log error
-            return utils.getFailureResponse(exp);
+            return Utils.getFailureResponse(exp);
         }
     }
 
