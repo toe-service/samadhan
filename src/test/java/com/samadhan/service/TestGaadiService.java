@@ -2,12 +2,14 @@ package com.samadhan.service;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.samadhan.entity.Login;
+import com.samadhan.exception.NotificationException;
 import com.samadhan.payloads.Payloads;
 import com.samadhan.repository.LoginRepo;
 import com.samadhan.request.LoginRequest;
 import com.samadhan.response.GeneralResponse;
 import com.samadhan.security.TokenApi;
 import com.samadhan.util.Utils;
+import org.json.simple.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,5 +66,16 @@ class TestGaadiService {
         response = gaadiService.verifyToken("error");
         Assertions.assertEquals(401, response.statusCode);
         Assertions.assertEquals("error occurred", response.errorMessage);
+    }
+
+    @Test
+    void testSmsService() throws NotificationException {
+        try{
+            gaadiService.sendSms("12345678", "1234");
+        } catch (NotificationException exp) {
+            Assertions.assertTrue(exp.getMessage().contains("Invalid Numbers"));
+        }
+
+
     }
 }

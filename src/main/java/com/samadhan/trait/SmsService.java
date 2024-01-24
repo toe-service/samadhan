@@ -1,7 +1,8 @@
 package com.samadhan.trait;
 
 import com.samadhan.exception.NotificationException;
+import org.json.simple.JSONObject;
 
 public interface SmsService {
-    void sendSms(String mobileNumber, String message) throws NotificationException;
+    JSONObject sendSms(String mobileNumber, String message) throws NotificationException;
 }
