@@ -2,16 +2,25 @@ package com.samadhan.service;
 
 import com.samadhan.entity.Login;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.NotificationException;
 import com.samadhan.repository.LoginRepo;
 import com.samadhan.request.LoginRequest;
 import com.samadhan.response.GeneralResponse;
 import com.samadhan.security.TokenApi;
+import com.samadhan.trait.SmsService;
 import com.samadhan.util.Utils;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Arrays;
 
 @Service
-public class GaadiService {
+public class GaadiService implements SmsService {
 
     @Autowired
     private LoginRepo loginRepo;
@@ -19,6 +28,12 @@ public class GaadiService {
     private TokenApi tokenApi;
     @Autowired
     private Utils utils;
+    @Autowired
+    private RestTemplate restTemplate;
+    @Value("${sms.service-provider.url}")
+    private String smsProviderUrl;
+    @Value("${sms.client.token}")
+    private String clientToken;
 
     public String login(LoginRequest loginRequest) throws Exception {
         try {
@@ -45,4 +60,32 @@ public class GaadiService {
         }
     }
 
+    @Override
+    public void sendSms(String mobileNumber, String message) throws NotificationException {
+        postCallSmsOtp(message, mobileNumber);
+    }
+
+    private String postCallSmsOtp(String sms, String mobileNo) throws NotificationException {
+        try{
+            JSONObject obj = new JSONObject();
+            obj.put("route", "otp");
+            obj.put("variables_values", sms);
+            obj.put("numbers", mobileNo);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("authorization", clientToken);
+            headers.set("Content-Type", "application/json"); // optional - in case you auth in headers
+            HttpEntity<JSONObject> entity = new HttpEntity<>(obj, headers);
+
+            ResponseEntity<String> respEntity = restTemplate.exchange(smsProviderUrl, HttpMethod.POST, entity, String.class);
+
+            System.out.println("otp out is "+respEntity);
+            return respEntity.toString();
+        } catch (Exception exp) {
+            throw new NotificationException(exp);
+        }
+
+    }
 }

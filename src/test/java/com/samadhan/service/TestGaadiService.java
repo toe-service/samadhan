@@ -52,6 +52,7 @@ class TestGaadiService {
         Assertions.assertTrue(gaadiService.login(loginRequest).length() > 1);
         Assertions.assertEquals("user not found", gaadiService.login(Payloads.getLoginRequestNotExist()));
         Assertions.assertEquals("wrong otp", gaadiService.login(Payloads.getLoginRequestWrongOtp()));
+
     }
 
     @Test
