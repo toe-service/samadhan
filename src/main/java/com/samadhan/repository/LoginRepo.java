@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface LoginRepo extends CrudRepository<Login, String> {
 
-    @Override
-    Optional<Login> findById(String s);
+//    @Override
+//    Optional<Login> findById(String s);
 }
