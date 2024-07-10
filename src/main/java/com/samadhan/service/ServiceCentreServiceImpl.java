@@ -1,11 +1,13 @@
 package com.samadhan.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.ServiceCentreRepo;
 
+@Service
 public class ServiceCentreServiceImpl implements ServiceCentreService{
 
 	@Autowired
@@ -28,7 +30,9 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 
 	@Override
 	public ServiceCentre getAllServiceCentreByfilters(String city, Long pickuplatitude, Long pickuplongitude, Long destinationlatitude, Long destinationlongitude, serviceTypeEnum serviceType) {
-		ServiceCentre service=(ServiceCentre) serviceCentreRepo.findByfilters(city);
+		ServiceCentre service=(ServiceCentre) serviceCentreRepo.findByfilters();
+		
+		//find service centre within 50km
 		return null;
 	}
 

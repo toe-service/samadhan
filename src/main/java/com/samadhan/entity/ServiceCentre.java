@@ -29,11 +29,11 @@ public class ServiceCentre {
 	@Column(name="active")
 	private boolean active;
 	
-	@Column(name="location")
-	private Location location;
+//	@Column(name="location")
+//	private Location location;
 	
-	@Column(name="payment")
-	private Payment payment;
+//	@Column(name="payment")
+//	private Payment payment;
 	
 	@Column(name="service_type")
 	private serviceTypeEnum serviceType;
@@ -70,21 +70,21 @@ public class ServiceCentre {
 		this.email = email;
 	}
 
-	public Location getLocation() {
-		return location;
-	}
+//	public Location getLocation() {
+//		return location;
+//	}
+//
+//	public void setLocation(Location location) {
+//		this.location = location;
+//	}
 
-	public void setLocation(Location location) {
-		this.location = location;
-	}
-
-	public Payment getPayment() {
-		return payment;
-	}
-
-	public void setPayment(Payment payment) {
-		this.payment = payment;
-	}
+//	public Payment getPayment() {
+//		return payment;
+//	}
+//
+//	public void setPayment(Payment payment) {
+//		this.payment = payment;
+//	}
 
 	public serviceTypeEnum getServiceType() {
 		return serviceType;
