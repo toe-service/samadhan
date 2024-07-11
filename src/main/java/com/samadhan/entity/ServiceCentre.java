@@ -1,11 +1,6 @@
 package com.samadhan.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.samadhan.enums.serviceTypeEnum;
 
@@ -28,12 +23,21 @@ public class ServiceCentre {
 	
 	@Column(name="active")
 	private boolean active;
+
 	
 //	@Column(name="location")
 //	private Location location;
 	
 //	@Column(name="payment")
 //	private Payment payment;
+
+
+// 	@OneToOne
+// 	private Location location;
+
+// 	@OneToOne
+// 	private Payment payment;
+
 	
 	@Column(name="service_type")
 	private serviceTypeEnum serviceType;
