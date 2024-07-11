@@ -9,6 +9,6 @@ import com.samadhan.entity.*;
 @Repository
 public interface ServiceCentreRepo extends JpaRepository<ServiceCentre, Long> {
 	
-	@Query(value="select * from Service_centre sc where sc.city_name =:city and sc.active=true" ,nativeQuery = true)
-	ServiceCentre findByfilters(String city);
+	@Query(value="select * from Service_centre sc where sc.active=true" ,nativeQuery = true)
+	ServiceCentre findByfilters();
 }
