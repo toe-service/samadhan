@@ -1,5 +1,7 @@
 package com.samadhan.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,10 +31,14 @@ public class ServiceCentreAndTowController {
 	 
 	 
 	 @GetMapping(value = "/getAllServiceCentreByfilters")
-	    public ServiceCentre getAllServiceCentreByfilters(@RequestParam String city,@RequestParam Long pickuplatitude,@RequestParam Long pickuplongitude,@RequestParam Long destinationlatitude,@RequestParam Long destinationlongitude, @RequestParam serviceTypeEnum serviceType) {
-		 ServiceCentre resp = ServiceCentreService.getAllServiceCentreByfilters(city,pickuplatitude,pickuplongitude,destinationlatitude,destinationlongitude,serviceType);
-	       return resp;
-	    }
+//	    public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam String city,@RequestParam String pickuplatitude,@RequestParam String pickuplongitude,@RequestParam Long destinationlatitude,@RequestParam Long destinationlongitude, @RequestParam serviceTypeEnum serviceType) {
+		public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam String city,
+				@RequestParam String pickuplatitude, @RequestParam String pickuplongitude) {
+			
+		 	List<ServiceCentre> serviceCentresWithinFiftyKm = ServiceCentreService.getAllServiceCentreByfilters(city,
+					pickuplatitude, pickuplongitude);
+			return serviceCentresWithinFiftyKm;
+		}
 	 
 	 
 	 @PostMapping(value = "/addServiceCentre")

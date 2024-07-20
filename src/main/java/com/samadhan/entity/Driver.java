@@ -10,6 +10,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -48,7 +50,51 @@ public class Driver {
 	@Column(name="driver_longitude")
 	private boolean driverLongitude;
 	
+	@ManyToOne
+	@JoinColumn(name = "service_centre_id")
+	private ServiceCentre serviceCentre;
 	
+	
+	public boolean isDriverCity() {
+		return driverCity;
+	}
+
+	public void setDriverCity(boolean driverCity) {
+		this.driverCity = driverCity;
+	}
+
+	public List<Ride> getRides() {
+		return rides;
+	}
+
+	public void setRides(List<Ride> rides) {
+		this.rides = rides;
+	}
+
+	public boolean isDriverLatitude() {
+		return driverLatitude;
+	}
+
+	public void setDriverLatitude(boolean driverLatitude) {
+		this.driverLatitude = driverLatitude;
+	}
+
+	public boolean isDriverLongitude() {
+		return driverLongitude;
+	}
+
+	public void setDriverLongitude(boolean driverLongitude) {
+		this.driverLongitude = driverLongitude;
+	}
+
+	public ServiceCentre getServiceCentre() {
+		return serviceCentre;
+	}
+
+	public void setServiceCentre(ServiceCentre serviceCentre) {
+		this.serviceCentre = serviceCentre;
+	}
+
 	public Long getId() {
 		return id;
 	}

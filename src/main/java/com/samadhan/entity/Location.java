@@ -1,11 +1,16 @@
 package com.samadhan.entity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name="location")
@@ -31,10 +36,13 @@ public class Location {
 	private Long shopNumber;
 	
 	@Column(name="latitude")
-	private Long latitude;
+	private String latitude;
 	
 	@Column(name="longitude")
-	private Long longitude;
+	private String longitude;
+	
+	@OneToOne(mappedBy = "location", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private ServiceCentre serviceCentre;
 
 	public Long getId() {
 		return id;
@@ -84,23 +92,28 @@ public class Location {
 		this.shopNumber = shopNumber;
 	}
 
-	public Long getLatitude() {
+	public String getLatitude() {
 		return latitude;
 	}
 
-	public void setLatitude(Long latitude) {
+	public void setLatitude(String latitude) {
 		this.latitude = latitude;
 	}
 
-	public Long getLongitude() {
+	public String getLongitude() {
 		return longitude;
 	}
 
-	public void setLongitude(Long longitude) {
+	public void setLongitude(String longitude) {
 		this.longitude = longitude;
 	}
-	
-	
-	
+
+	public ServiceCentre getServiceCentre() {
+		return serviceCentre;
+	}
+
+	public void setServiceCentre(ServiceCentre serviceCentre) {
+		this.serviceCentre = serviceCentre;
+	}
 	
 }

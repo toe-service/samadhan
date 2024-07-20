@@ -1,5 +1,7 @@
 package com.samadhan.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,11 +31,15 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 
 
 	@Override
-	public ServiceCentre getAllServiceCentreByfilters(String city, Long pickuplatitude, Long pickuplongitude, Long destinationlatitude, Long destinationlongitude, serviceTypeEnum serviceType) {
-		ServiceCentre service=(ServiceCentre) serviceCentreRepo.findByfilters();
+	public List<ServiceCentre> getAllServiceCentreByfilters(String city, String pickuplatitude, String pickuplongitude) {
+		//ServiceCentre service=(ServiceCentre) serviceCentreRepo.findByfilters();
 		
+		double distance=50.0;
 		//find service centre within 50km
-		return null;
+		
+		List<ServiceCentre> serviceCentresWithinFiftyKm=serviceCentreRepo.findAllServiceCentreByfilters(pickuplatitude,pickuplongitude,distance);
+		
+		return serviceCentresWithinFiftyKm;
 	}
 
 }

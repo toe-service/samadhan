@@ -1,12 +1,18 @@
 package com.samadhan.entity;
 
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.samadhan.enums.PaymentTypeEnum;
@@ -31,6 +37,13 @@ public class Payment {
 	
 	@Column(name="end_date")
 	private Date endDate;
+	
+//	@OneToOne(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private ServiceCentre serviceCentre;
+	
+	@ManyToOne
+	@JoinColumn(name = "service_centre_id")
+	private ServiceCentre serviceCentre;
 
 	public Long getId() {
 		return id;
@@ -70,6 +83,14 @@ public class Payment {
 
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
+	}
+
+	public ServiceCentre getServiceCentre() {
+		return serviceCentre;
+	}
+
+	public void setServiceCentre(ServiceCentre serviceCentre) {
+		this.serviceCentre = serviceCentre;
 	}
 	
 	
