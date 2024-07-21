@@ -1,5 +1,7 @@
 package com.samadhan.service;
 
+import java.util.List;
+
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.enums.serviceTypeEnum;
 
@@ -9,6 +11,6 @@ public interface ServiceCentreService {
 
 	ServiceCentre createServiceCentre(ServiceCentre serviceCentre);
 
-	ServiceCentre getAllServiceCentreByfilters(String city, Long pickuplatitude, Long pickuplongitude, Long destinationlatitude, Long destinationlongitude, serviceTypeEnum serviceType);
+	List<ServiceCentre> getAllServiceCentreByfilters(String city, String pickuplatitude, String pickuplongitude);
 
 }

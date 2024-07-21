@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.ServiceCentre;
 import com.samadhan.service.driversService;
 
 
@@ -39,5 +40,17 @@ public class DriverController {
 		return ResponseEntity.ok(response);
         
     }
+	
+	
+	 @GetMapping(value = "/getAllDriversByfilters")
+//	    public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam String city,@RequestParam String pickuplatitude,@RequestParam String pickuplongitude,@RequestParam Long destinationlatitude,@RequestParam Long destinationlongitude, @RequestParam serviceTypeEnum serviceType) {
+		public List<Driver> getAllDriversByfilters(
+				@RequestParam String pickuplatitude, @RequestParam String pickuplongitude) {
+			
+		 	List<Driver> driversWithinFiftyKm = driversService.getAllDriversByfilters(pickuplatitude, pickuplongitude);
+			return driversWithinFiftyKm;
+		}
+	
+	
 
 }

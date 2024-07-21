@@ -1,7 +1,21 @@
 package com.samadhan.entity;
 
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.samadhan.enums.serviceTypeEnum;
 
 @Entity
@@ -19,16 +33,26 @@ public class ServiceCentre {
 	private Long contactNumber;
 	
 	@Column(name="email")
-	private Long email;
+	private String email;
 	
 	@Column(name="active")
 	private boolean active;
 
 	
-//	@Column(name="location")
-//	private Location location;
+	@OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id", referencedColumnName = "id")
+	@JsonIgnore
+    private Location location;
 	
-//	@Column(name="payment")
+	@OneToMany(mappedBy = "serviceCentre", cascade = CascadeType.ALL)
+	private List<Payment> payment;
+	
+	@OneToMany(mappedBy = "serviceCentre", cascade = CascadeType.ALL)
+	private List<Driver> drivers;
+	
+//	@OneToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "payment_id", referencedColumnName = "id")
+//	//@Column(name="payment")
 //	private Payment payment;
 
 
@@ -66,21 +90,21 @@ public class ServiceCentre {
 		this.contactNumber = contactNumber;
 	}
 
-	public Long getEmail() {
+	public String getEmail() {
 		return email;
 	}
 
-	public void setEmail(Long email) {
+	public void setEmail(String email) {
 		this.email = email;
 	}
 
-//	public Location getLocation() {
-//		return location;
-//	}
-//
-//	public void setLocation(Location location) {
-//		this.location = location;
-//	}
+	public Location getLocation() {
+		return location;
+	}
+
+	public void setLocation(Location location) {
+		this.location = location;
+	}
 
 //	public Payment getPayment() {
 //		return payment;
@@ -89,13 +113,43 @@ public class ServiceCentre {
 //	public void setPayment(Payment payment) {
 //		this.payment = payment;
 //	}
+//
+//	public serviceTypeEnum getServiceType() {
+//		return serviceType;
+//	}
+	
+	
+
+	public void setServiceType(serviceTypeEnum serviceType) {
+		this.serviceType = serviceType;
+	}
+
+	public List<Payment> getPayment() {
+		return payment;
+	}
+
+	public void setPayment(List<Payment> payment) {
+		this.payment = payment;
+	}
 
 	public serviceTypeEnum getServiceType() {
 		return serviceType;
 	}
 
-	public void setServiceType(serviceTypeEnum serviceType) {
-		this.serviceType = serviceType;
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public List<Driver> getDrivers() {
+		return drivers;
+	}
+
+	public void setDrivers(List<Driver> drivers) {
+		this.drivers = drivers;
 	}
 	
 	
