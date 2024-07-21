@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.ServiceCentreRepo;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ServiceCentreServiceImpl implements ServiceCentreService{

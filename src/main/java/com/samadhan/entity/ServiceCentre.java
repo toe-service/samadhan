@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.samadhan.enums.serviceTypeEnum;
@@ -36,6 +37,7 @@ public class ServiceCentre {
 	
 	@Column(name="active")
 	private boolean active;
+
 	
 	@OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", referencedColumnName = "id")
@@ -52,6 +54,14 @@ public class ServiceCentre {
 //    @JoinColumn(name = "payment_id", referencedColumnName = "id")
 //	//@Column(name="payment")
 //	private Payment payment;
+
+
+// 	@OneToOne
+// 	private Location location;
+
+// 	@OneToOne
+// 	private Payment payment;
+
 	
 	@Column(name="service_type")
 	private serviceTypeEnum serviceType;

@@ -15,6 +15,8 @@ public class NotificationMessage {
 	private String body;
 	private String image;
 	private Map<String, String> data;
+//	private String destinationLatitude;
+//	private String destinationLongitude;
 	//private List<ServiceCentre> serviceCentre;
 	private List<Driver> drivers;
 	
