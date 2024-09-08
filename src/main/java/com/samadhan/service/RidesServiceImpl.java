@@ -1,5 +1,7 @@
 package com.samadhan.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,15 +15,21 @@ public class RidesServiceImpl implements RidesService{
 	RidesRepository rideRepo;
 	
 	@Override
-	public Ride popupRemove(Ride ride) {
+	public Ride popupRemove(Long rideId,Long userId,Long driverId) {
 		
-		long userId=0l;
-		long rideId=ride.getId();
-		long driverId=0l;
-		
-		Ride rides=rideRepo.findByStatus();
+		Ride rides=rideRepo.findByStatus(rideId,userId,driverId);
 		
 		return rides;
+	}
+
+	@Override
+	public List<Ride> getRidesByuser(Long userId) {
+		
+		
+	//	List<Ride> ridesByUserId=rideRepo.findByUserId(userId);
+		
+		
+		return null;
 	}
 
 }

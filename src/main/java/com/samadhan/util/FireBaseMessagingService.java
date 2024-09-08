@@ -28,8 +28,8 @@ public class FireBaseMessagingService {
 			for(Driver driver: driverList) {
 			
 			Notification notification = Notification.builder().setTitle(notificationMessage.getTitle()).setBody(notificationMessage.getBody()).setImage(notificationMessage.getImage()).build();
-			Message message = Message.builder().setToken(notificationMessage.getRecipientToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
-			//Message message = Message.builder().setToken(driver.getDriverToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
+			//Message message = Message.builder().setToken(notificationMessage.getRecipientToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
+			Message message = Message.builder().setToken(driver.getDriverToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
 		
 			firebaseMessaging.send(message);
 			

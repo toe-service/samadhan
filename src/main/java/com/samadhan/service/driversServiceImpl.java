@@ -1,14 +1,21 @@
 package com.samadhan.service;
 
+
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
+import com.samadhan.entity.User;
 import com.samadhan.repository.DriverRepository;
+import com.samadhan.repository.RidesRepository;
 import com.samadhan.repository.ServiceCentreRepo;
+import com.samadhan.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -18,15 +25,42 @@ public class driversServiceImpl implements driversService{
 	@Autowired
 	DriverRepository driverRepo;
 	
+	@Autowired
+	RidesRepository rideRepo;
+	
+	@Autowired
+	UserRepository userRepo;
+	
 	@Override
 	public Driver getById(Long id) {
-		//Driver d=new Driver();
-		return null;
+		
+		Optional<Driver> optdriver=driverRepo.findById(id);
+		
+		Driver driver=optdriver.get();
+		
+		return driver;
 	}
 
 	@Override
-	public Driver getdriverResponse(Driver driver) {
-		return null;
+	public Driver getdriverResponse(Driver driver, int otp,long userId) {
+		
+		Ride ride=new Ride();
+		
+		Optional<User> user=userRepo.findById(userId);
+		
+		ride.setDriver(driver);
+		ride.setRideStatus(true);
+		ride.setDriverResponse(true);
+		ride.setDriverDeclinationReason("NA");
+		ride.setRideOtp(otp);
+		ride.setUser(user.get());
+		ride.setRideResponseTime(LocalDateTime.now());
+		
+		rideRepo.save(ride);
+		
+		System.out.println();
+		
+		return driver;
 	}
 
 	@Override
@@ -37,6 +71,13 @@ public class driversServiceImpl implements driversService{
 		List<Driver> driversWithinFiftyKm=driverRepo.findAllDriversByfilters(pickuplatitude,pickuplongitude,distance);
 		
 		return driversWithinFiftyKm;
+	}
+
+	@Override
+	public Driver createdriver(Driver driver) {
+		
+		Driver driverData=driverRepo.save(driver);
+		return driverData;
 	}
 
 }

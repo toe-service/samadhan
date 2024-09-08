@@ -8,8 +8,10 @@ public interface driversService {
 
 	Driver getById(Long id);
 
-	Driver getdriverResponse(Driver driver);
+	Driver getdriverResponse(Driver driver,int otp,long userId);
 
 	List<Driver> getAllDriversByfilters(String pickuplatitude, String pickuplongitude);
+
+	Driver createdriver(Driver driver);
 
 }
