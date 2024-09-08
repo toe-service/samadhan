@@ -15,6 +15,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name="driver")
 public class Driver {
@@ -27,7 +29,7 @@ public class Driver {
 	private String driverName;
 	
 	@Column(name="driver_contact_number")
-	private Long driverContactNumber;
+	private String driverContactNumber;
 	
 	@Column(name="driver_email")
 	private String driverEmail;
@@ -36,7 +38,7 @@ public class Driver {
 	private boolean driverActive;
 	
 	@Column(name="driver_city")
-	private boolean driverCity;
+	private String driverCity;
 	
 	@Column(name="driver_token")
 	private String driverToken;
@@ -45,21 +47,22 @@ public class Driver {
 	private List<Ride> rides;
 	
 	@Column(name="driver_latitude")
-	private boolean driverLatitude;
+	private String driverLatitude;
 	
 	@Column(name="driver_longitude")
-	private boolean driverLongitude;
+	private String driverLongitude;
 	
 	@ManyToOne
 	@JoinColumn(name = "service_centre_id")
+	@JsonIgnore
 	private ServiceCentre serviceCentre;
 	
 	
-	public boolean isDriverCity() {
+	public String isDriverCity() {
 		return driverCity;
 	}
 
-	public void setDriverCity(boolean driverCity) {
+	public void setDriverCity(String driverCity) {
 		this.driverCity = driverCity;
 	}
 
@@ -71,19 +74,19 @@ public class Driver {
 		this.rides = rides;
 	}
 
-	public boolean isDriverLatitude() {
+	public String isDriverLatitude() {
 		return driverLatitude;
 	}
 
-	public void setDriverLatitude(boolean driverLatitude) {
+	public void setDriverLatitude(String driverLatitude) {
 		this.driverLatitude = driverLatitude;
 	}
 
-	public boolean isDriverLongitude() {
+	public String isDriverLongitude() {
 		return driverLongitude;
 	}
 
-	public void setDriverLongitude(boolean driverLongitude) {
+	public void setDriverLongitude(String driverLongitude) {
 		this.driverLongitude = driverLongitude;
 	}
 
@@ -111,11 +114,11 @@ public class Driver {
 		this.driverName = driverName;
 	}
 
-	public Long getDriverContactNumber() {
+	public String getDriverContactNumber() {
 		return driverContactNumber;
 	}
 
-	public void setDriverContactNumber(Long driverContactNumber) {
+	public void setDriverContactNumber(String driverContactNumber) {
 		this.driverContactNumber = driverContactNumber;
 	}
 

@@ -35,8 +35,8 @@ public class DriverController {
     }
 	
 	@PostMapping(value = "/driver-response")
-    public ResponseEntity<Driver> driverResponse(@RequestBody Driver driver) {
-		Driver response = driversService.getdriverResponse(driver);
+    public ResponseEntity<Driver> driverResponse(@RequestBody Driver driver,@RequestParam int otp,@RequestParam long userId) {
+		Driver response = driversService.getdriverResponse(driver,otp,userId);
 		return ResponseEntity.ok(response);
         
     }
@@ -51,6 +51,12 @@ public class DriverController {
 			return driversWithinFiftyKm;
 		}
 	
-	
+	//Driver registration API
+	 
+	 @PostMapping(value = "/register-Driver")
+	    public Driver createDriver(@RequestBody Driver driver) {
+		 Driver resp = driversService.createdriver(driver);
+	       return resp;
+	    }
 
 }

@@ -1,5 +1,7 @@
 package com.samadhan.entity;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name="rides")
@@ -33,12 +37,47 @@ public class Ride {
 	
 	@ManyToOne
 	@JoinColumn(name = "driver_id")
+	@JsonIgnore
 	private Driver driver;
 
 	 @OneToOne(cascade = CascadeType.ALL)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
+	 @JsonIgnore
 	 private User user;
+	 
+	 @Column(name="ride_response_time")
+	 private LocalDateTime rideResponseTime;
+	 
+	 @Column(name="ride_start_time")
+	 private LocalDateTime ridestartTime;
+	 
+	 @Column(name="ride_end_time")
+	 private LocalDateTime rideendTime;
 	
+	public LocalDateTime getRideResponseTime() {
+		return rideResponseTime;
+	}
+
+	public void setRideResponseTime(LocalDateTime rideResponseTime) {
+		this.rideResponseTime = rideResponseTime;
+	}
+
+	public LocalDateTime getRidestartTime() {
+		return ridestartTime;
+	}
+
+	public void setRidestartTime(LocalDateTime ridestartTime) {
+		this.ridestartTime = ridestartTime;
+	}
+
+	public LocalDateTime getRideendTime() {
+		return rideendTime;
+	}
+
+	public void setRideendTime(LocalDateTime rideendTime) {
+		this.rideendTime = rideendTime;
+	}
+
 	public Long getId() {
 		return id;
 	}

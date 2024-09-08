@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class PaymentServiceImpl {
@@ -26,10 +27,16 @@ public class PaymentServiceImpl {
     }
 
 
+//    public List<SubscriptionResponse> getAllSubscriptions() {
+//        return Arrays.stream(SubscriptionPrice.values())
+//                .map(obj -> new SubscriptionResponse(obj.getSubscriptionName(), obj.getPrice(), Collections.emptyList()))
+//                .toList();
+//    }
+    
     public List<SubscriptionResponse> getAllSubscriptions() {
         return Arrays.stream(SubscriptionPrice.values())
                 .map(obj -> new SubscriptionResponse(obj.getSubscriptionName(), obj.getPrice(), Collections.emptyList()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
 }

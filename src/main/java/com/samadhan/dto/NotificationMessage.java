@@ -10,7 +10,7 @@ import com.samadhan.entity.ServiceCentre;
 @Data
 public class NotificationMessage {
 
-	private String recipientToken;
+	//private String recipientToken;
 	private String title;
 	private String body;
 	private String image;
