@@ -12,6 +12,7 @@ import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.entity.User;
+import com.samadhan.exception.SamadhanException;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.RidesRepository;
 import com.samadhan.repository.ServiceCentreRepo;
@@ -42,11 +43,19 @@ public class driversServiceImpl implements driversService{
 	}
 
 	@Override
-	public Driver getdriverResponse(Driver driver, int otp,long userId) {
+	public Ride getdriverResponse(Driver driver, int otp,long userId) throws Exception {
 		
 		Ride ride=new Ride();
 		
 		Optional<User> user=userRepo.findById(userId);
+		
+		Ride ridepresent=rideRepo.existRide(driver.getId(),userId);
+		
+		if(ridepresent!=null) {
+			throw new SamadhanException("Ride Already Exist");
+		}
+		
+		
 		
 		ride.setDriver(driver);
 		ride.setRideStatus(true);
@@ -60,7 +69,7 @@ public class driversServiceImpl implements driversService{
 		
 		System.out.println();
 		
-		return driver;
+		return ride;
 	}
 
 	@Override
