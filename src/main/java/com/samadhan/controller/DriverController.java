@@ -14,9 +14,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+//import com.kent.smartassist.constant.SmartAssistanceConstant;
+//import com.kent.smartassist.exception.SmartAssistanceException;
+//import com.kent.smartassist.reponse.util.ResponseUtil;
+import com.samadhan.response.*;
+import com.samadhan.response.Error;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
+import com.samadhan.exception.SamadhanException;
 import com.samadhan.service.driversService;
+import com.samadhan.util.ResponseUtil;
 
 
 
@@ -35,9 +44,21 @@ public class DriverController {
     }
 	
 	@PostMapping(value = "/driver-response")
-    public ResponseEntity<Driver> driverResponse(@RequestBody Driver driver,@RequestParam int otp,@RequestParam long userId) {
-		Driver response = driversService.getdriverResponse(driver,otp,userId);
-		return ResponseEntity.ok(response);
+    public ResponseEntity<Object> driverResponse(@RequestBody Driver driver,@RequestParam int otp,@RequestParam long userId) throws Exception {
+	try {
+		Ride response = driversService.getdriverResponse(driver,otp,userId);
+	//	return ResponseEntity.ok(response);
+		
+		
+		return ResponseEntity
+				.ok(ResponseUtil.populateResponseObject(response, "SUCCESS", null));
+	} catch (SamadhanException ex) {
+		//log.error("Inside catch block of  DeviceController getAllDevices() method::: " + ex.getMessage(), ex);
+		return ResponseEntity.ok(ResponseUtil.populateResponseObject(null, "FAIL",
+				new Error("Driver",ex.getMessage())));
+	}
+		
+		
         
     }
 	
