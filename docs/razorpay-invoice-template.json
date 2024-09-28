@@ -1,0 +1,39 @@
+{
+  "sms_notify": 1,
+  "partial_payment": true,
+  "description": "Invoice for the month of January 2020",
+  "currency": "INR",
+  "line_items": [
+    {
+      "amount": 399,
+      "quantity": 1,
+      "name": "Master Cloud Computing in 30 Days",
+      "description": "Book by Ravena Ravenclaw",
+      "currency": "INR"
+    }
+  ],
+  "type": "invoice",
+  "email_notify": 1,
+  "expire_by": 2180479824,
+  "customer": {
+    "contact": "7275118711",
+    "name": "Jatin",
+    "billing_address": {
+      "zipcode": "560068",
+      "country": "in",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "line2": "Hosur Road",
+      "line1": "Ground & 1st Floor, SJR Cyber Laskar"
+    },
+    "shipping_address": {
+      "zipcode": "560068",
+      "country": "in",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "line2": "Hosur Road",
+      "line1": "Ground & 1st Floor, SJR Cyber Laskar"
+    },
+    "email": "amit96pal.ap@gmail.com"
+  }
+}
