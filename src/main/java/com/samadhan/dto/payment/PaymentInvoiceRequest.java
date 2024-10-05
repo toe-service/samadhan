@@ -12,10 +12,13 @@ import java.util.List;
 @AllArgsConstructor
 public class PaymentInvoiceRequest {
 
+    @JsonProperty(value = "type")
     private String type;
+    @JsonProperty(value = "description")
     private String description;
     @JsonProperty(value = "partial_payment")
     private Boolean partialPayment;
+    @JsonProperty(value = "customer")
     private Customer customer;
     @JsonProperty(value = "line_items")
     private List<LineItem> lineItems;
@@ -23,6 +26,7 @@ public class PaymentInvoiceRequest {
     private Integer emailNotify;
     @JsonProperty(value = "sms_notify")
     private Integer smsNotify;
+    @JsonProperty(value = "currency")
 	private String currency;
 	@JsonProperty(value = "expire_by")
 	private Long expireBy;
