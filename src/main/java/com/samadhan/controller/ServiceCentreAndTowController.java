@@ -2,6 +2,9 @@ package com.samadhan.controller;
 
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.samadhan.dto.ServiceCentreWrapper;
+import com.samadhan.entity.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,21 +27,32 @@ public class ServiceCentreAndTowController {
 	
 	
 	 @GetMapping(value = "/getAllServiceCentre")
-	    public ServiceCentre getAllServiceCentre() {
-		 ServiceCentre resp = ServiceCentreService.getAllServiceCentres();
+	    public List<ServiceCentre> getAllServiceCentre() {
+		 System.out.println("hi");
+		 List<ServiceCentre> resp = ServiceCentreService.getAllServiceCentres();
+		 System.out.println("resp"+resp);
 	       return resp;
 	    }
 	 
 	 
 	 @GetMapping(value = "/getAllServiceCentreByfilters")
 //	    public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam String city,@RequestParam String pickuplatitude,@RequestParam String pickuplongitude,@RequestParam Long destinationlatitude,@RequestParam Long destinationlongitude, @RequestParam serviceTypeEnum serviceType) {
-		public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam String city,
-				@RequestParam String pickuplatitude, @RequestParam String pickuplongitude) {
-			
-		 	List<ServiceCentre> serviceCentresWithinFiftyKm = ServiceCentreService.getAllServiceCentreByfilters(city,
-					pickuplatitude, pickuplongitude);
+		public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam Integer serviceType,
+				@RequestParam String pickuplatitude, @RequestParam String pickuplongitude,@RequestParam String destinationlatitude,@RequestParam String destinationlongitude) {
+		 System.out.println("hi");
+		 	List<ServiceCentre> serviceCentresWithinFiftyKm = ServiceCentreService.getAllServiceCentreByfilters(serviceType,
+					pickuplatitude, pickuplongitude,destinationlatitude, destinationlongitude);
 			return serviceCentresWithinFiftyKm;
 		}
+
+	@GetMapping(value = "/getAllServiceCentreDriverByfilters")
+	public List<ServiceCentreWrapper> getAllServiceCentreDriverByfilters (@RequestParam Integer serviceType,
+															@RequestParam String pickuplatitude, @RequestParam String pickuplongitude,@RequestParam String destinationlatitude,@RequestParam String destinationlongitude) throws JsonProcessingException {
+		System.out.println("hi");
+		List<ServiceCentreWrapper> serviceCentresDriversWithinFiftyKm = ServiceCentreService.getAllServiceCentreDriverByfilters(serviceType,
+				pickuplatitude, pickuplongitude,destinationlatitude, destinationlongitude);
+		return serviceCentresDriversWithinFiftyKm;
+	}
 	 
 	 
 	 @PostMapping(value = "/addServiceCentre")

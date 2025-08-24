@@ -25,11 +25,12 @@ public class RidesServiceImpl implements RidesService{
 	@Override
 	public List<Ride> getRidesByuser(Long userId) {
 		
+
+		List<Ride> ridesByUserId=rideRepo.findByUserId(userId);
+		System.out.println("ridesByUserId"+ridesByUserId);
+		return ridesByUserId;
 		
-	//	List<Ride> ridesByUserId=rideRepo.findByUserId(userId);
-		
-		
-		return null;
+//		return null;
 	}
 
 }

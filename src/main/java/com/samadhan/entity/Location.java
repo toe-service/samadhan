@@ -10,10 +10,13 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name="location")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Location {
 
 	@Id
@@ -42,6 +45,7 @@ public class Location {
 	private String longitude;
 	
 	@OneToOne(mappedBy = "location", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonBackReference
 	private ServiceCentre serviceCentre;
 
 	public Long getId() {

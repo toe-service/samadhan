@@ -6,19 +6,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.samadhan.dto.NotificationMessage;
-import com.samadhan.util.FireBaseMessagingService; 
 
 @RestController 
 @RequestMapping("/notification") 
 public class NotificationController {
 
-    @Autowired 
-    FireBaseMessagingService fireBaseMessagingService; 
-	
-	@PostMapping("/notify") 
-	public String sendNotificationByToken(@RequestBody NotificationMessage notificationMessage){ 
-		return fireBaseMessagingService.sendNotificationByToken(notificationMessage); 
-	} 
+//    @Autowired
+//    FireBaseMessagingService fireBaseMessagingService;
+//
+//	@PostMapping("/notify")
+//	public String sendNotificationByToken(@RequestBody NotificationMessage notificationMessage){
+//		return fireBaseMessagingService.sendNotificationByToken(notificationMessage);
+//	}
 	
 	
 }

@@ -94,7 +94,12 @@ public class PaymentController {
 		return ResponseEntity.ok(allSubscriptions);
 	}
 
-	
+	@GetMapping("/rideCostCalculation")
+	public ResponseEntity<Double> getrideCostCalculation(@RequestParam int distance) {
+		double rideCostCalculation = paymentService.getrideCostCalculation(distance);
+		return ResponseEntity.ok(rideCostCalculation);
+	}
+
 	
 	
 }

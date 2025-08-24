@@ -22,7 +22,7 @@ public interface RidesRepository  extends JpaRepository<Ride, Long>{
 //	@Query(value="select * from ride" ,nativeQuery = true)
 //	Ride findByStatus();
 //	
-//	@Query(value="select * from ride where user_id=:id" ,nativeQuery = true)
-//	List<Ride> findByUserId(Long userId);
+	@Query(value="select * from rides where user_id=:userId" ,nativeQuery = true)
+	List<Ride> findByUserId(Long userId);
 
 }

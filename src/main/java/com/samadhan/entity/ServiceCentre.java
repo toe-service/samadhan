@@ -15,11 +15,15 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.samadhan.enums.serviceTypeEnum;
 
 @Entity
 @Table(name="Service_centre")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ServiceCentre {
 	
 	@Id
@@ -41,7 +45,7 @@ public class ServiceCentre {
 	
 	@OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", referencedColumnName = "id")
-	@JsonIgnore
+	@JsonManagedReference
     private Location location;
 	
 	@OneToMany(mappedBy = "serviceCentre", cascade = CascadeType.ALL)
@@ -65,6 +69,12 @@ public class ServiceCentre {
 	
 	@Column(name="service_type")
 	private serviceTypeEnum serviceType;
+
+	@Transient
+	private String destinationLatitude;
+
+	@Transient
+	private String destinationLongitude;
 
 	public Long getId() {
 		return id;
@@ -151,6 +161,20 @@ public class ServiceCentre {
 	public void setDrivers(List<Driver> drivers) {
 		this.drivers = drivers;
 	}
-	
-	
+
+	public String getDestinationLatitude() {
+		return destinationLatitude;
+	}
+
+	public String getDestinationLongitude() {
+		return destinationLongitude;
+	}
+
+	public void setDestinationLatitude(String destinationLatitude) {
+		this.destinationLatitude = destinationLatitude;
+	}
+
+	public void setDestinationLongitude(String destinationLongitude) {
+		this.destinationLongitude = destinationLongitude;
+	}
 }

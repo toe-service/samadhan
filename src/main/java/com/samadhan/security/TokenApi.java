@@ -1,8 +1,8 @@
 package com.samadhan.security;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
+//import com.google.firebase.auth.FirebaseAuth;
+//import com.google.firebase.auth.FirebaseAuthException;
+//import com.google.firebase.auth.FirebaseToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -84,13 +84,13 @@ public class TokenApi {
     }
 
 
-    public boolean verifyFirebaseToken(String idToken) throws FirebaseAuthException {
-        try {
-            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-            decodedToken.getUid();
-            return true;
-        } catch (Exception exp) {
-            return false;
-        }
-    }
+//    public boolean verifyFirebaseToken(String idToken) throws FirebaseAuthException {
+//        try {
+//            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+//            decodedToken.getUid();
+//            return true;
+//        } catch (Exception exp) {
+//            return false;
+//        }
+//    }
 }

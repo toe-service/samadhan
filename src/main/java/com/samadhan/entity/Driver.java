@@ -4,16 +4,7 @@ import lombok.Data;
 
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -53,11 +44,40 @@ public class Driver {
 	private String driverLongitude;
 	
 	@ManyToOne
-	@JoinColumn(name = "service_centre_id")
+//	@JoinColumn(name = "service_centre_id")
 	@JsonIgnore
 	private ServiceCentre serviceCentre;
-	
-	
+
+	@Transient
+	private String destinationLatitude;
+
+	@Transient
+	private String destinationLongitude;
+
+	public String getDestinationLatitude() {
+		return destinationLatitude;
+	}
+
+	public String getDriverLongitude() {
+		return driverLongitude;
+	}
+
+	public String getDriverLatitude() {
+		return driverLatitude;
+	}
+
+	public String getDestinationLongitude() {
+		return destinationLongitude;
+	}
+
+	public void setDestinationLatitude(String destinationLatitude) {
+		this.destinationLatitude = destinationLatitude;
+	}
+
+	public void setDestinationLongitude(String destinationLongitude) {
+		this.destinationLongitude = destinationLongitude;
+	}
+
 	public String isDriverCity() {
 		return driverCity;
 	}

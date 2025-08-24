@@ -45,16 +45,17 @@ public class GaadiService implements SmsService {
     }
 
     public GeneralResponse verifyToken(String token) {
-        try {
-            if(tokenApi.verifyFirebaseToken(token)) {
-                return Utils.getSuccessResponse("token is valid");
-            } else {
-               return Utils.getUnauthorizeResponse();
-            }
-        } catch (Exception exp) {
-            //log error
-            return Utils.getFailureResponse(exp);
-        }
+//        try {
+//            if(tokenApi.verifyFirebaseToken(token)) {
+//                return Utils.getSuccessResponse("token is valid");
+//            } else {
+//               return Utils.getUnauthorizeResponse();
+//            }
+//        } catch (Exception exp) {
+//            //log error
+//            return Utils.getFailureResponse(exp);
+//        }
+        return null;
     }
 
     @Override
