@@ -1,12 +1,14 @@
 package com.samadhan.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samadhan.dto.ServiceCentreWrapper;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.VehicleTransfer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +100,14 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 
 
 		return servicecentrewrapperList;
+	}
+
+	@Override
+	public VehicleTransfer requestRideTransfer(String vehicleType, String vehicleModel, Date requestDate, String city, String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude) {
+
+	//VehicleTransfer requestRideTransfer=vehicleRepo.save();
+
+	return null;
 	}
 
 }

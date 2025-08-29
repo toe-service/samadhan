@@ -45,9 +45,9 @@ public class DriverController {
     }
 	
 	@PostMapping(value = "/driver-response")
-    public ResponseEntity<Object> driverResponse(@RequestBody Driver driver,@RequestParam int otp,@RequestParam long userId) throws Exception {
+    public ResponseEntity<Object> driverResponse(@RequestParam String rideId,@RequestBody Driver driver,@RequestParam int otp,@RequestParam long userId) throws Exception {
 	try {
-		Ride response = driversService.getdriverResponse(driver,otp,userId);
+		Ride response = driversService.getdriverResponse(driver,otp,userId,rideId);
 	//	return ResponseEntity.ok(response);
 		
 		

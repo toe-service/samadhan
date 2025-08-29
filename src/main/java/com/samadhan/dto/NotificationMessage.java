@@ -18,7 +18,7 @@ public class NotificationMessage {
 //	private String destinationLatitude;
 //	private String destinationLongitude;
 	//private List<ServiceCentre> serviceCentre;
-	private List<Driver> drivers;
+	private List<ServiceCentreWrapper> drivers;
 	
 	
 

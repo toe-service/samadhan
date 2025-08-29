@@ -14,7 +14,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 @Entity
 @Table(name="rides")
@@ -23,6 +25,9 @@ public class Ride {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	@Column(name = "ride_id", nullable = false, unique = true)
+	private String rideId;
 	
 	@Column(name="ride_status")
 	private boolean rideStatus;
@@ -97,6 +102,14 @@ public class Ride {
 
 	public int getRideOtp() {
 		return rideOtp;
+	}
+
+	public void setRideId(String rideId) {
+		this.rideId = rideId;
+	}
+
+	public String getRideId() {
+		return rideId;
 	}
 
 	public void setRideOtp(int rideOtp) {

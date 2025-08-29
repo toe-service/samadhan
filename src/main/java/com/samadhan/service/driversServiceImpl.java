@@ -3,10 +3,12 @@ package com.samadhan.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.google.type.DateTime;
 
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
@@ -43,33 +45,40 @@ public class driversServiceImpl implements driversService{
 	}
 
 	@Override
-	public Ride getdriverResponse(Driver driver, int otp,long userId) throws Exception {
-		
-		Ride ride=new Ride();
-		
-		Optional<User> user=userRepo.findById(userId);
-		
-		Ride ridepresent=rideRepo.existRide(driver.getId(),userId);
-		
-		if(ridepresent!=null) {
-			throw new SamadhanException("Ride Already Exist");
+	public Ride getdriverResponse(Driver driver, int otp,long userId,String rideId) throws Exception {
+		try {
+			Ride ride = new Ride();
+
+			//Optional<User> user=userRepo.findById(userId);
+			User user = userRepo.findById(userId)
+					.orElseThrow(() -> new SamadhanException("User with id " + userId + " not found"));
+
+
+			Ride ridepresent = rideRepo.existRide(driver.getId(), userId);
+
+			if (ridepresent != null) {
+				throw new SamadhanException("Ride is Already Accepted");
+			}
+
+
+			ride.setDriver(driver);
+			ride.setRideStatus(true);
+			ride.setDriverResponse(true);
+			ride.setDriverDeclinationReason("NA");
+			ride.setRideOtp(otp);
+			ride.setUser(user);
+			ride.setRideResponseTime(LocalDateTime.now());
+			ride.setRideId(rideId);
+			rideRepo.save(ride);
+
+			System.out.println();
+
+			return ride;
+
+		}catch (SamadhanException e){
+			throw e;
 		}
-		
-		
-		
-		ride.setDriver(driver);
-		ride.setRideStatus(true);
-		ride.setDriverResponse(true);
-		ride.setDriverDeclinationReason("NA");
-		ride.setRideOtp(otp);
-		ride.setUser(user.get());
-		ride.setRideResponseTime(LocalDateTime.now());
-		
-		rideRepo.save(ride);
-		
-		System.out.println();
-		
-		return ride;
+
 	}
 
 	@Override

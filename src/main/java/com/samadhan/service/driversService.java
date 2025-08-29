@@ -9,7 +9,7 @@ public interface driversService {
 
 	Driver getById(Long id);
 
-	Ride getdriverResponse(Driver driver,int otp,long userId) throws Exception;
+	Ride getdriverResponse(Driver driver,int otp,long userId,String rideId) throws Exception;
 
 	List<Driver> getAllDriversByfilters(String pickuplatitude, String pickuplongitude);
 

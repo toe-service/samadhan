@@ -1,10 +1,12 @@
 package com.samadhan.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.samadhan.dto.ServiceCentreWrapper;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.VehicleTransfer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,6 +54,15 @@ public class ServiceCentreAndTowController {
 		List<ServiceCentreWrapper> serviceCentresDriversWithinFiftyKm = ServiceCentreService.getAllServiceCentreDriverByfilters(serviceType,
 				pickuplatitude, pickuplongitude,destinationlatitude, destinationlongitude);
 		return serviceCentresDriversWithinFiftyKm;
+	}
+
+	@PostMapping(value = "/requestRideTransfer")
+	public VehicleTransfer requestRideTransfer(@RequestParam String vehicleType,@RequestParam String VehicleModel,@RequestParam Date requestDate,@RequestParam String city,
+																		  @RequestParam String pickuplatitude, @RequestParam String pickuplongitude,@RequestParam String destinationlatitude,@RequestParam String destinationlongitude) throws JsonProcessingException {
+		System.out.println("hi");
+		VehicleTransfer rideTransfer = ServiceCentreService.requestRideTransfer(vehicleType,VehicleModel,requestDate,city,
+				pickuplatitude, pickuplongitude,destinationlatitude, destinationlongitude);
+		return rideTransfer;
 	}
 	 
 	 
