@@ -49,14 +49,16 @@ public class DriverController {
 	try {
 		Ride response = driversService.getdriverResponse(driver,otp,userId,rideId);
 	//	return ResponseEntity.ok(response);
-		
-		
+		Object populateResponseObject = ResponseUtil.populateResponseObject(response, "SUCCESS", null);
+
 		return ResponseEntity
-				.ok(ResponseUtil.populateResponseObject(response, "SUCCESS", null));
+				.ok(populateResponseObject);
 	} catch (SamadhanException ex) {
 		//log.error("Inside catch block of  DeviceController getAllDevices() method::: " + ex.getMessage(), ex);
-		return ResponseEntity.ok(ResponseUtil.populateResponseObject(null, "FAIL",
-				new Error("Driver",ex.getMessage())));
+		throw ex;
+	}
+	catch (Exception exp) {
+		throw exp;
 	}
 		
 		

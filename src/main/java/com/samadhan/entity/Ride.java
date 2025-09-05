@@ -52,12 +52,15 @@ public class Ride {
 	 private User user;
 	 
 	 @Column(name="ride_response_time")
+	 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	 private LocalDateTime rideResponseTime;
 	 
 	 @Column(name="ride_start_time")
+	 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	 private LocalDateTime ridestartTime;
 	 
 	 @Column(name="ride_end_time")
+	 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	 private LocalDateTime rideendTime;
 	
 	public LocalDateTime getRideResponseTime() {

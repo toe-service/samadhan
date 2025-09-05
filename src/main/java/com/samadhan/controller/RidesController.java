@@ -44,8 +44,7 @@ public class RidesController {
 		return ResponseEntity
 				.ok(ResponseUtil.populateResponseObject(otp, "SUCCESS", null));
 	}catch(Exception e){
-		return ResponseEntity.ok(ResponseUtil.populateResponseObject(null, "FAIL",
-				new Error("otp",e.getMessage())));
+		throw e;
 
 
 
@@ -61,8 +60,7 @@ public class RidesController {
 			return ResponseEntity
 					.ok(ResponseUtil.populateResponseObject(ride, "SUCCESS", null));
 		}catch(SamadhanException e){
-			return ResponseEntity.ok(ResponseUtil.populateResponseObject(null, "FAIL",
-					new Error("RideStartEnd",e.getMessage())));
+			throw e;
 
 
 
@@ -80,8 +78,7 @@ public class RidesController {
 		return ResponseEntity
 				.ok(ResponseUtil.populateResponseObject(rideId, "SUCCESS", null));
 		}catch(Exception e){
-			return ResponseEntity.ok(ResponseUtil.populateResponseObject(null, "FAIL",
-					new Error("generateRideId",e.getMessage())));
+			throw e;
 
 		}
 	}

@@ -13,19 +13,17 @@ public class GlobalExceptionHandler {
     // For duplicate key / unique constraint violations
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        return ResponseEntity.ok(
-                ResponseUtil.populateResponseObject(
-                        null,
-                        "FAIL",
-                        new Error("Database", "Duplicate or invalid value: " + ex.getMostSpecificCause().getMessage())
-                )
-        );
+        return ResponseEntity.badRequest().body(ResponseUtil.populateResponseObject(
+                null,
+                "FAIL",
+                new Error("Database", "Duplicate or invalid value: " + ex.getMostSpecificCause().getMessage())
+        ));
     }
 
     // For your custom exceptions
     @ExceptionHandler(SamadhanException.class)
     public ResponseEntity<Object> handleSamadhanException(SamadhanException ex) {
-        return ResponseEntity.ok(
+        return ResponseEntity.internalServerError().body(
                 ResponseUtil.populateResponseObject(
                         null,
                         "FAIL",
@@ -37,7 +35,7 @@ public class GlobalExceptionHandler {
     // Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex) {
-        return ResponseEntity.ok(
+        return ResponseEntity.internalServerError().body(
                 ResponseUtil.populateResponseObject(
                         null,
                         "FAIL",
