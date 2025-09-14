@@ -15,7 +15,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         return ResponseEntity.badRequest().body(ResponseUtil.populateResponseObject(
                 null,
-                "FAIL",
+                "400",
                 new Error("Database", "Duplicate or invalid value: " + ex.getMostSpecificCause().getMessage())
         ));
     }
@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.internalServerError().body(
                 ResponseUtil.populateResponseObject(
                         null,
-                        "FAIL",
+                        "500",
                         new Error("RideStartEnd", ex.getMessage())
                 )
         );
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.internalServerError().body(
                 ResponseUtil.populateResponseObject(
                         null,
-                        "FAIL",
+                        "500",
                         new Error("Server", "Unexpected error: " + ex.getMessage())
                 )
         );
