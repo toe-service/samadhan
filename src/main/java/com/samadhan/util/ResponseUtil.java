@@ -25,7 +25,12 @@ public class ResponseUtil {
 		ResponseObject<Object> response = new ResponseObject<>();
 		response.setResponse(baseresponse);
 		Status status = new Status();
-		status.setResponseStatus(responseStatus);
+		if(responseStatus.equalsIgnoreCase("success")) {
+			status.setResponseStatus("200");
+		}
+		else {
+			status.setResponseStatus(responseStatus);
+		}
 		status.setError(error);
 		response.setStatus(status);
 		return response;
