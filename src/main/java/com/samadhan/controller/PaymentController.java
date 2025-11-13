@@ -5,6 +5,7 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.samadhan.response.SubscriptionResponse;
 import com.samadhan.service.PaymentServiceImpl;
+import com.samadhan.util.ResponseUtil;
 import com.samadhan.util.Utils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,9 +96,9 @@ public class PaymentController {
 	}
 
 	@GetMapping("/rideCostCalculation")
-	public ResponseEntity<Double> getrideCostCalculation(@RequestParam int distance) {
+	public ResponseEntity<Object> getrideCostCalculation(@RequestParam int distance) {
 		double rideCostCalculation = paymentService.getrideCostCalculation(distance);
-		return ResponseEntity.ok(rideCostCalculation);
+		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
 	}
 
 	
