@@ -17,6 +17,15 @@ public class ServiceCentreWrapper {
     private String destinationLongitude;
     private String sourceLatitude;
     private String sourceLongitude;
+    private String rideId;
+
+    public String getRideId() {
+        return rideId;
+    }
+
+    public void setRideId(String rideId) {
+        this.rideId = rideId;
+    }
 
     public void setSourceLatitude(String sourceLatitude) {
         this.sourceLatitude = sourceLatitude;

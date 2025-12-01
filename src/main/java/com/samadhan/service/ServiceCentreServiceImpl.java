@@ -56,7 +56,9 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 	}
 
 	@Override
-	public List<ServiceCentreWrapper> getAllServiceCentreDriverByfilters(Integer serviceType, String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude) throws JsonProcessingException {
+	public List<ServiceCentreWrapper> getAllServiceCentreDriverByfilters(Integer serviceType, String pickuplatitude, String pickuplongitude,
+                                                                         String destinationlatitude, String destinationlongitude,
+                                                                         String rideId) throws JsonProcessingException {
 		double distance=50.0;
 		//find drivers within 50km
 		System.out.println("In getAllServiceCentreDriverByfilters");
@@ -85,6 +87,7 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 			serviceCentrewrapper.setDriverToken(devicetoken);
 			serviceCentrewrapper.setDestinationLatitude(destinationlatitude);
 			serviceCentrewrapper.setDestinationLongitude(destinationlongitude);
+            serviceCentrewrapper.setRideId(rideId);
 
 			// Print values
 //			System.out.println("Latitude: " + latitude);

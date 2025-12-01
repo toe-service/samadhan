@@ -3,6 +3,7 @@ import java.util.List;
 
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
+import com.samadhan.exception.NotFoundException;
 
 
 public interface driversService {
@@ -14,5 +15,7 @@ public interface driversService {
 	List<Driver> getAllDriversByfilters(String pickuplatitude, String pickuplongitude);
 
 	Driver createdriver(Driver driver);
+
+    Ride getRideByRideId(Long rideId) throws NotFoundException;
 
 }

@@ -18,7 +18,12 @@ public interface ServiceCentreService {
 
 	List<ServiceCentre> getAllServiceCentreByfilters(Integer serviceType, String pickuplatitude, String pickuplongitude,String destinationlatitude, String destinationlongitude);
 
-    List<ServiceCentreWrapper> getAllServiceCentreDriverByfilters(Integer serviceType, String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude) throws JsonProcessingException;
+    List<ServiceCentreWrapper> getAllServiceCentreDriverByfilters(Integer serviceType,
+                                                                  String pickuplatitude,
+                                                                  String pickuplongitude,
+                                                                  String destinationlatitude,
+                                                                  String destinationlongitude,
+                                                                  String rideId) throws JsonProcessingException;
 
     VehicleTransfer requestRideTransfer(String vehicleType, String vehicleModel, Date requestDate, String city, String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude);
 }

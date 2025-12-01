@@ -32,6 +32,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Object> notFoundException(NotFoundException ex) {
+        return ResponseEntity.status(404).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "404",
+                        new Error("NotFound", ex.getMessage())
+                )
+        );
+    }
     // Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex) {
