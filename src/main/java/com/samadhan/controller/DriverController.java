@@ -6,14 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.samadhan.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 //import com.kent.smartassist.constant.SmartAssistanceConstant;
 //import com.kent.smartassist.exception.SmartAssistanceException;
@@ -43,7 +39,8 @@ public class DriverController {
 		return ResponseEntity.ok(response);
         
     }
-	
+
+
 	@PostMapping(value = "/driver-response")
     public ResponseEntity<Object> driverResponse(@RequestParam String rideId,@RequestBody Driver driver,@RequestParam int otp,@RequestParam long userId) throws Exception {
 	try {
@@ -63,6 +60,12 @@ public class DriverController {
 		
 		
         
+    }
+
+    @GetMapping(value = "/getRideByRideId/{rideId}")
+    public ResponseEntity<Ride> getRideByRideId(@PathVariable("rideId") Long rideId) throws NotFoundException {
+        Ride ride =  driversService.getRideByRideId(rideId);
+        return ResponseEntity.ok(ride);
     }
 	
 	

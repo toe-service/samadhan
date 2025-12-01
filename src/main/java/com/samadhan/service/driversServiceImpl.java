@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.samadhan.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.google.type.DateTime;
@@ -23,79 +24,88 @@ import com.samadhan.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class driversServiceImpl implements driversService{
+public class driversServiceImpl implements driversService {
 
-	@Autowired
-	DriverRepository driverRepo;
-	
-	@Autowired
-	RidesRepository rideRepo;
-	
-	@Autowired
-	UserRepository userRepo;
-	
-	@Override
-	public Driver getById(Long id) {
-		
-		Optional<Driver> optdriver=driverRepo.findById(id);
-		
-		Driver driver=optdriver.get();
-		
-		return driver;
-	}
+    @Autowired
+    DriverRepository driverRepo;
 
-	@Override
-	public Ride getdriverResponse(Driver driver, int otp,long userId,String rideId) throws Exception {
-		try {
-			Ride ride = new Ride();
+    @Autowired
+    RidesRepository rideRepo;
 
-			//Optional<User> user=userRepo.findById(userId);
-			User user = userRepo.findById(userId)
-					.orElseThrow(() -> new SamadhanException("User with id " + userId + " not found"));
+    @Autowired
+    UserRepository userRepo;
+
+    @Override
+    public Driver getById(Long id) {
+
+        Optional<Driver> optdriver = driverRepo.findById(id);
+
+        Driver driver = optdriver.get();
+
+        return driver;
+    }
 
 
-			Ride ridepresent = rideRepo.existRide(driver.getId(), userId);
+    @Override
+    public Ride getRideByRideId(Long rideId) throws NotFoundException {
 
-			if (ridepresent != null) {
-				throw new SamadhanException("Ride is Already Accepted");
-			}
+        return rideRepo.findById(rideId)
+                .orElseThrow(() -> new NotFoundException("ride not found with id " + rideId));
+
+    }
+
+    @Override
+    public Ride getdriverResponse(Driver driver, int otp, long userId, String rideId) throws Exception {
+        try {
+            Ride ride = new Ride();
+
+            //Optional<User> user=userRepo.findById(userId);
+            User user = userRepo.findById(userId)
+                    .orElseThrow(() -> new SamadhanException("User with id " + userId + " not found"));
 
 
-			ride.setDriver(driver);
-			ride.setRideStatus(true);
-			ride.setDriverResponse(true);
-			ride.setDriverDeclinationReason("NA");
-			ride.setRideOtp(otp);
-			ride.setUser(user);
-			ride.setRideResponseTime(LocalDateTime.now());
-			ride.setRideId(rideId);
-			rideRepo.save(ride);
+            Ride ridepresent = rideRepo.existRide(driver.getId(), userId);
 
-			System.out.println();
+            if (ridepresent != null) {
+                throw new SamadhanException("Ride is Already Accepted");
+            }
 
-			return ride;
 
-		}catch (SamadhanException e){
-			throw e;
-		}
+            ride.setDriver(driver);
+            ride.setRideStatus(true);
+            ride.setDriverResponse(true);
+            ride.setDriverDeclinationReason("NA");
+            ride.setRideOtp(otp);
+            ride.setUser(user);
+            ride.setRideResponseTime(LocalDateTime.now());
+            ride.setRideId(rideId);
+            rideRepo.save(ride);
 
-	}
+            System.out.println();
 
-	@Override
-	public List<Driver> getAllDriversByfilters(String pickuplatitude, String pickuplongitude) {
-		double distance=50.0;
-		//find service centre within 50km
-		
-		List<Driver> driversWithinFiftyKm=driverRepo.findAllDriversByfilters(pickuplatitude,pickuplongitude,distance);
-		
-		return driversWithinFiftyKm;
-	}
+            return ride;
 
-	@Override
-	public Driver createdriver(Driver driver) {
-		
-		Driver driverData=driverRepo.save(driver);
-		return driverData;
-	}
+        } catch (SamadhanException e) {
+            throw e;
+        }
+
+    }
+
+    @Override
+    public List<Driver> getAllDriversByfilters(String pickuplatitude, String pickuplongitude) {
+        double distance = 50.0;
+        //find service centre within 50km
+
+        List<Driver> driversWithinFiftyKm = driverRepo.findAllDriversByfilters(pickuplatitude, pickuplongitude, distance);
+
+        return driversWithinFiftyKm;
+    }
+
+    @Override
+    public Driver createdriver(Driver driver) {
+
+        Driver driverData = driverRepo.save(driver);
+        return driverData;
+    }
 
 }
