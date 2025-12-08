@@ -25,4 +25,7 @@ public interface RidesRepository  extends JpaRepository<Ride, Long>{
 	@Query(value="select * from rides where user_id=:userId" ,nativeQuery = true)
 	List<Ride> findByUserId(Long userId);
 
+    @Query(value="select * from rides where ride_id=:rideId" ,nativeQuery = true)
+    Ride findByRideId(String rideId);
+
 }

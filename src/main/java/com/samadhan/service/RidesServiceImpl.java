@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
+import com.samadhan.controller.UserLoginController;
 import com.samadhan.entity.User;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +25,7 @@ import javax.swing.text.html.Option;
 public class RidesServiceImpl implements RidesService {
 
 	private static final double EARTH_RADIUS = 6371000;
+    private static final Logger logger = LoggerFactory.getLogger(RidesServiceImpl.class);
 
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	@Autowired
@@ -149,6 +153,16 @@ public class RidesServiceImpl implements RidesService {
 
 		return randomRideId;
 	}
+
+    @Override
+    public Ride getRideByRideId(String rideId) {
+        try {
+            return rideRepo.findByRideId(rideId);
+        } catch (Exception exp) {
+            logger.error("error occurred while fetching ride by ride id and error is {}", exp.getCause());
+            throw exp;
+        }
+    }
 }
 
 

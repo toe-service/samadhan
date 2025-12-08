@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import com.samadhan.response.Error;
 import com.samadhan.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +21,10 @@ import com.samadhan.service.RidesService;
 @RestController
 @RequestMapping(value = "/ride")
 public class RidesController {
-	
-	@Autowired
+
+    private static final Logger logger = LoggerFactory.getLogger(RidesController.class);
+
+    @Autowired
 	RidesService ridesService;
 	
 	@GetMapping(value = "/pop-remove")
@@ -82,6 +86,12 @@ public class RidesController {
 
 		}
 	}
+
+    @GetMapping(value = "/getRideByRideId/{rideId}")
+    public ResponseEntity<Object> getRideByRide(@PathVariable("rideId") String rideId) {
+        Ride rideByRideId = ridesService.getRideByRideId(rideId);
+        return ResponseEntity.status(200).body(ResponseUtil.populateResponseObject(rideByRideId, "SUCCESS", null));
+    }
 	
 
 }

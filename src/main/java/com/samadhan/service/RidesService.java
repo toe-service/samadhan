@@ -16,4 +16,6 @@ public interface RidesService {
 	int generateOtp();
 
 	String generateRideId(Long userId);
+
+    Ride getRideByRideId(String rideId);
 }
