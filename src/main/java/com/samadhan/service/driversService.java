@@ -10,12 +10,14 @@ public interface driversService {
 
 	Driver getById(Long id);
 
-	Ride getdriverResponse(Driver driver,int otp,long userId,String rideId) throws Exception;
+	Ride getdriverResponse(long driverid,long userId,String rideId, String destinationLatitude, String destinationLongitude, String pickupLatitude, String pickupLongitude) throws Exception;
 
 	List<Driver> getAllDriversByfilters(String pickuplatitude, String pickuplongitude);
 
 	Driver createdriver(Driver driver);
 
     Ride getRideByRideId(Long rideId) throws NotFoundException;
+
+	Ride cancelRide(long userId, String rideId, String reason);
 
 }

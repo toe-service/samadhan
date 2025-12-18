@@ -53,10 +53,10 @@ public class ServiceCentreAndTowController {
                                                                          @RequestParam String pickuplongitude,
                                                                          @RequestParam String destinationlatitude,
                                                                          @RequestParam String destinationlongitude,
-                                                                         @RequestParam String rideId) throws JsonProcessingException {
+                                                                         @RequestParam long userId) throws JsonProcessingException {
         System.out.println("hi");
         List<ServiceCentreWrapper> serviceCentresDriversWithinFiftyKm = ServiceCentreService.getAllServiceCentreDriverByfilters(serviceType,
-                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, rideId);
+                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, userId);
         return serviceCentresDriversWithinFiftyKm;
     }
 

@@ -16,8 +16,11 @@ public interface RidesRepository  extends JpaRepository<Ride, Long>{
 	@Query(value="select * from rides where user_id=:userId AND driver_id=:driverId AND id=:rideId" ,nativeQuery = true)
 	Ride findByStatus(Long rideId, Long userId, Long driverId);
 
-	@Query(value="select * from rides where user_id=:userId AND driver_id=:driverId AND ride_response_time > NOW() - INTERVAL 15 MINUTE" ,nativeQuery = true)
-	Ride existRide(Long driverId, long userId);
+//	@Query(value="select * from rides where user_id=:userId AND ride_id=:rideId AND ride_response_time > NOW() - INTERVAL 15 MINUTE" ,nativeQuery = true)
+//	Ride existRide(String rideId, long userId);
+
+	@Query(value="select * from rides where user_id=:userId AND ride_id=:rideId" ,nativeQuery = true)
+	Ride existRide(String rideId, long userId);
 
 //	@Query(value="select * from ride" ,nativeQuery = true)
 //	Ride findByStatus();

@@ -23,7 +23,7 @@ public interface ServiceCentreService {
                                                                   String pickuplongitude,
                                                                   String destinationlatitude,
                                                                   String destinationlongitude,
-                                                                  String rideId) throws JsonProcessingException;
+                                                                  long userId) throws JsonProcessingException;
 
     VehicleTransfer requestRideTransfer(String vehicleType, String vehicleModel, Date requestDate, String city, String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude);
 }
