@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,11 +27,11 @@ public class Ride {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "ride_id", nullable = false, unique = true)
+	@Column(name = "ride_id", unique = true)
 	private String rideId;
 	
 	@Column(name="ride_status")
-	private boolean rideStatus;
+	private int rideStatus;
 	
 	@Column(name="ride_otp")
 	private int rideOtp;
@@ -62,7 +63,74 @@ public class Ride {
 	 @Column(name="ride_end_time")
 	 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	 private LocalDateTime rideendTime;
+	 
+	 @Column(name="destination_latitude")
+	 private String destinationLatitude;
 	
+	 @Column(name="destination_longitude")
+	 private String destinationLongitude;
+	 
+	 @Column(name="source_latitude")
+	 private String sourceLatitude;
+	 
+	 @Column(name="source_longitude")
+	 private String sourceLongitude;
+	 
+	 @Transient
+	 private String driverName;
+	 
+	 @Transient
+	 private String carNumber;
+	 
+	 
+	public String getDriverName() {
+		return driverName;
+	}
+
+	public void setDriverName(String driverName) {
+		this.driverName = driverName;
+	}
+
+	public String getCarNumber() {
+		return carNumber;
+	}
+
+	public void setCarNumber(String carNumber) {
+		this.carNumber = carNumber;
+	}
+
+	public String getDestinationLatitude() {
+		return destinationLatitude;
+	}
+
+	public void setDestinationLatitude(String destinationLatitude) {
+		this.destinationLatitude = destinationLatitude;
+	}
+
+	public String getDestinationLongitude() {
+		return destinationLongitude;
+	}
+
+	public void setDestinationLongitude(String destinationLongitude) {
+		this.destinationLongitude = destinationLongitude;
+	}
+
+	public String getSourceLatitude() {
+		return sourceLatitude;
+	}
+
+	public void setSourceLatitude(String sourceLatitude) {
+		this.sourceLatitude = sourceLatitude;
+	}
+
+	public String getSourceLongitude() {
+		return sourceLongitude;
+	}
+
+	public void setSourceLongitude(String sourceLongitude) {
+		this.sourceLongitude = sourceLongitude;
+	}
+
 	public LocalDateTime getRideResponseTime() {
 		return rideResponseTime;
 	}
@@ -95,11 +163,11 @@ public class Ride {
 		this.id = id;
 	}
 
-	public boolean isRideStatus() {
+	public int isRideStatus() {
 		return rideStatus;
 	}
 
-	public void setRideStatus(boolean rideStatus) {
+	public void setRideStatus(int rideStatus) {
 		this.rideStatus = rideStatus;
 	}
 

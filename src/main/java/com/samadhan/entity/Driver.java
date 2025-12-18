@@ -43,6 +43,9 @@ public class Driver {
 	@Column(name="driver_longitude")
 	private String driverLongitude;
 	
+	@Column(name="car_number")
+	private String carNumber;
+	
 	@ManyToOne
 //	@JoinColumn(name = "service_centre_id")
 	@JsonIgnore
@@ -53,6 +56,18 @@ public class Driver {
 
 	@Transient
 	private String destinationLongitude;
+
+	public String getCarNumber() {
+		return carNumber;
+	}
+
+	public void setCarNumber(String carNumber) {
+		this.carNumber = carNumber;
+	}
+
+	public String getDriverCity() {
+		return driverCity;
+	}
 
 	public String getDestinationLatitude() {
 		return destinationLatitude;

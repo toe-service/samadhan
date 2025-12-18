@@ -1,11 +1,13 @@
 package com.samadhan.service;
 
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import ch.qos.logback.core.net.SyslogOutputStream;
 import com.samadhan.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.entity.User;
+import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.RidesRepository;
@@ -34,6 +37,7 @@ public class driversServiceImpl implements driversService {
 
     @Autowired
     UserRepository userRepo;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Override
     public Driver getById(Long id) {
@@ -55,30 +59,40 @@ public class driversServiceImpl implements driversService {
     }
 
     @Override
-    public Ride getdriverResponse(Driver driver, int otp, long userId, String rideId) throws Exception {
+    public Ride getdriverResponse(long driverid, long userId, String rideId, String destinationLatitude, String destinationLongitude, String pickupLatitude, String pickupLongitude) throws Exception {
         try {
             Ride ride = new Ride();
 
             //Optional<User> user=userRepo.findById(userId);
             User user = userRepo.findById(userId)
                     .orElseThrow(() -> new SamadhanException("User with id " + userId + " not found"));
+            Optional<Driver> driver=driverRepo.findById(driverid);
+            
+        	int generatedotp = SECURE_RANDOM.nextInt(1_000_0);
+    		
+    		
 
-
-            Ride ridepresent = rideRepo.existRide(driver.getId(), userId);
-
+            Ride ridepresent = rideRepo.existRide(rideId, userId);
+            System.out.println("ridepresent"+ridepresent);
             if (ridepresent != null) {
                 throw new SamadhanException("Ride is Already Accepted");
             }
 
 
-            ride.setDriver(driver);
-            ride.setRideStatus(true);
+            //ride.setDriver(driver);
+            ride.setRideStatus(1);
             ride.setDriverResponse(true);
             ride.setDriverDeclinationReason("NA");
-            ride.setRideOtp(otp);
+            ride.setRideOtp(generatedotp);
             ride.setUser(user);
             ride.setRideResponseTime(LocalDateTime.now());
             ride.setRideId(rideId);
+            ride.setDriverName(driver.get().getDriverName());
+            ride.setCarNumber(driver.get().getCarNumber());
+            ride.setDestinationLatitude(destinationLatitude);
+            ride.setDestinationLongitude(destinationLongitude);
+            ride.setSourceLatitude(pickupLongitude);
+            ride.setSourceLongitude(pickupLongitude);
             rideRepo.save(ride);
 
             System.out.println();
@@ -107,5 +121,19 @@ public class driversServiceImpl implements driversService {
         Driver driverData = driverRepo.save(driver);
         return driverData;
     }
+
+
+	@Override
+	public Ride cancelRide(long userId, String rideId, String reason) {
+		 //Ride ride = new Ride();
+		 Ride ridepresent = rideRepo.existRide(rideId, userId);
+		 int rideStatus=rideStatusEnum.CANCELLED.getId();
+		 ridepresent.setRideStatus(rideStatus);
+		// ridepresent.setRideId(rideId);
+		 ridepresent.setDriverDeclinationReason(reason);
+		 rideRepo.save(ridepresent);
+		
+		return ridepresent;
+	}
 
 }
