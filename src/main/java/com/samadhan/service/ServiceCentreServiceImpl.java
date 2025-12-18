@@ -1,8 +1,12 @@
 package com.samadhan.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,8 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.samadhan.entity.ServiceCentre;
+import com.samadhan.entity.User;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.ServiceCentreRepo;
+import com.samadhan.repository.UserRepository;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +31,9 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 
 	@Autowired
 	ServiceCentreRepo serviceCentreRepo;
+	
+	@Autowired
+	UserRepository userRepo;
 	
 	
 	@Override
@@ -58,7 +68,7 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 	@Override
 	public List<ServiceCentreWrapper> getAllServiceCentreDriverByfilters(Integer serviceType, String pickuplatitude, String pickuplongitude,
                                                                          String destinationlatitude, String destinationlongitude,
-                                                                         String rideId) throws JsonProcessingException {
+                                                                         long userId) throws JsonProcessingException {
 		double distance=50.0;
 		//find drivers within 50km
 		System.out.println("In getAllServiceCentreDriverByfilters");
@@ -69,6 +79,29 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 
 		JSONArray jsonArray = new JSONArray(jsonString);
 		System.out.println(jsonArray.toString(2)); // pretty print
+		
+		Optional<User> user=userRepo.findById(userId);
+		String userName=user.get().getUserName();
+
+		String initials = userName.substring(0, 2).toUpperCase();
+
+		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
+
+		// Time in 24hr format HHmm
+		String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmm"));
+
+		Random random = new Random();
+		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(initials).append(date).append(time); // fixed 12 chars
+
+		for (int j = 0; j < 8; j++) {
+			sb.append(characters.charAt(random.nextInt(characters.length())));
+		}
+
+		String randomRideId=sb.toString();
+		
 
 		for(Object o: jsonArray) {
 			ServiceCentreWrapper serviceCentrewrapper=new ServiceCentreWrapper();
@@ -87,7 +120,7 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 			serviceCentrewrapper.setDriverToken(devicetoken);
 			serviceCentrewrapper.setDestinationLatitude(destinationlatitude);
 			serviceCentrewrapper.setDestinationLongitude(destinationlongitude);
-            serviceCentrewrapper.setRideId(rideId);
+            serviceCentrewrapper.setRideId(randomRideId);
 
 			// Print values
 //			System.out.println("Latitude: " + latitude);
