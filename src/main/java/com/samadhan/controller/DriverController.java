@@ -42,9 +42,9 @@ public class DriverController {
 
 
 	@PostMapping(value = "/driver-response")
-    public ResponseEntity<Object> driverResponse(@RequestParam String rideId,@RequestBody Driver driver,@RequestParam int otp,@RequestParam long userId) throws Exception {
+    public ResponseEntity<Object> driverResponse(@RequestParam String rideId,@RequestParam long driverId,@RequestParam long userId, @RequestParam String destinationLatitude, @RequestParam String destinationLongitude, @RequestParam String pickupLatitude, @RequestParam String pickupLongitude) throws Exception {
 	try {
-		Ride response = driversService.getdriverResponse(driver,otp,userId,rideId);
+		Ride response = driversService.getdriverResponse(driverId,userId,rideId,destinationLatitude,destinationLongitude,pickupLatitude,pickupLatitude);
 	//	return ResponseEntity.ok(response);
 		Object populateResponseObject = ResponseUtil.populateResponseObject(response, "SUCCESS", null);
 
@@ -56,6 +56,22 @@ public class DriverController {
 	}
 	catch (Exception exp) {
 		throw exp;
+	}
+		
+		
+        
+    }
+	
+	@PostMapping(value = "/cancel-ride")
+    public ResponseEntity<Object> cancelRide(@RequestParam String rideId,@RequestParam long userId, @RequestParam String reason) throws Exception {
+	try {
+		Ride response = driversService.cancelRide(userId,rideId, reason);
+		Object populateResponseObject = ResponseUtil.populateResponseObject(response, "SUCCESS", null);
+
+		return ResponseEntity
+				.ok(populateResponseObject);
+	} catch (Exception ex) {
+		throw ex;
 	}
 		
 		
