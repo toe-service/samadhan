@@ -42,11 +42,11 @@ public class DriverController {
 
 
 	@PostMapping(value = "/driver-response")
-    public ResponseEntity<Object> driverResponse(@RequestParam String rideId,@RequestParam long driverId,@RequestParam long userId, @RequestParam String destinationLatitude, @RequestParam String destinationLongitude, @RequestParam String pickupLatitude, @RequestParam String pickupLongitude) throws Exception {
+    public ResponseEntity<ResponseObject<Ride>> driverResponse(@RequestParam String rideId,@RequestParam long driverId,@RequestParam long userId, @RequestParam String destinationLatitude, @RequestParam String destinationLongitude, @RequestParam String pickupLatitude, @RequestParam String pickupLongitude) throws Exception {
 	try {
 		Ride response = driversService.getdriverResponse(driverId,userId,rideId,destinationLatitude,destinationLongitude,pickupLatitude,pickupLatitude);
 	//	return ResponseEntity.ok(response);
-		Object populateResponseObject = ResponseUtil.populateResponseObject(response, "SUCCESS", null);
+		 ResponseObject<Ride> populateResponseObject = ResponseUtil.populateResponseObject(response, "SUCCESS", null);
 
 		return ResponseEntity
 				.ok(populateResponseObject);

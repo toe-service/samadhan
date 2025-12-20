@@ -57,7 +57,7 @@ public class RidesController {
 	}
 
 	@GetMapping(value = "/rideStartEnd")
-	public ResponseEntity<Object> rideStartEnd(@RequestParam Long userId, @RequestParam Long driverId,@RequestParam int otp, @RequestParam Boolean rideFlag, @RequestParam Long rideId) throws SamadhanException {
+	public ResponseEntity<Object> rideStartEnd(@RequestParam Long userId, @RequestParam Long driverId,@RequestParam int otp, @RequestParam Boolean rideFlag, @RequestParam String rideId) throws SamadhanException {
 		try {
 			Ride ride = ridesService.rideStartEnd(userId, rideFlag, driverId, otp, rideId);
 
