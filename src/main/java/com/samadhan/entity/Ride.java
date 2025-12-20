@@ -75,8 +75,16 @@ public class Ride {
 	 
 	 @Column(name="source_longitude")
 	 private String sourceLongitude;
-	 
-	 @Transient
+
+	public int getRideStatus() {
+		return rideStatus;
+	}
+
+	public void setRideStatus(int rideStatus) {
+		this.rideStatus = rideStatus;
+	}
+
+	@Transient
 	 private String driverName;
 	 
 	 @Transient
@@ -161,14 +169,6 @@ public class Ride {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public int isRideStatus() {
-		return rideStatus;
-	}
-
-	public void setRideStatus(int rideStatus) {
-		this.rideStatus = rideStatus;
 	}
 
 	public int getRideOtp() {

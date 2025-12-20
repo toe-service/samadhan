@@ -3,6 +3,7 @@ package com.samadhan.util;
 import com.samadhan.entity.Ride;
 import com.samadhan.response.*;
 import com.samadhan.response.Error;
+import org.springframework.http.ResponseEntity;
 
 
 public class ResponseUtil {
@@ -21,8 +22,10 @@ public class ResponseUtil {
 //
 //	}
 
-	public static Object populateResponseObject(Object baseresponse,final String responseStatus, final Error error) {
-		ResponseObject<Object> response = new ResponseObject<>();
+	public static <T> ResponseObject<T> populateResponseObject(T baseresponse,
+															   final String responseStatus,
+															   final Error error) {
+		ResponseObject<T> response = new ResponseObject<>();
 		response.setResponse(baseresponse);
 		Status status = new Status();
 		if(responseStatus.equalsIgnoreCase("success")) {
