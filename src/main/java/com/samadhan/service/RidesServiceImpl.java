@@ -55,7 +55,11 @@ public class RidesServiceImpl implements RidesService {
 	}
 
 	@Override
-	public Ride rideStartEnd(Long userId, Boolean rideFlag, Long driverId, int otp, String rideId) throws SamadhanException {
+	public Ride rideStartEnd(Long userId,
+							 Boolean rideFlag,
+							 Long driverId,
+							 int otp,
+							 String rideId) throws SamadhanException {
 		//rideFlag 1 is for start
 		//if (rideFlag) {
 		try {
@@ -70,7 +74,13 @@ public class RidesServiceImpl implements RidesService {
 			Ride ridepresent = rideRepo.existRide(rideId, userId);
 
 		//	Ride ridepresent = ride.get();
-			int rideStatus= rideStatusEnum.ONGOING.getId();
+			int rideStatus;
+			if(rideFlag) {
+				rideStatus= rideStatusEnum.ONGOING.getId();
+			} else {
+				rideStatus = rideStatusEnum.COMPLETED.getId();
+			}
+
 			ridepresent.setRideStatus(rideStatus);
 
 			rideRepo.save(ridepresent);
