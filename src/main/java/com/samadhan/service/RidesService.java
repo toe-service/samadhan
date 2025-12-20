@@ -11,7 +11,7 @@ public interface RidesService {
 
 	List<Ride> getRidesByuser(Long userId);
 
-	Ride rideStartEnd(Long userId, Boolean rideFlag, Long driverId, int otp, Long rideId) throws SamadhanException;
+	Ride rideStartEnd(Long userId, Boolean rideFlag, Long driverId, int otp, String rideId) throws SamadhanException;
 
 	int generateOtp();
 
