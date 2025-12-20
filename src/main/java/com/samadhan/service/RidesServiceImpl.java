@@ -9,6 +9,7 @@ import java.util.Random;
 
 import com.samadhan.controller.UserLoginController;
 import com.samadhan.entity.User;
+import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.repository.UserRepository;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class RidesServiceImpl implements RidesService {
 	}
 
 	@Override
-	public Ride rideStartEnd(Long userId, Boolean rideFlag, Long driverId, int otp, Long rideId) throws SamadhanException {
+	public Ride rideStartEnd(Long userId, Boolean rideFlag, Long driverId, int otp, String rideId) throws SamadhanException {
 		//rideFlag 1 is for start
 		//if (rideFlag) {
 		try {
@@ -65,22 +66,24 @@ public class RidesServiceImpl implements RidesService {
 //			} else {
 //				System.out.println("❌ Driver is too far.");
 //			}
-			Optional<Ride> ride = rideRepo.findById(rideId);
+		//	Optional<Ride> ride = rideRepo.findById(rideId);
+			Ride ridepresent = rideRepo.existRide(rideId, userId);
 
-			if (ride.isEmpty()) {
-				throw new SamadhanException("No Ride Present");
-			}
+		//	Ride ridepresent = ride.get();
+			int rideStatus= rideStatusEnum.ONGOING.getId();
+			ridepresent.setRideStatus(rideStatus);
+
+			rideRepo.save(ridepresent);
+
 			Ride getride = new Ride();
-			if (ride.get().getRideOtp() != otp) {
+			if (ridepresent.getRideOtp() != otp) {
 				throw new SamadhanException("Wrong otp");
-			} else {
-				getride = ride.get();
 			}
 
 
 			//}
 
-			return getride;
+			return ridepresent;
 
 //		}catch(Exception e){
 //			throw new SamadhanException(e);
