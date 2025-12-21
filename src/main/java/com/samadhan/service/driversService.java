@@ -20,4 +20,6 @@ public interface driversService {
 
 	Ride cancelRide(long userId, String rideId, String reason);
 
+	void updateDriverLatLong(long driverId, String latitude, String longitude) throws NotFoundException;
+
 }

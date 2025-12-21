@@ -136,4 +136,20 @@ public class driversServiceImpl implements driversService {
 		return ridepresent;
 	}
 
+    @Override
+    public void updateDriverLatLong(long driverId, String latitude, String longitude) throws NotFoundException {
+        if(!driverRepo.existsById(driverId)) {
+            throw new NotFoundException("driver with this driverId [%s] not exists".formatted(driverId));
+        }
+
+        Optional<Driver> optionalDriver = driverRepo.findById(driverId);
+        Driver updatedDriver = optionalDriver.map(driver -> {
+            driver.setDriverLatitude(latitude);
+            driver.setDriverLongitude(longitude);
+            return driver;
+        }).get();
+
+        driverRepo.save(updatedDriver);
+    }
+
 }

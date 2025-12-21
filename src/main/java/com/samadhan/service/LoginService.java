@@ -59,7 +59,7 @@ public class LoginService {
 
     public void updateUserLatLong(Long userId, String latitude, String longitude) throws NotFoundException {
         if(!userRepository.existsById(userId)) {
-            throw new NotFoundException("user with this userId not exists");
+            throw new NotFoundException("user with this userId[%s] not exists".formatted(userId));
         }
 
         Optional<User> optionalUser = userRepository.findById(userId);
