@@ -114,14 +114,15 @@ public class DriverController {
 	}
 
 
-	/**
-	 * TODO: NEED TO LOGIN API FOR DRIVER WITH LATITUDE AND LONGITUDE
-	 */
 
-
-	/**
-	 * TODO: CREATE A API FOR FRONTEND , IN EVERY 15 MIN DRIVER LATITUDE AND LONGITUDE WILL CHANGE, IF
-	 *  DRIVER IS LOGIN
-	 */
+	@PostMapping("/update-lat-long/{driverId}")
+	public ResponseEntity<ResponseObject<String>> updateLatLong(@PathVariable("driverId") Long driverId,
+																@RequestParam("latitude") String latitude,
+																@RequestParam("longitude")String longitude
+	) throws NotFoundException {
+		driversService.updateDriverLatLong(driverId, latitude, longitude);
+		ResponseObject<String> success = ResponseUtil.populateResponseObject("User successfully updated", "SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
 
 }
