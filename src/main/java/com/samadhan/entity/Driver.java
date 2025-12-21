@@ -31,8 +31,8 @@ public class Driver {
 	@Column(name="driver_city")
 	private String driverCity;
 	
-	@Column(name="driver_token")
-	private String driverToken;
+//	@Column(name="driver_token")
+//	private String driverToken;
 	
 	@OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
 	private List<Ride> rides;
@@ -171,14 +171,6 @@ public class Driver {
 
 	public void setDriverActive(boolean driverActive) {
 		this.driverActive = driverActive;
-	}
-
-	public String getDriverToken() {
-		return driverToken;
-	}
-
-	public void setDriverToken(String driverToken) {
-		this.driverToken = driverToken;
 	}
 
 	public List<Ride> getDriverRides() {

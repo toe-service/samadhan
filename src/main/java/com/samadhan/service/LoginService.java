@@ -1,14 +1,19 @@
 package com.samadhan.service;
 
 import com.samadhan.constant.AppConstant;
+import com.samadhan.entity.User;
 import com.samadhan.entity.UserLoginEntity;
+import com.samadhan.exception.ConflictException;
 import com.samadhan.repository.UserLoginRepository;
+import com.samadhan.repository.UserRepository;
 import com.samadhan.request.UserLoginRequest;
+import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.GetOtpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.Column;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
@@ -25,11 +30,29 @@ public class LoginService {
     @Value("${sms.client.token}")
     private String smsProviderKey;
 
+    @Autowired
+    private UserRepository userRepository;
+
     public boolean isOtpValid(UserLoginRequest userLoginRequest) {
         Optional<UserLoginEntity> userLoginData = userLoginRepository.findById(userLoginRequest.mobileNumber);
         return userLoginData
                 .map(data -> Objects.equals(data.getOtp(), userLoginRequest.getOtp()))
                 .orElse(false);
+    }
+
+    public void registerUser(UserRegisterRequest userRegisterRequest) throws ConflictException {
+
+        boolean isExist = userRepository.existsByMobileOrEmail(userRegisterRequest.getUserContactNumber(), userRegisterRequest.getUserEmail()) == 1;
+        if(isExist) {
+            throw new ConflictException("User Alredy exists with same mobile number or email");
+        }
+        User user = new User();
+        user.setUserName(userRegisterRequest.getUserName());
+        user.setUserEmail(userRegisterRequest.getUserEmail());
+        user.setUserContactNumber(userRegisterRequest.getUserContactNumber());
+        user.setUserLatitude(userRegisterRequest.getUserLatitude());
+        user.setUserLongitude(userRegisterRequest.getUserLongitude());
+        userRepository.save(user);
     }
 
     public GetOtpResponse generateAndSendOtp(String mobileNumber) {

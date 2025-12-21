@@ -2,11 +2,16 @@ package com.samadhan.controller;
 
 import com.samadhan.constant.AppConstant;
 import com.samadhan.dto.UserLoginData;
+import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.NotificationException;
 import com.samadhan.request.UserLoginRequest;
+import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.GetOtpResponse;
+import com.samadhan.response.ResponseObject;
 import com.samadhan.response.UserLoginResponse;
+import com.samadhan.response.UserRegisterResponse;
 import com.samadhan.service.LoginService;
+import com.samadhan.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,5 +48,14 @@ public class UserLoginController {
                     ResponseEntity.ok(UserLoginResponse.of(false, AppConstant.USER_LOGIN_FAILED, UserLoginData.of("")));
 
         }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ResponseObject<UserRegisterRequest>> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) throws ConflictException {
+        logger.info("User Register request is {}", userRegisterRequest);
+        loginService.registerUser(userRegisterRequest);
+        ResponseObject<UserRegisterRequest> success = ResponseUtil.populateResponseObject(userRegisterRequest, "SUCCESS", null);
+        return ResponseEntity.ok(success);
+
     }
 }

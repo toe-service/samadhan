@@ -105,7 +105,7 @@ public class DriverController {
 	//Driver registration API
 
 	/**
-	 * TODO: REMOVE TOKEN
+	 * TODO: REMOVE TOKEN (done)
 	 */
 	@PostMapping(value = "/register-Driver")
 	public Driver createDriver(@RequestBody Driver driver) {
