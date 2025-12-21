@@ -11,7 +11,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
- * TODO: NEED TO ADD LATITUDE AND LONGITUDE DURING USER LOGIN
+ * TODO: NEED TO ADD LATITUDE AND LONGITUDE DURING USER LOGIN (done)
  */
 @Entity
 @Table(name="user")
@@ -29,6 +29,28 @@ public class User {
 	
 	@Column(name="user_email")
 	private String userEmail;
+
+	@Column(name="user_latitude")
+	private String userLatitude;
+
+	@Column(name="user_longitude")
+	private String userLongitude;
+
+	public String getUserLatitude() {
+		return userLatitude;
+	}
+
+	public void setUserLatitude(String userLatitude) {
+		this.userLatitude = userLatitude;
+	}
+
+	public String getUserLongitude() {
+		return userLongitude;
+	}
+
+	public void setUserLongitude(String userLongitude) {
+		this.userLongitude = userLongitude;
+	}
 
 	public Long getId() {
 		return id;

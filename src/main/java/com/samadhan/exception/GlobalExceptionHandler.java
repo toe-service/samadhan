@@ -20,6 +20,15 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolation(ConflictException ex) {
+        return ResponseEntity.badRequest().body(ResponseUtil.populateResponseObject(
+                null,
+                "409",
+                new Error("Database", "Duplicate or invalid value: " + ex.getMessage())
+        ));
+    }
+
     // For your custom exceptions
     @ExceptionHandler(SamadhanException.class)
     public ResponseEntity<Object> handleSamadhanException(SamadhanException ex) {
