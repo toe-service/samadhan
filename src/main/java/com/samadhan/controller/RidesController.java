@@ -18,6 +18,9 @@ import com.samadhan.entity.Ride;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.service.RidesService;
 
+/**
+ * TODO: RIDE ON BEHALF OF DRIVER ID FOR SERVICE CENTRE WEBSITE
+ */
 @RestController
 @RequestMapping(value = "/ride")
 public class RidesController {
@@ -28,7 +31,9 @@ public class RidesController {
 	RidesService ridesService;
 	
 	@GetMapping(value = "/pop-remove")
-    public ResponseEntity<Ride> popupRemove(@RequestParam Long rideId,@RequestParam Long userId,@RequestParam Long driverId) {
+    public ResponseEntity<Ride> popupRemove(@RequestParam Long rideId,
+											@RequestParam Long userId,
+											@RequestParam Long driverId) {
 		Ride response = ridesService.popupRemove(rideId,userId,driverId);
 		return ResponseEntity.ok(response);
     }
@@ -49,9 +54,6 @@ public class RidesController {
 				.ok(ResponseUtil.populateResponseObject(otp, "SUCCESS", null));
 	}catch(Exception e){
 		throw e;
-
-
-
 	}
 
 	}
@@ -70,8 +72,6 @@ public class RidesController {
 		}catch(SamadhanException e){
 			throw e;
 
-
-
 		}
 
       }
@@ -87,7 +87,6 @@ public class RidesController {
 				.ok(ResponseUtil.populateResponseObject(rideId, "SUCCESS", null));
 		}catch(Exception e){
 			throw e;
-
 		}
 	}
 

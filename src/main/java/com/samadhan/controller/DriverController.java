@@ -42,7 +42,13 @@ public class DriverController {
 
 
 	@PostMapping(value = "/driver-response")
-    public ResponseEntity<ResponseObject<Ride>> driverResponse(@RequestParam String rideId,@RequestParam long driverId,@RequestParam long userId, @RequestParam String destinationLatitude, @RequestParam String destinationLongitude, @RequestParam String pickupLatitude, @RequestParam String pickupLongitude) throws Exception {
+    public ResponseEntity<ResponseObject<Ride>> driverResponse(@RequestParam String rideId,
+															   @RequestParam long driverId,
+															   @RequestParam long userId,
+															   @RequestParam String destinationLatitude,
+															   @RequestParam String destinationLongitude,
+															   @RequestParam String pickupLatitude,
+															   @RequestParam String pickupLongitude) throws Exception {
 	try {
 		Ride response = driversService.getdriverResponse(driverId,userId,rideId,destinationLatitude,destinationLongitude,pickupLatitude,pickupLatitude);
 	//	return ResponseEntity.ok(response);
@@ -63,7 +69,9 @@ public class DriverController {
     }
 	
 	@PostMapping(value = "/cancel-ride")
-    public ResponseEntity<Object> cancelRide(@RequestParam String rideId,@RequestParam long userId, @RequestParam String reason) throws Exception {
+    public ResponseEntity<Object> cancelRide(@RequestParam String rideId,
+											 @RequestParam long userId,
+											 @RequestParam String reason) throws Exception {
 	try {
 		Ride response = driversService.cancelRide(userId,rideId, reason);
 		Object populateResponseObject = ResponseUtil.populateResponseObject(response, "SUCCESS", null);
@@ -87,19 +95,33 @@ public class DriverController {
 	
 	 @GetMapping(value = "/getAllDriversByfilters")
 //	    public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam String city,@RequestParam String pickuplatitude,@RequestParam String pickuplongitude,@RequestParam Long destinationlatitude,@RequestParam Long destinationlongitude, @RequestParam serviceTypeEnum serviceType) {
-		public List<Driver> getAllDriversByfilters(
-				@RequestParam String pickuplatitude, @RequestParam String pickuplongitude) {
+		public List<Driver> getAllDriversByfilters(@RequestParam String pickuplatitude,
+												   @RequestParam String pickuplongitude) {
 			
 		 	List<Driver> driversWithinFiftyKm = driversService.getAllDriversByfilters(pickuplatitude, pickuplongitude);
 			return driversWithinFiftyKm;
 		}
 	
 	//Driver registration API
-	 
-	 @PostMapping(value = "/register-Driver")
-	    public Driver createDriver(@RequestBody Driver driver) {
-		 Driver resp = driversService.createdriver(driver);
-	       return resp;
-	    }
+
+	/**
+	 * TODO: REMOVE TOKEN
+	 */
+	@PostMapping(value = "/register-Driver")
+	public Driver createDriver(@RequestBody Driver driver) {
+		Driver resp = driversService.createdriver(driver);
+		return resp;
+	}
+
+
+	/**
+	 * TODO: NEED TO LOGIN API FOR DRIVER WITH LATITUDE AND LONGITUDE
+	 */
+
+
+	/**
+	 * TODO: CREATE A API FOR FRONTEND , IN EVERY 15 MIN DRIVER LATITUDE AND LONGITUDE WILL CHANGE, IF
+	 *  DRIVER IS LOGIN
+	 */
 
 }

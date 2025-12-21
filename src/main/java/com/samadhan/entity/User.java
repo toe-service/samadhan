@@ -10,6 +10,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+/**
+ * TODO: NEED TO ADD LATITUDE AND LONGITUDE DURING USER LOGIN
+ */
 @Entity
 @Table(name="user")
 public class User {

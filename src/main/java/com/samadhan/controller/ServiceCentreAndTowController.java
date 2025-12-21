@@ -40,7 +40,10 @@ public class ServiceCentreAndTowController {
     @GetMapping(value = "/getAllServiceCentreByfilters")
 //	    public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam String city,@RequestParam String pickuplatitude,@RequestParam String pickuplongitude,@RequestParam Long destinationlatitude,@RequestParam Long destinationlongitude, @RequestParam serviceTypeEnum serviceType) {
     public List<ServiceCentre> getAllServiceCentreByfilters(@RequestParam Integer serviceType,
-                                                            @RequestParam String pickuplatitude, @RequestParam String pickuplongitude, @RequestParam String destinationlatitude, @RequestParam String destinationlongitude) {
+                                                            @RequestParam String pickuplatitude,
+                                                            @RequestParam String pickuplongitude,
+                                                            @RequestParam String destinationlatitude,
+                                                            @RequestParam String destinationlongitude) {
         System.out.println("hi");
         List<ServiceCentre> serviceCentresWithinFiftyKm = ServiceCentreService.getAllServiceCentreByfilters(serviceType,
                 pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude);
@@ -61,8 +64,14 @@ public class ServiceCentreAndTowController {
     }
 
     @PostMapping(value = "/requestRideTransfer")
-    public VehicleTransfer requestRideTransfer(@RequestParam String vehicleType, @RequestParam String VehicleModel, @RequestParam Date requestDate, @RequestParam String city,
-                                               @RequestParam String pickuplatitude, @RequestParam String pickuplongitude, @RequestParam String destinationlatitude, @RequestParam String destinationlongitude) throws JsonProcessingException {
+    public VehicleTransfer requestRideTransfer(@RequestParam String vehicleType,
+                                               @RequestParam String VehicleModel,
+                                               @RequestParam Date requestDate,
+                                               @RequestParam String city,
+                                               @RequestParam String pickuplatitude,
+                                               @RequestParam String pickuplongitude,
+                                               @RequestParam String destinationlatitude,
+                                               @RequestParam String destinationlongitude) throws JsonProcessingException {
         System.out.println("hi");
         VehicleTransfer rideTransfer = ServiceCentreService.requestRideTransfer(vehicleType, VehicleModel, requestDate, city,
                 pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude);
