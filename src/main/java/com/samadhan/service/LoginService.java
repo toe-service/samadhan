@@ -4,6 +4,7 @@ import com.samadhan.constant.AppConstant;
 import com.samadhan.entity.User;
 import com.samadhan.entity.UserLoginEntity;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.NotFoundException;
 import com.samadhan.repository.UserLoginRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.request.UserLoginRequest;
@@ -35,6 +36,7 @@ public class LoginService {
 
     public boolean isOtpValid(UserLoginRequest userLoginRequest) {
         Optional<UserLoginEntity> userLoginData = userLoginRepository.findById(userLoginRequest.mobileNumber);
+
         return userLoginData
                 .map(data -> Objects.equals(data.getOtp(), userLoginRequest.getOtp()))
                 .orElse(false);
@@ -53,6 +55,22 @@ public class LoginService {
         user.setUserLatitude(userRegisterRequest.getUserLatitude());
         user.setUserLongitude(userRegisterRequest.getUserLongitude());
         userRepository.save(user);
+    }
+
+    public void updateUserLatLong(Long userId, String latitude, String longitude) throws NotFoundException {
+        if(!userRepository.existsById(userId)) {
+            throw new NotFoundException("user with this userId not exists");
+        }
+
+        Optional<User> optionalUser = userRepository.findById(userId);
+        User updatedUser = optionalUser.map(user -> {
+            user.setUserLatitude(latitude);
+            user.setUserLongitude(longitude);
+            return user;
+        }).get();
+
+        userRepository.save(updatedUser);
+
     }
 
     public GetOtpResponse generateAndSendOtp(String mobileNumber) {

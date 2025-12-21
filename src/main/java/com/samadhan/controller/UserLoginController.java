@@ -3,6 +3,7 @@ package com.samadhan.controller;
 import com.samadhan.constant.AppConstant;
 import com.samadhan.dto.UserLoginData;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.NotFoundException;
 import com.samadhan.exception.NotificationException;
 import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserRegisterRequest;
@@ -58,4 +59,15 @@ public class UserLoginController {
         return ResponseEntity.ok(success);
 
     }
+
+    @PostMapping("/update-lat-long/{userId}")
+    public ResponseEntity<ResponseObject<String>> updateLatLong(@PathVariable("userId") Long userId,
+                                                                             @RequestParam("latitude") String latitude,
+                                                                             @RequestParam("longitude")String longitude
+    ) throws NotFoundException {
+        loginService.updateUserLatLong(userId, latitude, longitude);
+        ResponseObject<String> success = ResponseUtil.populateResponseObject("User successfully updated", "SUCCESS", null);
+        return ResponseEntity.ok(success);
+    }
+
 }
