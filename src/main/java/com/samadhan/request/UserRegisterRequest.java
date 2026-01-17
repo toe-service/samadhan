@@ -12,18 +12,9 @@ import javax.persistence.Column;
 @NoArgsConstructor
 public class UserRegisterRequest {
     @NonNull
-    private String userName;
-
-    @NonNull
-    private Long userContactNumber;
+    private String userContactNumber;
 
     @NonNull
     private String userEmail;
-
-    @NonNull
-    private String userLatitude;
-
-    @NonNull
-    private String userLongitude;
 
 }

@@ -44,17 +44,16 @@ public class LoginService {
 
     public void registerUser(UserRegisterRequest userRegisterRequest) throws ConflictException {
 
-        boolean isExist = userRepository.existsByMobileOrEmail(userRegisterRequest.getUserContactNumber(), userRegisterRequest.getUserEmail()) == 1;
+        boolean isExist = userRepository
+                .existsByMobileOrEmail(userRegisterRequest.getUserContactNumber(), userRegisterRequest.getUserEmail()) == 1;
         if(isExist) {
             throw new ConflictException("User Alredy exists with same mobile number or email");
         }
         User user = new User();
-        user.setUserName(userRegisterRequest.getUserName());
         user.setUserEmail(userRegisterRequest.getUserEmail());
         user.setUserContactNumber(userRegisterRequest.getUserContactNumber());
-        user.setUserLatitude(userRegisterRequest.getUserLatitude());
-        user.setUserLongitude(userRegisterRequest.getUserLongitude());
         userRepository.save(user);
+        generateAndSendOtp(userRegisterRequest.getUserContactNumber());
     }
 
     public void updateUserLatLong(Long userId, String latitude, String longitude) throws NotFoundException {

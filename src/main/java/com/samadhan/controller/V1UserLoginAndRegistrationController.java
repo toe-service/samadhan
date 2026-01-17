@@ -10,7 +10,6 @@ import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.GetOtpResponse;
 import com.samadhan.response.ResponseObject;
 import com.samadhan.response.UserLoginResponse;
-import com.samadhan.response.UserRegisterResponse;
 import com.samadhan.service.LoginService;
 import com.samadhan.util.ResponseUtil;
 import org.slf4j.Logger;
@@ -20,10 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/toe-user-service")
-public class UserLoginController {
+@RequestMapping("/v1")
+public class V1UserLoginAndRegistrationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserLoginController.class);
+    private static final Logger logger = LoggerFactory.getLogger(V1UserLoginAndRegistrationController.class);
 
     @Autowired
     private LoginService loginService;
@@ -51,7 +50,7 @@ public class UserLoginController {
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping("/user-register")
     public ResponseEntity<ResponseObject<UserRegisterRequest>> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) throws ConflictException {
         logger.info("User Register request is {}", userRegisterRequest);
         loginService.registerUser(userRegisterRequest);

@@ -15,13 +15,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = """
             SELECT EXISTS (
                 SELECT 1
-                FROM user u
+                FROM user_details u
                 WHERE u.user_contact_number = :mobile
                    OR u.user_email = :email
             )
             """, nativeQuery = true)
     int existsByMobileOrEmail(
-            @Param("mobile") Long mobile,
+            @Param("mobile") String mobile,
             @Param("email") String email
     );
 }
