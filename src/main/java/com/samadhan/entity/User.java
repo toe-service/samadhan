@@ -10,11 +10,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-/**
- * TODO: NEED TO ADD LATITUDE AND LONGITUDE DURING USER LOGIN (done)
- */
+
 @Entity
-@Table(name="user")
+@Table(name="user_details")
 public class User {
 
 	@Id
@@ -25,7 +23,7 @@ public class User {
 	private String userName;
 	
 	@Column(name="user_contact_number")
-	private Long userContactNumber;
+	private String userContactNumber;
 	
 	@Column(name="user_email")
 	private String userEmail;
@@ -68,11 +66,11 @@ public class User {
 		this.userName = userName;
 	}
 
-	public Long getUserContactNumber() {
+	public String getUserContactNumber() {
 		return userContactNumber;
 	}
 
-	public void setUserContactNumber(Long userContactNumber) {
+	public void setUserContactNumber(String userContactNumber) {
 		this.userContactNumber = userContactNumber;
 	}
 

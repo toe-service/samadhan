@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import com.samadhan.controller.UserLoginController;
 import com.samadhan.entity.User;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.SamadhanException;
@@ -19,8 +18,6 @@ import org.springframework.stereotype.Service;
 
 import com.samadhan.entity.Ride;
 import com.samadhan.repository.RidesRepository;
-
-import javax.swing.text.html.Option;
 
 @Service
 public class RidesServiceImpl implements RidesService {
