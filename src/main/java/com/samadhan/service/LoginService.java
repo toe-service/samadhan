@@ -3,7 +3,6 @@ package com.samadhan.service;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
-import com.samadhan.repository.UserLoginRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserRegisterRequest;
@@ -15,15 +14,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.IntStream;
 
 @Service
 public class LoginService {
-    @Autowired
-    private UserLoginRepository userLoginRepository;
 
     @Value("${sms.service.provider.url}")
     private String smsProviderUrl;
