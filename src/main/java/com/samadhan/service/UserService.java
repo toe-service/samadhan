@@ -1,11 +1,9 @@
 package com.samadhan.service;
 
-import com.samadhan.entity.User;
-
-import java.util.List;
+import com.samadhan.entity.UserDetails;
 
 public interface UserService {
 
-    public User findById(Long userId);
+    public UserDetails findById(Long userId);
 
 }
