@@ -1,16 +1,16 @@
 package com.samadhan.repository;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.samadhan.entity.User;
+import com.samadhan.entity.UserDetails;
+
+import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<UserDetails, Long> {
 
     @Query(value = """
             SELECT EXISTS (
@@ -24,6 +24,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("mobile") String mobile,
             @Param("email") String email
     );
+
+    Optional<UserDetails> findByUserContactNumber(String mobileNumber);
 }
 
 

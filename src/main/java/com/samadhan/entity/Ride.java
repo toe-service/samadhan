@@ -50,7 +50,7 @@ public class Ride {
 	 @OneToOne(cascade = CascadeType.ALL)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
 	 @JsonIgnore
-	 private User user;
+	 private UserDetails userDetails;
 	 
 	 @Column(name="ride_response_time")
 	 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -211,12 +211,12 @@ public class Ride {
 		this.driver = driver;
 	}
 
-	public User getUser() {
-		return user;
+	public UserDetails getUser() {
+		return userDetails;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public void setUser(UserDetails userDetails) {
+		this.userDetails = userDetails;
 	}
 	
 }

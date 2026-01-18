@@ -5,6 +5,7 @@ import com.samadhan.dto.UserLoginData;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.NotFoundException;
 import com.samadhan.exception.NotificationException;
+import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.GetOtpResponse;
@@ -27,34 +28,28 @@ public class V1UserLoginAndRegistrationController {
     @Autowired
     private LoginService loginService;
 
-    @GetMapping("/get-otp/{mobileNumber}")
-    public ResponseEntity<GetOtpResponse> getOtp(@PathVariable("mobileNumber") String mobileNumber) throws NotificationException {
-        logger.info("Mobile number to generate opt is {}", mobileNumber);
-        GetOtpResponse getOtpResponse = loginService.generateAndSendOtp(mobileNumber);
-        return ResponseEntity.ok(getOtpResponse);
-    }
 
-    @PostMapping("/login")
-    public ResponseEntity<UserLoginResponse> loginUser(@RequestBody UserLoginRequest userLoginRequest) {
+    @PostMapping("/user-login")
+    public ResponseEntity<ResponseObject<?>> loginUser(@RequestBody UserLoginRequest userLoginRequest) throws OtpMismatchException {
         logger.info("User login request is {}", userLoginRequest.toString());
         if (userLoginRequest.getOtp() == 1234) {
-            return ResponseEntity.ok(UserLoginResponse.of(true, AppConstant.USER_LOGIN_SUCCESSFUL, UserLoginData.of("amit")));
+            ResponseObject<UserLoginRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userLoginRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+            return ResponseEntity.ok(userLoginRequestResponseObject);
         } else {
             boolean isOtpValid = loginService.isOtpValid(userLoginRequest);
-            System.out.println("isOtpValid "+isOtpValid);
-            return (isOtpValid) ?
-                    ResponseEntity.ok(UserLoginResponse.of(true, AppConstant.USER_LOGIN_SUCCESSFUL, UserLoginData.of("amit")))
-                            :
-                    ResponseEntity.ok(UserLoginResponse.of(false, AppConstant.USER_LOGIN_FAILED, UserLoginData.of("")));
+            System.out.println("isOtpValid " + isOtpValid);
+            ResponseObject<UserLoginRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userLoginRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+            return ResponseEntity.ok(userLoginRequestResponseObject);
 
         }
     }
 
     /**
-     *used in transfer service
+     * used in transfer service
      */
     @PostMapping("/user-register")
-    public ResponseEntity<ResponseObject<UserRegisterRequest>> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) throws ConflictException {
+    public ResponseEntity<ResponseObject<?>> registerUser(
+            @RequestBody UserRegisterRequest userRegisterRequest) throws ConflictException {
         logger.info("User Register request is {}", userRegisterRequest);
         loginService.registerUser(userRegisterRequest);
         ResponseObject<UserRegisterRequest> success = ResponseUtil.populateResponseObject(userRegisterRequest, "SUCCESS", null);
@@ -62,14 +57,5 @@ public class V1UserLoginAndRegistrationController {
 
     }
 
-    @PostMapping("/update-lat-long/{userId}")
-    public ResponseEntity<ResponseObject<String>> updateLatLong(@PathVariable("userId") Long userId,
-                                                                             @RequestParam("latitude") String latitude,
-                                                                             @RequestParam("longitude")String longitude
-    ) throws NotFoundException {
-        loginService.updateUserLatLong(userId, latitude, longitude);
-        ResponseObject<String> success = ResponseUtil.populateResponseObject("User successfully updated", "SUCCESS", null);
-        return ResponseEntity.ok(success);
-    }
 
 }
