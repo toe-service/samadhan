@@ -3,6 +3,7 @@ package com.samadhan.exception;
 import com.samadhan.response.Error;
 import com.samadhan.util.ResponseUtil;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -51,6 +52,18 @@ public class GlobalExceptionHandler {
                 )
         );
     }
+
+    @ExceptionHandler(OtpMismatchException.class)
+    public ResponseEntity<Object> handleOtpMismatchException(OtpMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "401",
+                        new Error("Server", "Unexpected error: " + ex.getMessage())
+                )
+        );
+    }
+
     // Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex) {

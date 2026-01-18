@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import com.samadhan.entity.User;
+import com.samadhan.entity.UserDetails;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.repository.UserRepository;
@@ -139,7 +139,7 @@ public class RidesServiceImpl implements RidesService {
 	@Override
 	public String generateRideId(Long userId) {
 
-		Optional<User> user=userRepo.findById(userId);
+		Optional<UserDetails> user=userRepo.findById(userId);
 		String userName=user.get().getUserName();
 
 		String initials = userName.substring(0, 2).toUpperCase();
