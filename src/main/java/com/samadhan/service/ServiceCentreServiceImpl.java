@@ -11,20 +11,15 @@ import java.util.Random;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samadhan.dto.ServiceCentreWrapper;
-import com.samadhan.entity.Driver;
+import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.VehicleTransfer;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.samadhan.entity.ServiceCentre;
-import com.samadhan.entity.User;
-import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.ServiceCentreRepo;
 import com.samadhan.repository.UserRepository;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class ServiceCentreServiceImpl implements ServiceCentreService{
@@ -80,7 +75,7 @@ public class ServiceCentreServiceImpl implements ServiceCentreService{
 		JSONArray jsonArray = new JSONArray(jsonString);
 		System.out.println(jsonArray.toString(2)); // pretty print
 		
-		Optional<User> user=userRepo.findById(userId);
+		Optional<UserDetails> user=userRepo.findById(userId);
 		String userName=user.get().getUserName();
 
 		String initials = userName.substring(0, 2).toUpperCase();

@@ -1,20 +1,20 @@
 package com.samadhan.service;
 
-import com.samadhan.constant.AppConstant;
-import com.samadhan.entity.User;
-import com.samadhan.entity.UserLoginEntity;
+import com.samadhan.entity.UserDetails;
 import com.samadhan.exception.ConflictException;
-import com.samadhan.exception.NotFoundException;
+import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.repository.UserLoginRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserRegisterRequest;
-import com.samadhan.response.GetOtpResponse;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import javax.persistence.Column;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
@@ -34,12 +34,17 @@ public class LoginService {
     @Autowired
     private UserRepository userRepository;
 
-    public boolean isOtpValid(UserLoginRequest userLoginRequest) {
-        Optional<UserLoginEntity> userLoginData = userLoginRepository.findById(userLoginRequest.mobileNumber);
+    public boolean isOtpValid(UserLoginRequest userLoginRequest) throws OtpMismatchException {
+        Optional<UserDetails> userDetails = userRepository.findByUserContactNumber(userLoginRequest.userContactNumber);
 
-        return userLoginData
-                .map(data -> Objects.equals(data.getOtp(), userLoginRequest.getOtp()))
-                .orElse(false);
+        Boolean isOtpValid = userDetails
+                .map(data -> data.getOtp() == userLoginRequest.getOtp())
+                .orElseThrow(() -> new OtpMismatchException("user details not found"));
+
+        if(!isOtpValid) {
+            throw new OtpMismatchException("otp is invalid");
+        }
+        return isOtpValid;
     }
 
     public void registerUser(UserRegisterRequest userRegisterRequest) throws ConflictException {
@@ -49,61 +54,57 @@ public class LoginService {
         if(isExist) {
             throw new ConflictException("User Already exists with same mobile number or email");
         }
-        User user = new User();
-        user.setUserEmail(userRegisterRequest.getUserEmail());
-        user.setUserContactNumber(userRegisterRequest.getUserContactNumber());
-        userRepository.save(user);
-        generateAndSendOtp(userRegisterRequest.getUserContactNumber());
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUserEmail(userRegisterRequest.getUserEmail());
+        userDetails.setUserContactNumber(userRegisterRequest.getUserContactNumber());
+        Integer otp = generateAndSendOtp(userRegisterRequest.getUserContactNumber());
+        userDetails.setOtp(otp);
+        userRepository.save(userDetails);
     }
 
-    public void updateUserLatLong(Long userId, String latitude, String longitude) throws NotFoundException {
-        if(!userRepository.existsById(userId)) {
-            throw new NotFoundException("user with this userId[%s] not exists".formatted(userId));
-        }
+//    public void updateUserLatLong(Long userId, String latitude, String longitude) throws NotFoundException {
+//        if(!userRepository.existsById(userId)) {
+//            throw new NotFoundException("user with this userId[%s] not exists".formatted(userId));
+//        }
+//
+//        Optional<UserDetails> optionalUser = userRepository.findById(userId);
+//        UserDetails updatedUserDetails = optionalUser.map(user -> {
+//            user.setUserLatitude(latitude);
+//            user.setUserLongitude(longitude);
+//            return user;
+//        }).get();
+//
+//        userRepository.save(updatedUserDetails);
+//
+//    }
 
-        Optional<User> optionalUser = userRepository.findById(userId);
-        User updatedUser = optionalUser.map(user -> {
-            user.setUserLatitude(latitude);
-            user.setUserLongitude(longitude);
-            return user;
-        }).get();
-
-        userRepository.save(updatedUser);
-
-    }
-
-    public GetOtpResponse generateAndSendOtp(String mobileNumber) {
+    public Integer generateAndSendOtp(String mobileNumber) {
         try{
-//            Integer otp = generateOtp();
-//            JSONObject obj = new JSONObject();
-//            obj.put("route", "q"); // this will cost 5 rupees per sms
-////            obj.put("route", "otp");
-//            obj.put("message", "Four digit OTP to login in Toe2Manjil Service is "+otp);
-//            obj.put("numbers", mobileNumber);
-//            obj.put("authorization", smsProviderKey);
-//            obj.put("flash", "0");
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-//            headers.setContentType(MediaType.APPLICATION_JSON);
-//            headers.add("authorization", smsProviderKey);
-//            headers.set("Content-Type", "application/json"); // optional - in case you auth in headers
-//            HttpEntity<JSONObject> entity = new HttpEntity<>(obj, headers);
-//
-//
-//            //save otp in database
-//            UserLoginEntity userLoginEntity = UserLoginEntity.of(Long.parseLong(mobileNumber), otp);
-//            userLoginRepository.save(userLoginEntity);
-//
-//            ResponseEntity<JSONObject> respEntity = new RestTemplate()
-//                    .exchange(smsProviderUrl, HttpMethod.POST, entity, JSONObject.class);
-//
-//            System.out.println("url is " + smsProviderUrl);
-//            System.out.println("mobile number and otp is "+mobileNumber+" | "+otp);
-//            respEntity.getBody();
-            return GetOtpResponse.of(true, AppConstant.OTP_SENT_SUCCESSFUL.replace("<mobile number>", mobileNumber));
+            Integer otp = generateOtp();
+            JSONObject obj = new JSONObject();
+            obj.put("route", "q"); // this will cost 5 rupees per sms
+//            obj.put("route", "otp");
+            obj.put("message", "Four digit OTP to login in Transfer Service is "+otp);
+            obj.put("numbers", mobileNumber);
+            obj.put("authorization", smsProviderKey);
+            obj.put("flash", "0");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("authorization", smsProviderKey);
+            headers.set("Content-Type", "application/json"); // optional - in case you auth in headers
+            HttpEntity<JSONObject> entity = new HttpEntity<>(obj, headers);
+
+
+            ResponseEntity<JSONObject> respEntity = new RestTemplate()
+                    .exchange(smsProviderUrl, HttpMethod.POST, entity, JSONObject.class);
+
+            System.out.println("url is " + smsProviderUrl);
+            System.out.println("mobile number and otp is "+mobileNumber+" | "+otp);
+            return otp;
         } catch (Exception exp){
-            return GetOtpResponse.of(false, AppConstant.OTP_SENT_FAILED.replace("<mobile number>", mobileNumber));
+            throw exp;
         }
     }
 

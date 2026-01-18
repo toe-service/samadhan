@@ -4,27 +4,20 @@ package com.samadhan.service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
+import com.samadhan.entity.UserDetails;
 import com.samadhan.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.google.type.DateTime;
 
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
-import com.samadhan.entity.ServiceCentre;
-import com.samadhan.entity.User;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.RidesRepository;
-import com.samadhan.repository.ServiceCentreRepo;
 import com.samadhan.repository.UserRepository;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class driversServiceImpl implements driversService {
@@ -64,7 +57,7 @@ public class driversServiceImpl implements driversService {
             Ride ride = new Ride();
 
             //Optional<User> user=userRepo.findById(userId);
-            User user = userRepo.findById(userId)
+            UserDetails userDetails = userRepo.findById(userId)
                     .orElseThrow(() -> new SamadhanException("User with id " + userId + " not found"));
             Optional<Driver> driver=driverRepo.findById(driverid);
             
@@ -84,7 +77,7 @@ public class driversServiceImpl implements driversService {
             ride.setDriverResponse(true);
             ride.setDriverDeclinationReason("NA");
             ride.setRideOtp(generatedotp);
-            ride.setUser(user);
+            ride.setUser(userDetails);
             ride.setRideResponseTime(LocalDateTime.now());
             ride.setRideId(rideId);
             ride.setDriverName(driver.get().getDriverName());

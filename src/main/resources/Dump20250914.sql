@@ -158,7 +158,7 @@ CREATE TABLE `rides` (
   UNIQUE KEY `UK_6tfxkpbgs1a25q51cy3iqwthu` (`ride_id`),
   KEY `FKinsp86xr2klco1n0e7lxtcpxt` (`driver_id`),
   KEY `FKbwiadceuacjmfcgfet18lmh53` (`user_id`),
-  CONSTRAINT `FKbwiadceuacjmfcgfet18lmh53` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+  CONSTRAINT `FKbwiadceuacjmfcgfet18lmh53` FOREIGN KEY (`user_id`) REFERENCES `userDetails` (`id`),
   CONSTRAINT `FKinsp86xr2klco1n0e7lxtcpxt` FOREIGN KEY (`driver_id`) REFERENCES `driver` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -205,13 +205,13 @@ INSERT INTO `service_centre` VALUES (1,_binary '',900000000,NULL,'abc tow servi
 UNLOCK TABLES;
 
 --
--- Table structure for table `user`
+-- Table structure for table `userDetails`
 --
 
-DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `userDetails`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
+CREATE TABLE `userDetails` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_contact_number` bigint DEFAULT NULL,
   `user_email` varchar(255) DEFAULT NULL,
@@ -221,13 +221,13 @@ CREATE TABLE `user` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `user`
+-- Dumping data for table `userDetails`
 --
 
-LOCK TABLES `user` WRITE;
-/*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,7233925077,'shivankhal786@gmail.com','shivank'),(2,7007959733,'vishal@gmail.com','vishal');
-/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+LOCK TABLES `userDetails` WRITE;
+/*!40000 ALTER TABLE `userDetails` DISABLE KEYS */;
+INSERT INTO `userDetails` VALUES (1,7233925077,'shivankhal786@gmail.com','shivank'),(2,7007959733,'vishal@gmail.com','vishal');
+/*!40000 ALTER TABLE `userDetails` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
