@@ -31,14 +31,14 @@ public class FireBaseConfig {
         }
     }
 
-    @Bean
-    public void loadFireBaseConfigs() throws IOException {
-       File file = getServiceAccountKeyFile();
-        System.out.println("file path is "+file.getAbsolutePath());
-        FileInputStream serviceAccount = new FileInputStream(file.getAbsolutePath());
-        FirebaseOptions options =  new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
-        FirebaseApp.initializeApp(options);
-    }
+//    @Bean
+//    public void loadFireBaseConfigs() throws IOException {
+//       File file = getServiceAccountKeyFile();
+//        System.out.println("file path is "+file.getAbsolutePath());
+//        FileInputStream serviceAccount = new FileInputStream(file.getAbsolutePath());
+//        FirebaseOptions options =  new FirebaseOptions.Builder()
+//                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+//                .build();
+//        FirebaseApp.initializeApp(options);
+//    }
 }

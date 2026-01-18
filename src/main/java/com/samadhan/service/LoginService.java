@@ -47,7 +47,7 @@ public class LoginService {
         boolean isExist = userRepository
                 .existsByMobileOrEmail(userRegisterRequest.getUserContactNumber(), userRegisterRequest.getUserEmail()) == 1;
         if(isExist) {
-            throw new ConflictException("User Alredy exists with same mobile number or email");
+            throw new ConflictException("User Already exists with same mobile number or email");
         }
         User user = new User();
         user.setUserEmail(userRegisterRequest.getUserEmail());
