@@ -50,6 +50,9 @@ public class V1UserLoginAndRegistrationController {
         }
     }
 
+    /**
+     *used in transfer service
+     */
     @PostMapping("/user-register")
     public ResponseEntity<ResponseObject<UserRegisterRequest>> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) throws ConflictException {
         logger.info("User Register request is {}", userRegisterRequest);
