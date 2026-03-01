@@ -53,6 +53,7 @@ public class LoginService {
         UserDetails userDetails = new UserDetails();
         userDetails.setUserEmail(userRegisterRequest.getUserEmail());
         userDetails.setUserContactNumber(userRegisterRequest.getUserContactNumber());
+        userDetails.setUserPassword(userRegisterRequest.getUserPassword());
         Integer otp = generateAndSendOtp(userRegisterRequest.getUserContactNumber());
         userDetails.setOtp(otp);
         userRepository.save(userDetails);

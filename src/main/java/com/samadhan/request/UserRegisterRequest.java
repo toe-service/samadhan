@@ -6,15 +6,19 @@ import lombok.NoArgsConstructor;
 import org.springframework.lang.NonNull;
 
 import javax.persistence.Column;
+import javax.validation.constraints.NotBlank;
 
 @Data
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
 public class UserRegisterRequest {
-    @NonNull
+    @NotBlank(message = "contact number cannot be blank")
     private String userContactNumber;
 
-    @NonNull
+    @NotBlank(message = "email cannot be blank")
     private String userEmail;
+
+    @NotBlank(message = "password cannot be blank")
+    private String userPassword;
 
 }
