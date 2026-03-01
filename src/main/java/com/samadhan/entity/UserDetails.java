@@ -24,7 +24,10 @@ public class UserDetails {
 	
 	@Column(name="user_contact_number")
 	private String userContactNumber;
-	
+
+	@Column(name = "user_password")
+	private String userPassword;
+
 	@Column(name="user_email")
 	private String userEmail;
 
