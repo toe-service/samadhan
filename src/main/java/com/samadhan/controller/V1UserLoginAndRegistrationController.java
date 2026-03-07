@@ -1,23 +1,17 @@
 package com.samadhan.controller;
 
 import com.samadhan.constant.AppConstant;
-import com.samadhan.dto.UserLoginData;
 import com.samadhan.exception.ConflictException;
-import com.samadhan.exception.NotFoundException;
-import com.samadhan.exception.NotificationException;
 import com.samadhan.exception.OtpMismatchException;
-import com.samadhan.request.UserLoginRequest;
+import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
-import com.samadhan.response.GetOtpResponse;
 import com.samadhan.response.ResponseObject;
-import com.samadhan.response.UserLoginResponse;
 import com.samadhan.service.LoginService;
 import com.samadhan.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -32,16 +26,16 @@ public class V1UserLoginAndRegistrationController {
     private LoginService loginService;
 
 
-    @PostMapping("/user-login")
-    public ResponseEntity<ResponseObject<?>> loginUser(@RequestBody UserLoginRequest userLoginRequest) throws OtpMismatchException {
-        logger.info("User login request is {}", userLoginRequest.toString());
-        if (userLoginRequest.getOtp() == 1234) {
-            ResponseObject<UserLoginRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userLoginRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+    @PostMapping("/user-otp-verify")
+    public ResponseEntity<ResponseObject<?>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
+        logger.info("User login request is {}", userOtpVerifyRequest.toString());
+        if (userOtpVerifyRequest.getOtp() == 1234) {
+            ResponseObject<UserOtpVerifyRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userOtpVerifyRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
             return ResponseEntity.ok(userLoginRequestResponseObject);
         } else {
-            boolean isOtpValid = loginService.isOtpValid(userLoginRequest);
+            boolean isOtpValid = loginService.isOtpValid(userOtpVerifyRequest);
             System.out.println("isOtpValid " + isOtpValid);
-            ResponseObject<UserLoginRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userLoginRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+            ResponseObject<UserOtpVerifyRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userOtpVerifyRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
             return ResponseEntity.ok(userLoginRequestResponseObject);
 
         }

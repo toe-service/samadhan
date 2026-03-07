@@ -4,7 +4,7 @@ import com.samadhan.entity.UserDetails;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.repository.UserRepository;
-import com.samadhan.request.UserLoginRequest;
+import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +30,11 @@ public class LoginService {
     @Autowired
     private UserRepository userRepository;
 
-    public boolean isOtpValid(UserLoginRequest userLoginRequest) throws OtpMismatchException {
-        Optional<UserDetails> userDetails = userRepository.findByUserContactNumber(userLoginRequest.userContactNumber);
+    public boolean isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
+        Optional<UserDetails> userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.userContactNumber);
 
         Boolean isOtpValid = userDetails
-                .map(data -> data.getOtp() == userLoginRequest.getOtp())
+                .map(data -> data.getOtp() == userOtpVerifyRequest.getOtp())
                 .orElseThrow(() -> new OtpMismatchException("user details not found"));
 
         if(!isOtpValid) {

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
-public class UserLoginRequest {
+public class UserOtpVerifyRequest {
     public String userContactNumber;
     public Integer otp;
 
