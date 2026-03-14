@@ -2,10 +2,13 @@ package com.samadhan.enums;
 
 public enum rideStatusEnum {
 
+	PENDING(0,"PENDING"),
 	ACCEPTED(1,"ACCEPTED"),
-	ONGOING(2,"ONGOING"),
-	COMPLETED(3,"COMPLETED"),
-	CANCELLED(4,"CANCELLED");
+	Declined(2,"Declined"),
+	HANDOVER(3,"Handover"),
+	ONGOING(4,"Transferring"),
+	COMPLETED(5,"COMPLETED"),
+	CANCELLED(6,"CANCELLED");
 	
 	
 	int id;
