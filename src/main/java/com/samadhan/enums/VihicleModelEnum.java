@@ -1,18 +1,15 @@
 package com.samadhan.enums;
 
-public enum VehicleTypeEnum {
-
-//	Sedan(0,"Sedan"),
-//	SUV(1,"SUV"),
-//	Hatchback(2,"Hatchback"),
-//	Luxury(3,"Luxury");
-	Car(0,"Car"),
-	Bike(1,"Bike");
+public enum VihicleModelEnum {
 	
+	Sedan(0,"Sedan"),
+	SUV(1,"SUV"),
+	Hatchback(2,"Hatchback"),
+	Luxury(3,"Luxury");
 	
 	int id;
 	String type;
-	private VehicleTypeEnum(int id, String type) {
+	private VihicleModelEnum(int id, String type) {
 		this.id = id;
 		this.type = type;
 	}
@@ -24,7 +21,7 @@ public enum VehicleTypeEnum {
 	}
 	
 	public static Integer getIdByType(String type) {
-		for(VehicleTypeEnum b:values()) {
+		for(VihicleModelEnum b:values()) {
 			if(b.getType().equalsIgnoreCase(type)) {
 				return b.getId();
 			}
@@ -33,7 +30,7 @@ public enum VehicleTypeEnum {
 	}
 	
 	public static String getTypeById(int id) {
-		for(VehicleTypeEnum b:values()) {
+		for(VihicleModelEnum b:values()) {
 			if(b.getId()==id) {
 				return b.getType();
 			}
