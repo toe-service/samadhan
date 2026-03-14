@@ -13,8 +13,8 @@ import com.samadhan.entity.VehicleTransfer;
 
 public interface TransferRequestService{
 
-	 public TransferRequestDetails requestRideTransfer(int vehicleType, String vehicleModel, String city, String pickuplatitude, String pickuplongitude,
-			String destinationlatitude, String destinationlongitude, Long userId, int rideCost,LocalDate pickupDate, String pickupSchedule);
+	 public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
+			String destinationlatitude, String destinationlongitude, Long userId, int rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination);
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 

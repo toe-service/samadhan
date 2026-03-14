@@ -1,11 +1,15 @@
 package com.samadhan.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.samadhan.dto.RideCostSummary;
 import com.samadhan.enums.SubscriptionPrice;
 import com.samadhan.response.SubscriptionResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,22 +40,68 @@ public class PaymentServiceImpl {
 //    }
     
     public List<SubscriptionResponse> getAllSubscriptions() {
-        return Arrays.stream(SubscriptionPrice.values())
-                .map(obj -> new SubscriptionResponse(obj.getSubscriptionName(), obj.getPrice(), Collections.emptyList()))
-                .collect(Collectors.toList());
+//        return Arrays.stream(SubscriptionPrice.values())
+//                .map(obj -> new SubscriptionResponse(obj.getSubscriptionName(), obj.getPrice(), Collections.emptyList()))
+//                .collect(Collectors.toList());
+    	return null;
     }
 
-    public int getrideCostCalculation(int distance) {
+    public RideCostSummary getrideCostCalculation(String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude) {
 
-//    double distance = calculateDistance(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude);
-    //double distance=3;
-        int getrideCostCalculation=0;
-    if(distance<5){
-        getrideCostCalculation =1000;
-    }else {
-        getrideCostCalculation = distance * 200;
-    }
-    return getrideCostCalculation;
+
+    	
+    	String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                + pickuplatitude + "," + pickuplongitude
+                + "&destination=" + destinationlatitude + "," + destinationlongitude
+                + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
+
+        RestTemplate restTemplate = new RestTemplate();
+        String response = restTemplate.getForObject(url, String.class);
+        RideCostSummary rideSummary=new RideCostSummary();
+        
+        try {
+        	
+        	
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response);
+            double rideCalculation=500.0;
+            double loadingUnloading=500.0;
+            double packaging=500.0;
+
+            int distanceInMeters = root
+                    .path("routes")
+                    .get(0)
+                    .path("legs")
+                    .get(0)
+                    .path("distance")
+                    .path("value")
+                    .asInt();
+            
+            
+
+            double distanceInKm = distanceInMeters / 1000.0;
+            
+            if(distanceInKm>10.0) {
+            	rideCalculation=distanceInKm *10;
+            }
+            rideSummary.setRideCost(rideCalculation);
+            double gst = rideCalculation * 0.18;
+            rideSummary.setGst(gst);
+            rideSummary.setLoadingUnloading(loadingUnloading);
+            rideSummary.setPackaging(packaging);
+            
+            double totalCost=rideCalculation+gst+loadingUnloading+packaging;
+            
+            rideSummary.setTotalCost(totalCost);
+            
+           
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return rideSummary;
+
 
     }
 
