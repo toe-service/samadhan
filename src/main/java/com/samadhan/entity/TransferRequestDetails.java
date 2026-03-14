@@ -42,11 +42,17 @@ public class TransferRequestDetails {
 	 @Column(name="destination_longitude")
 	 private String destinationLongitude;
 	 
+	 @Column(name="destination")
+	 private String destination;
+	 
 	 @Column(name="source_latitude")
 	 private String sourceLatitude;
 	 
 	 @Column(name="source_longitude")
 	 private String sourceLongitude;
+	 
+	 @Column(name="source")
+	 private String source;
 
 	 @OneToOne(cascade = CascadeType.ALL)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
@@ -75,6 +81,9 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="transfer_status")
 	 private rideStatusEnum transferStatus;
+	 
+	 @Column(name="transfer_calculation")
+	 private double transferCalculation;
 
 	public Long getId() {
 		return id;
@@ -194,6 +203,30 @@ public class TransferRequestDetails {
 
 	public void setDriver(Driver driver) {
 		this.driver = driver;
+	}
+
+	public String getDestination() {
+		return destination;
+	}
+
+	public void setDestination(String destination) {
+		this.destination = destination;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public double getTransferCalculation() {
+		return transferCalculation;
+	}
+
+	public void setTransferCalculation(double transferCalculation) {
+		this.transferCalculation = transferCalculation;
 	}
 	 
 	 
