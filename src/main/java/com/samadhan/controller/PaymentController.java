@@ -3,6 +3,7 @@ package com.samadhan.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.samadhan.response.ResponseObject;
 import com.samadhan.response.SubscriptionResponse;
 import com.samadhan.service.PaymentServiceImpl;
 import com.samadhan.util.ResponseUtil;
@@ -11,6 +12,8 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.samadhan.dto.RideCostSummary;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
 import com.samadhan.service.PaymentService;
 
@@ -96,8 +99,11 @@ public class PaymentController {
 	}
 
 	@GetMapping("/rideCostCalculation")
-	public ResponseEntity<Object> getrideCostCalculation(@RequestParam int distance) {
-		double rideCostCalculation = paymentService.getrideCostCalculation(distance);
+	public ResponseEntity<ResponseObject<RideCostSummary>> getrideCostCalculation(@RequestParam String pickuplatitude,
+            @RequestParam String pickuplongitude,
+            @RequestParam String destinationlatitude,
+            @RequestParam String destinationlongitude) {
+		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
 	}
 
