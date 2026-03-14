@@ -34,14 +34,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	DriverRepository driverRepo;
 	
 	@Override
-	public TransferRequestDetails requestRideTransfer(int vehicleType, String vehicleModel, String city, String pickuplatitude, String pickuplongitude,
-			String destinationlatitude, String destinationlongitude, Long userId, int rideCost,LocalDate pickupDate, String pickupSchedule) {
+	public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
+			String destinationlatitude, String destinationlongitude, Long userId, int rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination) {
 		
 		Optional<UserDetails> userOpt=userRepo.findById(userId);
 		UserDetails user=userOpt.get();
 		
 		TransferRequestDetails transferRequest=new TransferRequestDetails();
 		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleType]);
+		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleModel]);
 		LocalDate currentDate=LocalDate.now();
 		LocalTime cuurentTime=LocalTime.now();
 		transferRequest.setPickupDate(pickupDate);
@@ -52,6 +53,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setDestinationLongitude(destinationlongitude);
 		transferRequest.setSourceLatitude(pickuplatitude);
 		transferRequest.setSourceLongitude(pickuplongitude);
+		transferRequest.setSource(source);
+		transferRequest.setDestination(destination);
+		transferRequest.setTransferCalculation(rideCost);
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		
 		transferRepo.save(transferRequest);

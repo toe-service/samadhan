@@ -32,19 +32,20 @@ TransferRequestService transferRequestService;
 	
 	  @PostMapping(value = "/requestRideTransfer")
 	  public TransferRequestDetails requestRideTransfer(@RequestParam int vehicleType,
-	                                               @RequestParam String VehicleModel,
+	                                               @RequestParam int VehicleModel,
 	                                               @RequestParam Long userId,
 	                                              @RequestParam int rideCost,
-	                                               @RequestParam String city,
 	                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
 	                                               @RequestParam String pickupSchedule,
 	                                               @RequestParam String pickuplatitude,
 	                                               @RequestParam String pickuplongitude,
+	                                               @RequestParam String source,
+	                                               @RequestParam String destination,
 	                                               @RequestParam String destinationlatitude,
 	                                               @RequestParam String destinationlongitude) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(vehicleType, VehicleModel, city,
-	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(vehicleType, VehicleModel,
+	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination);
 	        return rideTransfer;
 	  }
 	  
