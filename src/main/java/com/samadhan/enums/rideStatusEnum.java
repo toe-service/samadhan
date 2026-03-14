@@ -2,7 +2,7 @@ package com.samadhan.enums;
 
 public enum rideStatusEnum {
 
-	 PENDING(0,"PENDING"),
+	PENDING(0,"PENDING"),
 	ACCEPTED(1,"ACCEPTED"),
 	Declined(2,"Declined"),
 	HANDOVER(3,"Handover"),
