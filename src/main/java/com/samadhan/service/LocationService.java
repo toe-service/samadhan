@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +20,7 @@ public class LocationService {
 	
 	private String apiKey="AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
 
+	@Cacheable(value = "LatLongCache", key = "#lat + '-' + #lng")
     public Map<String, Object> getLocation(double lat, double lng) {
 
         String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="
@@ -52,6 +54,7 @@ public class LocationService {
         return result;
     }
 
+	@Cacheable(value = "SearchLocationCache", key = "#input")
 	public List<String> searchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {
 		 String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
 	                + input + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
@@ -72,6 +75,7 @@ public class LocationService {
 	        return result;
 	}
 
+	@Cacheable(value = "GetAddressCache", key = "#address")
 	public Map<String, Double> getLatLong(String address) throws UnsupportedEncodingException, JsonMappingException, JsonProcessingException {
 		 String url = "https://maps.googleapis.com/maps/api/geocode/json?address="
 	                + URLEncoder.encode(address, "UTF-8")

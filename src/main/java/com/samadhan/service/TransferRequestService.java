@@ -14,7 +14,7 @@ import com.samadhan.entity.VehicleTransfer;
 public interface TransferRequestService{
 
 	 public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
-			String destinationlatitude, String destinationlongitude, Long userId, int rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination);
+			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination);
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 

@@ -34,7 +34,7 @@ TransferRequestService transferRequestService;
 	  public TransferRequestDetails requestRideTransfer(@RequestParam int vehicleType,
 	                                               @RequestParam int VehicleModel,
 	                                               @RequestParam Long userId,
-	                                              @RequestParam int rideCost,
+	                                              @RequestParam double rideCost,
 	                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
 	                                               @RequestParam String pickupSchedule,
 	                                               @RequestParam String pickuplatitude,
