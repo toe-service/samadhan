@@ -68,7 +68,7 @@ public class TransferRequestDetails {
 	 private VehicleTypeEnum VehicleType;
 	 
 	 @Column(name="ride_cost")
-	 private int rideCost;
+	 private double rideCost;
 
 	 @Column(name="pickup_date")
 	 private LocalDate pickupDate;
@@ -165,11 +165,11 @@ public class TransferRequestDetails {
 		VehicleType = vehicleType;
 	}
 
-	public int getRideCost() {
+	public double getRideCost() {
 		return rideCost;
 	}
 
-	public void setRideCost(int rideCost) {
+	public void setRideCost(double rideCost) {
 		this.rideCost = rideCost;
 	}
 
