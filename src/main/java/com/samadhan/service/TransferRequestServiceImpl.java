@@ -35,7 +35,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	
 	@Override
 	public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
-			String destinationlatitude, String destinationlongitude, Long userId, int rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination) {
+			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination) {
 		
 		Optional<UserDetails> userOpt=userRepo.findById(userId);
 		UserDetails user=userOpt.get();
