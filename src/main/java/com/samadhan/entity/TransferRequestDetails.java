@@ -82,8 +82,8 @@ public class TransferRequestDetails {
 	 @Column(name="transfer_status")
 	 private rideStatusEnum transferStatus;
 	 
-	 @Column(name="transfer_calculation")
-	 private double transferCalculation;
+//	 @Column(name="transfer_calculation")
+//	 private double transferCalculation;
 
 	public Long getId() {
 		return id;
@@ -221,13 +221,13 @@ public class TransferRequestDetails {
 		this.source = source;
 	}
 
-	public double getTransferCalculation() {
-		return transferCalculation;
-	}
-
-	public void setTransferCalculation(double transferCalculation) {
-		this.transferCalculation = transferCalculation;
-	}
+//	public double getTransferCalculation() {
+//		return transferCalculation;
+//	}
+//
+//	public void setTransferCalculation(double transferCalculation) {
+//		this.transferCalculation = transferCalculation;
+//	}
 	 
 	 
 	 
