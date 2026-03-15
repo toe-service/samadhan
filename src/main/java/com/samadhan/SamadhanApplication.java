@@ -8,6 +8,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 @SpringBootApplication
+@EnableCaching
 public class SamadhanApplication {
 
 	@Bean
