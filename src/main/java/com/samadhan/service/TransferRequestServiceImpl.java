@@ -55,7 +55,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setSourceLongitude(pickuplongitude);
 		transferRequest.setSource(source);
 		transferRequest.setDestination(destination);
-		transferRequest.setTransferCalculation(rideCost);
+		//transferRequest.setTransferCalculation(rideCost);
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		
 		transferRepo.save(transferRequest);
@@ -96,6 +96,37 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferRequestDetails transferRidesByUserId=transferRidesByUserIdopt.get();
 		System.out.println("TransferRidesByUserId" + transferRidesByUserId);
 		return transferRidesByUserId;
+	}
+
+	@Override
+	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId) {
+		Optional<Driver> driveropt=driverRepo.findById(driverId);
+		Driver driver=driveropt.get();
+		
+		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
+		TransferRequestDetails transferdetails=transferdetailsopt.get();
+		
+		transferdetails.setTransferStatus(rideStatusEnum.READYFORPICKUP);
+		transferdetails.setDriver(driver);
+		
+		transferRepo.save(transferdetails);
+		
+		return transferdetails;
+		
+	}
+
+	@Override
+	public boolean otpVerify(Long transferId, int otp) {
+		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
+		TransferRequestDetails transferdetails=transferdetailsopt.get();
+		
+		if(transferdetails.getOtp()==otp) {
+			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);
+			return true;
+		}
+		
+		
+		return false;
 	}
 	
 	
