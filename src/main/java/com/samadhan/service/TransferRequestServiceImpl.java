@@ -1,6 +1,7 @@
 package com.samadhan.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +11,7 @@ import com.samadhan.enums.rideStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.api.client.util.Objects;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
@@ -74,16 +76,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferApproval(Long userId, Long transferId, int transferApproval, Long driverId) {
+	public TransferRequestDetails requestTransferApproval(Long userId, Long transferId, int transferApproval) {
 		
-		Optional<Driver> driveropt=driverRepo.findById(driverId);
-		Driver driver=driveropt.get();
+//		Optional<Driver> driveropt=driverRepo.findById(driverId);
+//		Driver driver=driveropt.get();
+		LocalDateTime dateTime=LocalDateTime.now();
 		
 		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
 		
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
-		transferdetails.setDriver(driver);
+		transferdetails.setRequestApprovalDate(dateTime);
 		
 		transferRepo.save(transferdetails);
 		
@@ -99,15 +102,28 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId) {
-		Optional<Driver> driveropt=driverRepo.findById(driverId);
-		Driver driver=driveropt.get();
+	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId) {
 		
 		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
 		
-		transferdetails.setTransferStatus(rideStatusEnum.READYFORPICKUP);
+		 if (driverId != null) {
+		LocalDateTime dateTime=LocalDateTime.now();	 
+		Optional<Driver> driveropt=driverRepo.findById(driverId);
+		Driver driver=driveropt.get();
 		transferdetails.setDriver(driver);
+		transferdetails.setDriverAssignDateTime(dateTime);
+		transferdetails.setTransferStatus(rideStatusEnum.READYFORPICKUP);
+		}
+		
+		
+		if (vehicleId != null && vehicleId != 0) {
+			LocalDateTime dateTime=LocalDateTime.now();	 
+			transferdetails.setVehicleAssignDateTime(dateTime);
+			transferdetails.setVehicleId(vehicleId);
+			transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
+		}
+		
 		
 		transferRepo.save(transferdetails);
 		
@@ -121,13 +137,18 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
 		
 		if(transferdetails.getOtp()==otp) {
+			LocalDateTime dateTime=LocalDateTime.now();
+			transferdetails.setHandoveredDateTime(dateTime);
+			
 			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);
+			transferRepo.save(transferdetails);
 			return true;
 		}
-		
-		
+				
 		return false;
 	}
+
+	
 	
 	
 	
