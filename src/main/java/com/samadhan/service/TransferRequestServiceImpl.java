@@ -55,7 +55,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setSourceLongitude(pickuplongitude);
 		transferRequest.setSource(source);
 		transferRequest.setDestination(destination);
-//		transferRequest.setTransferCalculation(rideCost);
+		//transferRequest.setTransferCalculation(rideCost);
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		
 		transferRepo.save(transferRequest);
