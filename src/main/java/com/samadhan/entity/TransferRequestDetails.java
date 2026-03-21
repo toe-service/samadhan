@@ -84,6 +84,21 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="otp")
 	 private int otp;
+	 
+	 @Column(name="vehicle_id")
+	 private Integer vehicleId;
+	 
+	 @Column(name="request_approval_date")
+	 private LocalDateTime RequestApprovalDate;
+	 
+	 @Column(name="driver_assigned_date")
+	 private LocalDateTime DriverAssignDateTime;
+	 
+	 @Column(name="handovered_date")
+	 private LocalDateTime HandoveredDateTime;
+	 
+	 @Column(name="vehicle_assign_date")
+	 private LocalDateTime VehicleAssignDateTime;
 
 	public Long getId() {
 		return id;
@@ -229,14 +244,47 @@ public class TransferRequestDetails {
 		this.otp = otp;
 	}
 
-//	public double getTransferCalculation() {
-//		return transferCalculation;
-//	}
-//
-//	public void setTransferCalculation(double transferCalculation) {
-//		this.transferCalculation = transferCalculation;
-//	}
-	 
+	public Integer getVehicleId() {
+		return vehicleId;
+	}
+
+	public void setVehicleId(Integer vehicleId) {
+		this.vehicleId = vehicleId;
+	}
+
+	public LocalDateTime getRequestApprovalDate() {
+		return RequestApprovalDate;
+	}
+
+	public void setRequestApprovalDate(LocalDateTime requestApprovalDate) {
+		RequestApprovalDate = requestApprovalDate;
+	}
+
+	public LocalDateTime getDriverAssignDateTime() {
+		return DriverAssignDateTime;
+	}
+
+	public void setDriverAssignDateTime(LocalDateTime driverAssignDateTime) {
+		DriverAssignDateTime = driverAssignDateTime;
+	}
+
+	public LocalDateTime getHandoveredDateTime() {
+		return HandoveredDateTime;
+	}
+
+	public void setHandoveredDateTime(LocalDateTime handoveredDateTime) {
+		HandoveredDateTime = handoveredDateTime;
+	}
+
+	public LocalDateTime getVehicleAssignDateTime() {
+		return VehicleAssignDateTime;
+	}
+
+	public void setVehicleAssignDateTime(LocalDateTime vehicleAssignDateTime) {
+		VehicleAssignDateTime = vehicleAssignDateTime;
+	}
+
+
 	 
 	 
 }
