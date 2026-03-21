@@ -1,8 +1,6 @@
 package com.samadhan.controller;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
-import com.samadhan.entity.VehicleTransfer;
 import com.samadhan.service.TransferRequestService;
 
 @RestController
 @RequestMapping("/transfer")
-public class TransferRequestController {
+public class V1TransferRequestController {
 	
 
 @Autowired
