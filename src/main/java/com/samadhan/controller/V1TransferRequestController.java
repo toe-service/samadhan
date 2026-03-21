@@ -1,11 +1,16 @@
 package com.samadhan.controller;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +20,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.entity.VehicleTransfer;
+import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.service.TransferRequestService;
 
 @RestController
@@ -61,27 +69,32 @@ TransferRequestService transferRequestService;
 	  @PostMapping(value = "/requestTransferApproval")
 	  public TransferRequestDetails requestTransferApproval(@RequestParam Long userId,
 	                                               @RequestParam Long transferId,
-	                                               @RequestParam Long driverId,
 	                                               @RequestParam int transferApproval) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval(userId, transferId, transferApproval, driverId);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval(userId, transferId, transferApproval);
 	        return rideTransfer;
 	  }
 	  
 	  @PutMapping(value = "/requestTransferUpdate")
 	  public TransferRequestDetails requestTransferUpdate(@RequestParam Long transferId,
-			  							@RequestParam Long driverId) throws JsonProcessingException {
+			  							@RequestParam(required = false) Long driverId,@RequestParam(required = false) Integer vehicleId) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId,vehicleId);
 	        return rideTransfer;
 	  }
 	  
-	  @GetMapping(value = "/otpvalidate")
-	  public boolean otpVerify(@RequestParam Long transferId,
-			  							@RequestParam int otp) throws JsonProcessingException {
-	        System.out.println("hi");
-	        boolean rideTransfer = transferRequestService.otpVerify(transferId, otp);
-	        return rideTransfer;
+	  @GetMapping("/otpvalidate")
+	  public ResponseEntity<Map<String, Object>> otpValidate(
+	          @RequestParam Long transferId,
+	          @RequestParam int otp) {
+
+	      boolean verified = transferRequestService.otpVerify(transferId, otp);
+
+	      Map<String, Object> response = new HashMap<>();
+	      response.put("success", verified); // always boolean
+	      response.put("transferStatus", rideStatusEnum.HANDOVER);
+
+	      return ResponseEntity.ok(response);
 	  }
 
 }

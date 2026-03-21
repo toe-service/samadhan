@@ -18,12 +18,14 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 
-	public TransferRequestDetails requestTransferApproval(Long userId, Long transferId, int transferApproval, Long driverId);
+	public TransferRequestDetails requestTransferApproval(Long userId, Long transferId, int transferApproval);
 
 	public TransferRequestDetails getRidesByTransferId(Long transferId);
 
-	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId);
+	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId);
 
 	public boolean otpVerify(Long transferId, int otp);
+
+	//TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId);
 
 }
