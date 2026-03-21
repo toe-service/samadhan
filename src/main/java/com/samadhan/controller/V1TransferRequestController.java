@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,6 +65,22 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam int transferApproval) throws JsonProcessingException {
 	        System.out.println("hi");
 	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval(userId, transferId, transferApproval, driverId);
+	        return rideTransfer;
+	  }
+	  
+	  @PutMapping(value = "/requestTransferUpdate")
+	  public TransferRequestDetails requestTransferUpdate(@RequestParam Long transferId,
+			  							@RequestParam Long driverId) throws JsonProcessingException {
+	        System.out.println("hi");
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId);
+	        return rideTransfer;
+	  }
+	  
+	  @GetMapping(value = "/otpvalidate")
+	  public boolean otpVerify(@RequestParam Long transferId,
+			  							@RequestParam int otp) throws JsonProcessingException {
+	        System.out.println("hi");
+	        boolean rideTransfer = transferRequestService.otpVerify(transferId, otp);
 	        return rideTransfer;
 	  }
 

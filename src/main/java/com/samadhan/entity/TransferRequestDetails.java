@@ -61,7 +61,7 @@ public class TransferRequestDetails {
 	 
 	 @OneToOne(cascade = CascadeType.ALL)
 	 @JoinColumn(name = "driver_id", referencedColumnName = "id")
-	 @JsonIgnore
+	// @JsonIgnore
 	 private Driver driver;
 	 
 	 @Column(name="vehicle_type")
@@ -82,8 +82,8 @@ public class TransferRequestDetails {
 	 @Column(name="transfer_status")
 	 private rideStatusEnum transferStatus;
 	 
-//	 @Column(name="transfer_calculation")
-//	 private double transferCalculation;
+	 @Column(name="otp")
+	 private int otp;
 
 	public Long getId() {
 		return id;
@@ -221,6 +221,14 @@ public class TransferRequestDetails {
 		this.source = source;
 	}
 
+	public int getOtp() {
+		return otp;
+	}
+
+	public void setOtp(int otp) {
+		this.otp = otp;
+	}
+
 //	public double getTransferCalculation() {
 //		return transferCalculation;
 //	}
@@ -228,7 +236,7 @@ public class TransferRequestDetails {
 //	public void setTransferCalculation(double transferCalculation) {
 //		this.transferCalculation = transferCalculation;
 //	}
-//
+	 
 	 
 	 
 }
