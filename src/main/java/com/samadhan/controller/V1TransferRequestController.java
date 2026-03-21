@@ -28,7 +28,7 @@ import com.samadhan.service.TransferRequestService;
 
 @RestController
 @RequestMapping("/transfer")
-public class TransferRequestController {
+public class V1TransferRequestController {
 	
 
 @Autowired

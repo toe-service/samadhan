@@ -103,54 +103,54 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 	@Override
 	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId) {
-		
+
 		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
-		
+
 		 if (driverId != null) {
-		LocalDateTime dateTime=LocalDateTime.now();	 
+		LocalDateTime dateTime=LocalDateTime.now();
 		Optional<Driver> driveropt=driverRepo.findById(driverId);
 		Driver driver=driveropt.get();
 		transferdetails.setDriver(driver);
 		transferdetails.setDriverAssignDateTime(dateTime);
 		transferdetails.setTransferStatus(rideStatusEnum.READYFORPICKUP);
 		}
-		
-		
+
+
 		if (vehicleId != null && vehicleId != 0) {
-			LocalDateTime dateTime=LocalDateTime.now();	 
+			LocalDateTime dateTime=LocalDateTime.now();
 			transferdetails.setVehicleAssignDateTime(dateTime);
 			transferdetails.setVehicleId(vehicleId);
 			transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
 		}
-		
-		
+
+
 		transferRepo.save(transferdetails);
-		
+
 		return transferdetails;
-		
+
 	}
 
 	@Override
 	public boolean otpVerify(Long transferId, int otp) {
 		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
-		
+
 		if(transferdetails.getOtp()==otp) {
 			LocalDateTime dateTime=LocalDateTime.now();
 			transferdetails.setHandoveredDateTime(dateTime);
-			
+
 			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);
 			transferRepo.save(transferdetails);
 			return true;
 		}
-				
+
 		return false;
 	}
 
 	
 	
 	
-	
+
 
 }
