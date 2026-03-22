@@ -12,4 +12,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select * from transfer_request_details where user_id=:userId" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByUserId(Long userId);
 
+	@Query(value="select * from transfer_request_details where driver_id=:driverId" ,nativeQuery = true)
+	List<TransferRequestDetails> findTransferRideByDriverId(Long driverId);
+
 }
