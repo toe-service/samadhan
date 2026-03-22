@@ -4,12 +4,13 @@ public enum rideStatusEnum {
 
 	PENDING(0,"PENDING"),
 	ACCEPTED(1,"ACCEPTED"),
-	Declined(2,"Declined"),
-	READYFORPICKUP(3,"ReadyFForPickUp"),
+	DECLINED(2,"Declined"),
+	READYFORPICKUP(3,"ReadyForPickUp"),
 	HANDOVER(4,"HANDOVER"),
 	ONGOING(5,"Transferring"),
-	COMPLETED(6,"COMPLETED"),
-	CANCELLED(7,"CANCELLED");
+	YETTOBECOMPLETED(6,"YET TO BE COMPLETED"),
+	COMPLETED(7,"COMPLETED"),
+	CANCELLED(8,"CANCELLED");
 	
 	
 	int id;

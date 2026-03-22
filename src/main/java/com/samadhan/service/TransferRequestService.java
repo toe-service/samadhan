@@ -24,8 +24,8 @@ public interface TransferRequestService{
 
 	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId);
 
-	public boolean otpVerify(Long transferId, int otp);
+	public boolean otpVerify(Long transferId, int otp, boolean flag);
 
-	//TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId);
+	public List<TransferRequestDetails> getRidesByDriverId(Long driverId);
 
 }

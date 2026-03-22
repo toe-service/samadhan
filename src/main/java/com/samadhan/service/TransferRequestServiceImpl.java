@@ -71,6 +71,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		List<TransferRequestDetails> transferRidesByUserId = transferRepo.findTransferRideByUserId(userId);
 		System.out.println("TransferRidesByUserId" + transferRidesByUserId);
+		
 		return transferRidesByUserId;
 		
 	}
@@ -121,7 +122,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			LocalDateTime dateTime=LocalDateTime.now();
 			transferdetails.setVehicleAssignDateTime(dateTime);
 			transferdetails.setVehicleId(vehicleId);
-			transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
+		//	transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
 		}
 
 
@@ -132,7 +133,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public boolean otpVerify(Long transferId, int otp) {
+	public boolean otpVerify(Long transferId, int otp, boolean flag) {
 		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
 
@@ -140,12 +141,24 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			LocalDateTime dateTime=LocalDateTime.now();
 			transferdetails.setHandoveredDateTime(dateTime);
 
+			if(flag) {
+			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);	
+			}else {
 			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);
+			}
 			transferRepo.save(transferdetails);
 			return true;
 		}
 
 		return false;
+	}
+
+	@Override
+	public List<TransferRequestDetails> getRidesByDriverId(Long driverId) {
+		List<TransferRequestDetails> transferRidesByDriverId = transferRepo.findTransferRideByDriverId(driverId);
+		System.out.println("transferRidesByDriverId" + transferRidesByDriverId);
+		
+		return transferRidesByDriverId;
 	}
 
 	
