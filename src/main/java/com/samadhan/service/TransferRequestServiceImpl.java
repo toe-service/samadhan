@@ -103,12 +103,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId) {
+	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId, Integer rideStatus) {
 
 		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
 
-		 if (driverId != null) {
+		if (driverId != null) {
 		LocalDateTime dateTime=LocalDateTime.now();
 		Optional<Driver> driveropt=driverRepo.findById(driverId);
 		Driver driver=driveropt.get();
@@ -124,7 +124,16 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setVehicleId(vehicleId);
 		//	transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
 		}
-
+		
+		if(rideStatus != null && rideStatus==0) {
+			LocalDateTime dateTime=LocalDateTime.now();
+			transferdetails.setRidestartTime(dateTime);
+			transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
+		}else if(rideStatus != null && rideStatus==1) {
+			LocalDateTime dateTime=LocalDateTime.now();
+			transferdetails.setRideendTime(dateTime);
+			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
+		}
 
 		transferRepo.save(transferdetails);
 
