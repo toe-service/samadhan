@@ -66,6 +66,12 @@ TransferRequestService transferRequestService;
 			return ResponseEntity.ok(ridesByTransferId);
 	    }
 	  
+	  @GetMapping(value = "/rideTransferByDriver/{driverId}")
+	    public ResponseEntity< List<TransferRequestDetails>> getRidesByDriverId(@PathVariable Long driverId) {
+		  List<TransferRequestDetails> ridesByDriverId = transferRequestService.getRidesByDriverId(driverId);
+			return ResponseEntity.ok(ridesByDriverId);
+	    }
+	  
 	  @PostMapping(value = "/requestTransferApproval")
 	  public TransferRequestDetails requestTransferApproval(@RequestParam Long userId,
 	                                               @RequestParam Long transferId,
@@ -86,13 +92,18 @@ TransferRequestService transferRequestService;
 	  @GetMapping("/otpvalidate")
 	  public ResponseEntity<Map<String, Object>> otpValidate(
 	          @RequestParam Long transferId,
-	          @RequestParam int otp) {
+	          @RequestParam int otp,@RequestParam boolean flag) {
 
-	      boolean verified = transferRequestService.otpVerify(transferId, otp);
+	      boolean verified = transferRequestService.otpVerify(transferId, otp, flag);
 
 	      Map<String, Object> response = new HashMap<>();
 	      response.put("success", verified); // always boolean
-	      response.put("transferStatus", rideStatusEnum.HANDOVER);
+			if (flag) {
+			response.put("transferStatus", rideStatusEnum.COMPLETED);
+			} else {
+				response.put("transferStatus", rideStatusEnum.HANDOVER);
+			}
+	     
 
 	      return ResponseEntity.ok(response);
 	  }
