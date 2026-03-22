@@ -83,9 +83,10 @@ TransferRequestService transferRequestService;
 	  
 	  @PutMapping(value = "/requestTransferUpdate")
 	  public TransferRequestDetails requestTransferUpdate(@RequestParam Long transferId,
-			  							@RequestParam(required = false) Long driverId,@RequestParam(required = false) Integer vehicleId) throws JsonProcessingException {
+			  							@RequestParam(required = false) Long driverId,@RequestParam(required = false) Integer vehicleId,
+			  							@RequestParam(required = false) Integer rideStatusflag) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId,vehicleId);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId,vehicleId,rideStatusflag);
 	        return rideTransfer;
 	  }
 	  
