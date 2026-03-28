@@ -188,6 +188,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		return showRidestoVendors;
 	}
 
+	@Override
+	public List<TransferRequestDetails> getrideTransferByVehicle(Long vehicleId) {
+		List<TransferRequestDetails> getRidesByVehicle = transferRepo.getRidesByVehicle(vehicleId);
+		System.out.println("getRidesByVehicle" + getRidesByVehicle);
+		
+		return getRidesByVehicle;
+	}
+
 	
 	
 	

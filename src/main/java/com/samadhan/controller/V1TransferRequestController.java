@@ -78,6 +78,12 @@ TransferRequestService transferRequestService;
 			return ResponseEntity.ok(ridesByDriverId);
 	    }
 	  
+	  @GetMapping(value = "/rideTransferByVehicle/{vehicleId}")
+	    public ResponseEntity< List<TransferRequestDetails>> getrideTransferByVehicle(@PathVariable Long vehicleId) {
+		  List<TransferRequestDetails> ridesByDriverId = transferRequestService.getrideTransferByVehicle(vehicleId);
+			return ResponseEntity.ok(ridesByDriverId);
+	    }
+	  
 	  @PostMapping(value = "/requestTransferApproval")
 	  public TransferRequestDetails requestTransferApproval(@RequestParam Long transferId,
 	                                               @RequestParam Long vendorId,
