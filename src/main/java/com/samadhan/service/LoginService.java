@@ -1,8 +1,10 @@
 package com.samadhan.service;
 
+import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
+import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
@@ -29,6 +31,9 @@ public class LoginService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private TransferVendorRepository transferVendorRepository;
 
     public boolean isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         Optional<UserDetails> userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.userContactNumber);
@@ -113,5 +118,12 @@ public class LoginService {
                 .getAsInt();
 
     }
+
+	public TransferVendor loginTransfervendor(String userName, String password) {
+
+		TransferVendor transferv=transferVendorRepository.findByUserAndPassword(userName,password);
+		
+		return transferv;
+	}
 
 }

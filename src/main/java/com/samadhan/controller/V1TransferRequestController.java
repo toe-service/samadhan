@@ -66,6 +66,12 @@ TransferRequestService transferRequestService;
 			return ResponseEntity.ok(ridesByTransferId);
 	    }
 	  
+	  @GetMapping(value = "/showRidestoVendors/{transferId}")
+	    public ResponseEntity<List<TransferRequestDetails>> showRidestoVendors(@PathVariable Long transferId) {
+		  List<TransferRequestDetails> showRidestoVendors = transferRequestService.showRidestoVendors(transferId);
+			return ResponseEntity.ok(showRidestoVendors);
+	    }
+	  
 	  @GetMapping(value = "/rideTransferByDriver/{driverId}")
 	    public ResponseEntity< List<TransferRequestDetails>> getRidesByDriverId(@PathVariable Long driverId) {
 		  List<TransferRequestDetails> ridesByDriverId = transferRequestService.getRidesByDriverId(driverId);
@@ -73,11 +79,11 @@ TransferRequestService transferRequestService;
 	    }
 	  
 	  @PostMapping(value = "/requestTransferApproval")
-	  public TransferRequestDetails requestTransferApproval(@RequestParam Long userId,
-	                                               @RequestParam Long transferId,
+	  public TransferRequestDetails requestTransferApproval(@RequestParam Long transferId,
+	                                               @RequestParam Long vendorId,
 	                                               @RequestParam int transferApproval) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval(userId, transferId, transferApproval);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId);
 	        return rideTransfer;
 	  }
 	  

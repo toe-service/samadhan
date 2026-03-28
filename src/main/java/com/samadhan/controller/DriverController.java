@@ -19,7 +19,9 @@ import com.samadhan.response.Error;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
+import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.SamadhanException;
+import com.samadhan.service.VehicleService;
 import com.samadhan.service.driversService;
 import com.samadhan.util.ResponseUtil;
 
@@ -31,6 +33,9 @@ public class DriverController {
 
 	@Autowired
 	private driversService driversService;
+	
+	@Autowired
+	private VehicleService vehicleService;
 	
 	@GetMapping(value = "/driver-details")
     public ResponseEntity<Driver> driverDetailsById(@RequestParam Long id) {
@@ -101,6 +106,28 @@ public class DriverController {
 		 	List<Driver> driversWithinFiftyKm = driversService.getAllDriversByfilters(pickuplatitude, pickuplongitude);
 			return driversWithinFiftyKm;
 		}
+	 
+	 @GetMapping(value = "/getAllDrivers")
+		public List<Driver> getAllDrivers() {
+			
+		 	List<Driver> drivers = driversService.getAllDrivers();
+			return drivers;
+		}
+	 
+	 @GetMapping(value = "/getAllDriversByVendor")
+		public List<Driver> getAllDriversByVendor(@RequestParam Long vendorId) {
+			
+		 	List<Driver> drivers = driversService.getAllDriversByVendor(vendorId);
+			return drivers;
+		}
+	 
+	 @GetMapping(value = "/getAllVehiclesByVendor")
+		public List<Vehicle> getAllVehiclesByVendor(@RequestParam Long vendorId) {
+			
+		 	List<Vehicle> vehiclesByVendor = vehicleService.getAllVehiclesByVendor(vendorId);
+			return vehiclesByVendor;
+		}
+	 
 	
 	//Driver registration API
 
@@ -109,7 +136,15 @@ public class DriverController {
 	 */
 	@PostMapping(value = "/register-Driver")
 	public Driver createDriver(@RequestBody Driver driver) {
+		System.out.println("driver"+driver.getTransferVendor());
 		Driver resp = driversService.createdriver(driver);
+		return resp;
+	}
+	
+	@PostMapping(value = "/register-Vehicle")
+	public Vehicle createVehicle(@RequestBody Vehicle vehicle) {
+		
+		Vehicle resp = vehicleService.createVehicle(vehicle);
 		return resp;
 	}
 

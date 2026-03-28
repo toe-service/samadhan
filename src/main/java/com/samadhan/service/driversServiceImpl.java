@@ -110,7 +110,7 @@ public class driversServiceImpl implements driversService {
 
     @Override
     public Driver createdriver(Driver driver) {
-
+    	System.out.println("Inside driver"+driver);
         Driver driverData = driverRepo.save(driver);
         return driverData;
     }
@@ -144,5 +144,19 @@ public class driversServiceImpl implements driversService {
 
         driverRepo.save(updatedDriver);
     }
+
+
+	@Override
+	public List<Driver> getAllDrivers() {
+		List<Driver> drivers = driverRepo.findAll();
+		return drivers;
+	}
+
+
+	@Override
+	public List<Driver> getAllDriversByVendor(Long vendorId) {
+		List<Driver> drivers = driverRepo.findByVendorId(vendorId);
+		return drivers;
+	}
 
 }
