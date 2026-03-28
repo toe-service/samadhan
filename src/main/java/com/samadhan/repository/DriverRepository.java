@@ -20,6 +20,10 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 	           "(6371 * acos(cos(radians(:pickuplatitude)) * cos(radians(d.driverLatitude)) * cos(radians(d.driverLongitude) - radians(:pickuplongitude)) + " +
 	           "sin(radians(:pickuplatitude)) * sin(radians(d.driverLatitude)))) <= :distance")
 	List<Driver> findAllDriversByfilters(String pickuplatitude, String pickuplongitude,double distance);
+
+	@Query(value="SELECT * FROM driver WHERE transfer_id=:vendorId" ,nativeQuery = true)
+	         
+	List<Driver> findByVendorId(Long vendorId);
 	
 }
 

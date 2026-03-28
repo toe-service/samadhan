@@ -18,7 +18,7 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 
-	public TransferRequestDetails requestTransferApproval(Long userId, Long transferId, int transferApproval);
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId);
 
 	public TransferRequestDetails getRidesByTransferId(Long transferId);
 
@@ -27,5 +27,7 @@ public interface TransferRequestService{
 	public boolean otpVerify(Long transferId, int otp, boolean flag);
 
 	public List<TransferRequestDetails> getRidesByDriverId(Long driverId);
+
+	public List<TransferRequestDetails> showRidestoVendors(Long transferId);
 
 }

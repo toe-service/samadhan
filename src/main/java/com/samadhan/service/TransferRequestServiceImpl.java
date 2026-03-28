@@ -15,10 +15,12 @@ import com.google.api.client.util.Objects;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.VehicleTransfer;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.TransferRequestRepository;
+import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
 
 
@@ -34,6 +36,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	
 	@Autowired
 	DriverRepository driverRepo;
+	
+	@Autowired
+	TransferVendorRepository transferVendorRepo;
 	
 	@Override
 	public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
@@ -77,17 +82,22 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferApproval(Long userId, Long transferId, int transferApproval) {
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId) {
 		
-//		Optional<Driver> driveropt=driverRepo.findById(driverId);
-//		Driver driver=driveropt.get();
+
 		LocalDateTime dateTime=LocalDateTime.now();
 		
 		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
 		TransferRequestDetails transferdetails=transferdetailsopt.get();
 		
+		Optional<TransferVendor> transferVendoropt=transferVendorRepo.findById(vendorId);
+		TransferVendor transferVendor=transferVendoropt.get();
+		
+		
+		
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
+		transferdetails.settransferVendor(transferVendor);
 		
 		transferRepo.save(transferdetails);
 		
@@ -168,6 +178,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		System.out.println("transferRidesByDriverId" + transferRidesByDriverId);
 		
 		return transferRidesByDriverId;
+	}
+
+	@Override
+	public List<TransferRequestDetails> showRidestoVendors(Long transferId) {
+		List<TransferRequestDetails> showRidestoVendors = transferRepo.showRidestoVendors(transferId);
+		System.out.println("showRidestoVendors" + showRidestoVendors);
+		
+		return showRidestoVendors;
 	}
 
 	
