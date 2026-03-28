@@ -15,4 +15,28 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select * from transfer_request_details where driver_id=:driverId" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByDriverId(Long driverId);
 
+	@Query(value="SELECT trd.*\r\n"
+			+ "FROM transfer_request_details trd\r\n"
+			+ "JOIN transfer_vendor tv \r\n"
+			+ "    ON 1=1\r\n"
+			+ "WHERE \r\n"
+			+ "    trd.transfer_id = :transferId\r\n"
+			+ "\r\n"
+			+ "    OR (\r\n"
+			+ "        trd.transfer_id IS NULL\r\n"
+			+ "        AND (\r\n"
+			+ "            6371 * ACOS(\r\n"
+			+ "                COS(RADIANS(CAST(tv.vendor_latitude AS DECIMAL(10,6))))\r\n"
+			+ "                * COS(RADIANS(CAST(trd.source_latitude AS DECIMAL(10,6))))\r\n"
+			+ "                * COS(\r\n"
+			+ "                    RADIANS(CAST(trd.source_longitude AS DECIMAL(10,6))) - \r\n"
+			+ "                    RADIANS(CAST(tv.vendor_longitude AS DECIMAL(10,6)))\r\n"
+			+ "                )\r\n"
+			+ "                + SIN(RADIANS(CAST(tv.vendor_latitude AS DECIMAL(10,6))))\r\n"
+			+ "                * SIN(RADIANS(CAST(trd.source_latitude AS DECIMAL(10,6))))\r\n"
+			+ "            )\r\n"
+			+ "        ) <= 50\r\n"
+			+ "    );" ,nativeQuery = true)
+	List<TransferRequestDetails> showRidestoVendors(Long transferId);
+
 }

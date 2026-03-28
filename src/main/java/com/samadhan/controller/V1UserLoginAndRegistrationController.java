@@ -1,6 +1,7 @@
 package com.samadhan.controller;
 
 import com.samadhan.constant.AppConstant;
+import com.samadhan.entity.TransferVendor;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.UserLoginRequest;
@@ -64,6 +65,30 @@ public class V1UserLoginAndRegistrationController {
         return ResponseEntity.ok(success);
 
     }
+    
+    @PostMapping("/driver-login")
+    public String loginDriver(@RequestParam String UserName, @RequestParam String password
+           ) throws ConflictException {
+//        logger.info("User Login request is {}", userLoginRequest);
+//        loginService.registerUser(userRegisterRequest);
+//        ResponseObject<UserLoginRequest> success = ResponseUtil.populateResponseObject("", "SUCCESS", null);
+//        return ResponseEntity.ok(success);
+    	return "Success";
 
+    }
+
+    @PostMapping("/transfervendor-login")
+    public ResponseEntity<ResponseObject<TransferVendor>> loginTransfervendor(@RequestParam String UserName, @RequestParam String password
+           ) throws ConflictException {
+    	
+    		TransferVendor transferv=loginService.loginTransfervendor(UserName,password);
+//        logger.info("User Login request is {}", userLoginRequest);
+//        loginService.registerUser(userRegisterRequest);
+        ResponseObject<TransferVendor> success = ResponseUtil.populateResponseObject(transferv, "SUCCESS", null);
+       
+        return ResponseEntity.ok(success);
+    	
+
+    }
 
 }
