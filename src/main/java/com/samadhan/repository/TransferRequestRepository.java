@@ -39,4 +39,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 			+ "    );" ,nativeQuery = true)
 	List<TransferRequestDetails> showRidestoVendors(Long transferId);
 
+	@Query(value="select * from transfer_request_details where vehicle_id=:vehicleId AND transfer_status=5" ,nativeQuery = true)
+	List<TransferRequestDetails> getRidesByVehicle(Long vehicleId);
+
 }
