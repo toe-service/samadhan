@@ -64,6 +64,11 @@ public class TransferRequestDetails {
 	// @JsonIgnore
 	 private Driver driver;
 	 
+	 @OneToOne(cascade = CascadeType.ALL)
+	 @JoinColumn(name = "transfer_id", referencedColumnName = "id")
+	 @JsonIgnore
+	 private TransferVendor transferVendor;
+	 
 	 @Column(name="vehicle_type")
 	 private VehicleTypeEnum VehicleType;
 	 
@@ -282,6 +287,14 @@ public class TransferRequestDetails {
 
 	public void setVehicleAssignDateTime(LocalDateTime vehicleAssignDateTime) {
 		VehicleAssignDateTime = vehicleAssignDateTime;
+	}
+
+	public TransferVendor gettransferVendor() {
+		return transferVendor;
+	}
+
+	public void settransferVendor(TransferVendor transferVendor) {
+		this.transferVendor = transferVendor;
 	}
 
 

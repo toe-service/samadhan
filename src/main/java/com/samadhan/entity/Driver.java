@@ -6,8 +6,12 @@ import java.util.List;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 @Entity
 @Table(name="driver")
 public class Driver {
@@ -47,7 +51,12 @@ public class Driver {
 	private String carNumber;
 	
 	@ManyToOne
-//	@JoinColumn(name = "service_centre_id")
+	@JoinColumn(name = "transfer_id")
+	@JsonBackReference
+	private TransferVendor transferVendor;
+	
+	@ManyToOne
+	@JoinColumn(name = "service_centre_id")
 	@JsonIgnore
 	private ServiceCentre serviceCentre;
 
@@ -181,5 +190,14 @@ public class Driver {
 		this.rides = rides;
 	}
 
+	public TransferVendor getTransferVendor() {
+		return transferVendor;
+	}
+
+	public void setTransferVendor(TransferVendor transferVendor) {
+		this.transferVendor = transferVendor;
+	}
+
+	
 	
 }

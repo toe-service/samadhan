@@ -22,4 +22,8 @@ public interface driversService {
 
 	void updateDriverLatLong(long driverId, String latitude, String longitude) throws NotFoundException;
 
+	List<Driver> getAllDrivers();
+
+	List<Driver> getAllDriversByVendor(Long vendorId);
+
 }
