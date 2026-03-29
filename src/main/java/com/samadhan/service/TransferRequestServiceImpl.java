@@ -132,7 +132,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			LocalDateTime dateTime=LocalDateTime.now();
 			transferdetails.setVehicleAssignDateTime(dateTime);
 			transferdetails.setVehicleId(vehicleId);
-		//	transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
+			transferdetails.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 		}
 		
 		if(rideStatus != null && rideStatus==0) {
