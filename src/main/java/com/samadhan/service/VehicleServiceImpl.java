@@ -1,6 +1,8 @@
 package com.samadhan.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,16 @@ public class VehicleServiceImpl implements VehicleService{
 
 		Vehicle vehicleregister=vehicleRepo.save(vehicle);
 		return vehicleregister;
+	}
+
+	@Override
+	public Vehicle updateLocation(String address, Long vehicleId) {
+		
+		Optional<Vehicle> vehicleopt=vehicleRepo.findById(vehicleId);
+		Vehicle vehicle=vehicleopt.get();
+		vehicle.setCurrentLocation(address);
+		vehicleRepo.save(vehicle);
+		return vehicle;
 	}
 
 }

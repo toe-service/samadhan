@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name="vehicle")
@@ -24,7 +25,7 @@ public class Vehicle {
 	
 	@ManyToOne
 	@JoinColumn(name = "transfer_id")
-	//@JsonIgnore
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private TransferVendor transferVendor;
 	
 	@Column(name="user_name")
@@ -32,6 +33,9 @@ public class Vehicle {
 	
 	@Column(name="password")
 	private String password;
+	
+	@Column(name="current_location")
+	private String currentLocation;
 
 	public Long getId() {
 		return id;
@@ -71,6 +75,14 @@ public class Vehicle {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getCurrentLocation() {
+		return currentLocation;
+	}
+
+	public void setCurrentLocation(String currentLocation) {
+		this.currentLocation = currentLocation;
 	}
 	
 	
