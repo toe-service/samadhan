@@ -104,6 +104,9 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="vehicle_assign_date")
 	 private LocalDateTime VehicleAssignDateTime;
+	 
+	 @Column(name = "distance_km", insertable = false, updatable = false)
+	 private Double distanceKm;
 
 	public Long getId() {
 		return id;
@@ -295,6 +298,22 @@ public class TransferRequestDetails {
 
 	public void settransferVendor(TransferVendor transferVendor) {
 		this.transferVendor = transferVendor;
+	}
+
+//	public TransferVendor getTransferVendor() {
+//		return transferVendor;
+//	}
+//
+//	public void setTransferVendor(TransferVendor transferVendor) {
+//		this.transferVendor = transferVendor;
+//	}
+
+	public Double getDistanceKm() {
+		return distanceKm;
+	}
+
+	public void setDistanceKm(Double distanceKm) {
+		this.distanceKm = distanceKm;
 	}
 
 

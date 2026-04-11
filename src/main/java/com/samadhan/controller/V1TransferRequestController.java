@@ -57,6 +57,10 @@ TransferRequestService transferRequestService;
 	  @GetMapping(value = "/rideTransferbyUser/{userId}")
 	    public ResponseEntity<List<TransferRequestDetails>> getRidesTransferByuser(@PathVariable Long userId) {
 			List<TransferRequestDetails> ridesByUser = transferRequestService.getTransferRidesByuser(userId);
+		    if (ridesByUser.isEmpty()) {
+		        return ResponseEntity.noContent().build(); // 204
+		    }
+
 			return ResponseEntity.ok(ridesByUser);
 	    }
 	  
@@ -69,19 +73,30 @@ TransferRequestService transferRequestService;
 	  @GetMapping(value = "/showRidestoVendors/{transferId}")
 	    public ResponseEntity<List<TransferRequestDetails>> showRidestoVendors(@PathVariable Long transferId) {
 		  List<TransferRequestDetails> showRidestoVendors = transferRequestService.showRidestoVendors(transferId);
-			return ResponseEntity.ok(showRidestoVendors);
+		  if (showRidestoVendors.isEmpty()) {
+		        return ResponseEntity.noContent().build(); // 204
+		    }
+		  return ResponseEntity.ok(showRidestoVendors);
 	    }
 	  
 	  @GetMapping(value = "/rideTransferByDriver/{driverId}")
 	    public ResponseEntity< List<TransferRequestDetails>> getRidesByDriverId(@PathVariable Long driverId) {
 		  List<TransferRequestDetails> ridesByDriverId = transferRequestService.getRidesByDriverId(driverId);
-			return ResponseEntity.ok(ridesByDriverId);
+		  if (ridesByDriverId.isEmpty()) {
+		        return ResponseEntity.noContent().build(); // 204
+		    }
+		  
+		  return ResponseEntity.ok(ridesByDriverId);
 	    }
 	  
 	  @GetMapping(value = "/rideTransferByVehicle/{vehicleId}")
 	    public ResponseEntity< List<TransferRequestDetails>> getrideTransferByVehicle(@PathVariable Long vehicleId) {
-		  List<TransferRequestDetails> ridesByDriverId = transferRequestService.getrideTransferByVehicle(vehicleId);
-			return ResponseEntity.ok(ridesByDriverId);
+		  List<TransferRequestDetails> ridesByVehicle = transferRequestService.getrideTransferByVehicle(vehicleId);
+		  if (ridesByVehicle.isEmpty()) {
+		        return ResponseEntity.noContent().build(); // 204
+		    }
+		  
+		  return ResponseEntity.ok(ridesByVehicle);
 	    }
 	  
 	  @PostMapping(value = "/requestTransferApproval")
