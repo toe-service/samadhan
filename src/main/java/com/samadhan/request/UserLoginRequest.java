@@ -17,4 +17,6 @@ public class UserLoginRequest {
     @NotBlank(message = "password cannot be blank")
     private String password;
 
+    private String userType;
+
 }

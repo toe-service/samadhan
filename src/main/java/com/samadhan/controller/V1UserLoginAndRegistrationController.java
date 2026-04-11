@@ -61,6 +61,13 @@ public class V1UserLoginAndRegistrationController {
             @Valid @RequestBody UserLoginRequest userLoginRequest) throws ConflictException {
         logger.info("User Login request is {}", userLoginRequest);
 //        loginService.registerUser(userRegisterRequest);
+        if(userLoginRequest.getUsername().equalsIgnoreCase("shivam@gmail.com")) {
+            logger.info("user type is vehicle");
+            userLoginRequest.setUserType("vehicle");
+        } else {
+            logger.info("user type is agent");
+            userLoginRequest.setUserType("agent");
+        }
         ResponseObject<UserLoginRequest> success = ResponseUtil.populateResponseObject(userLoginRequest, "SUCCESS", null);
         return ResponseEntity.ok(success);
 
