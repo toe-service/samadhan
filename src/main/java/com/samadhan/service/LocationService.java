@@ -36,16 +36,19 @@ public class LocationService {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(response);
-
-            String address = node
-                    .get("results")
-                    .get(0)
-                    .get("formatted_address")
-                    .asText();
-
-            result.put("latitude", lat);
-            result.put("longitude", lng);
-            result.put("address", address);
+            if (node.isArray() && node.size() > 0) {
+	            String address = node
+	                    .get("results")
+	                    .get(0)
+	                    .get("formatted_address")
+	                    .asText();
+	
+	            result.put("latitude", lat);
+	            result.put("longitude", lng);
+	            result.put("address", address);
+            } else {
+                result.put("error", "Address not found");
+            }
 
         } catch (Exception e) {
             result.put("error", "Address not found");

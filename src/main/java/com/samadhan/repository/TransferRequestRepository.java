@@ -39,7 +39,11 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 //			+ "    );" ,nativeQuery = true)
 //	List<TransferRequestDetails> showRidestoVendors(Long transferId);
 	
-	@Query(value = "SELECT trd.* " +
+	@Query(value = "SELECT trd.*, " +
+			"ST_Distance_Sphere( " +
+	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
+	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
+	        ") / 1000 AS distance_km " +
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
 	        "WHERE " +
@@ -56,7 +60,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
-	        ") <= 50000" +
+	        ") <= 30000" +
 
 	        ")",
 	        nativeQuery = true)

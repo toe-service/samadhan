@@ -47,6 +47,9 @@ public class TransferVendor {
 	 
 	 @Column(name="vendor_password")
 	 private String vendorPassword;
+	 
+	 @Column(name="vendor_city")
+	 private String vendorCity;
 	
 	public Long getId() {
 		return id;
@@ -110,6 +113,14 @@ public class TransferVendor {
 
 	public void setVendorPassword(String vendorPassword) {
 		this.vendorPassword = vendorPassword;
+	}
+
+	public String getVendorCity() {
+		return vendorCity;
+	}
+
+	public void setVendorCity(String vendorCity) {
+		this.vendorCity = vendorCity;
 	}
 	
 	

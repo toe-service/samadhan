@@ -5,10 +5,17 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
+
+import javax.transaction.Transactional;
 
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
+import com.samadhan.exception.ResourceNotFoundException;
+
+import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.google.api.client.util.Objects;
@@ -40,16 +47,19 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	@Autowired
 	TransferVendorRepository transferVendorRepo;
 	
+	//private static final Logger logger = LoggerFactory.logger(TransferRequestService.class);
+	
 	@Override
 	public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
 			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination) {
 		
-		Optional<UserDetails> userOpt=userRepo.findById(userId);
-		UserDetails user=userOpt.get();
+		 UserDetails user = userRepo.findById(userId)
+		            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
 		
 		TransferRequestDetails transferRequest=new TransferRequestDetails();
 		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleType]);
-		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleModel]);
+	//	transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleModel]);
 		LocalDate currentDate=LocalDate.now();
 		LocalTime cuurentTime=LocalTime.now();
 		transferRequest.setPickupDate(pickupDate);
@@ -77,85 +87,96 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		List<TransferRequestDetails> transferRidesByUserId = transferRepo.findTransferRideByUserId(userId);
 		System.out.println("TransferRidesByUserId" + transferRidesByUserId);
 		
+		
 		return transferRidesByUserId;
 		
 	}
 
 	@Override
 	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId) {
-		
 
-		LocalDateTime dateTime=LocalDateTime.now();
-		
-		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
-		TransferRequestDetails transferdetails=transferdetailsopt.get();
-		
-		Optional<TransferVendor> transferVendoropt=transferVendorRepo.findById(vendorId);
-		TransferVendor transferVendor=transferVendoropt.get();
-		
-		
-		
+		LocalDateTime dateTime = LocalDateTime.now();
+
+		TransferRequestDetails transferdetails = transferRepo.findById(transferId)
+				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
+
+		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
+				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
+
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
 		transferdetails.settransferVendor(transferVendor);
-		
+
 		transferRepo.save(transferdetails);
-		
+
 		return transferdetails;
 	}
 
+//	@Override
+//	public TransferRequestDetails getRidesByTransferId(Long transferId) {
+//		Optional<TransferRequestDetails> transferRidesByUserIdopt = transferRepo.findById(transferId);
+//		TransferRequestDetails transferRidesByUserId=transferRidesByUserIdopt.get();
+//		System.out.println("TransferRidesByUserId" + transferRidesByUserId);
+//		return transferRidesByUserId;
+//	}
+	
 	@Override
 	public TransferRequestDetails getRidesByTransferId(Long transferId) {
-		Optional<TransferRequestDetails> transferRidesByUserIdopt = transferRepo.findById(transferId);
-		TransferRequestDetails transferRidesByUserId=transferRidesByUserIdopt.get();
-		System.out.println("TransferRidesByUserId" + transferRidesByUserId);
-		return transferRidesByUserId;
+
+		return transferRepo.findById(transferId)
+		        .orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId, Integer rideStatus) {
+	@Transactional
+	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId,
+			Integer rideStatus) {
 
-		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
-		TransferRequestDetails transferdetails=transferdetailsopt.get();
+		TransferRequestDetails transfer = transferRepo.findById(transferId)
+				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
+
+		LocalDateTime dateTime = LocalDateTime.now();
 
 		if (driverId != null) {
-		LocalDateTime dateTime=LocalDateTime.now();
-		Optional<Driver> driveropt=driverRepo.findById(driverId);
-		Driver driver=driveropt.get();
-		transferdetails.setDriver(driver);
-		transferdetails.setDriverAssignDateTime(dateTime);
-		transferdetails.setTransferStatus(rideStatusEnum.READYFORPICKUP);
+			Driver driver = driverRepo.findById(driverId)
+					.orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + driverId));
+
+			transfer.setDriver(driver);
+			transfer.setDriverAssignDateTime(dateTime);
+			transfer.setTransferStatus(rideStatusEnum.READYFORPICKUP);
 		}
 
-
+		// 🔹 Vehicle Assignment
 		if (vehicleId != null && vehicleId != 0) {
-			LocalDateTime dateTime=LocalDateTime.now();
-			transferdetails.setVehicleAssignDateTime(dateTime);
-			transferdetails.setVehicleId(vehicleId);
-			transferdetails.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
-		}
-		
-		if(rideStatus != null && rideStatus==0) {
-			LocalDateTime dateTime=LocalDateTime.now();
-			transferdetails.setRidestartTime(dateTime);
-			transferdetails.setTransferStatus(rideStatusEnum.ONGOING);
-		}else if(rideStatus != null && rideStatus==1) {
-			LocalDateTime dateTime=LocalDateTime.now();
-			transferdetails.setRideendTime(dateTime);
-			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
+			transfer.setVehicleId(vehicleId);
+			transfer.setVehicleAssignDateTime(dateTime);
+			transfer.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 		}
 
-		transferRepo.save(transferdetails);
+		if (rideStatus != null && rideStatus == 0) {
 
-		return transferdetails;
+			transfer.setRidestartTime(dateTime);
+			transfer.setTransferStatus(rideStatusEnum.ONGOING);
+		} else if (rideStatus != null && rideStatus == 1) {
+
+			transfer.setRideendTime(dateTime);
+			transfer.setTransferStatus(rideStatusEnum.COMPLETED);
+		}
+
+		transferRepo.save(transfer);
+
+		return transfer;
 
 	}
 
 	@Override
 	public boolean otpVerify(Long transferId, int otp, boolean flag) {
-		Optional<TransferRequestDetails> transferdetailsopt=transferRepo.findById(transferId);
-		TransferRequestDetails transferdetails=transferdetailsopt.get();
 
+		  TransferRequestDetails transferdetails = transferRepo.findById(transferId)
+		            .orElseThrow(() -> new ResourceNotFoundException(
+		                    "Transfer not found with id: " + transferId));
+		  
+		 
 		if(transferdetails.getOtp()==otp) {
 			LocalDateTime dateTime=LocalDateTime.now();
 			transferdetails.setHandoveredDateTime(dateTime);
