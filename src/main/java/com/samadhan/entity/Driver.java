@@ -35,8 +35,8 @@ public class Driver {
 	@Column(name="driver_city")
 	private String driverCity;
 	
-//	@Column(name="driver_token")
-//	private String driverToken;
+	@Column(name="password")
+	private String password;
 	
 	@OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
 	private List<Ride> rides;
@@ -198,6 +198,13 @@ public class Driver {
 		this.transferVendor = transferVendor;
 	}
 
-	
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	
 }

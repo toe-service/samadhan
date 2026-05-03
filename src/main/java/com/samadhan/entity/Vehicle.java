@@ -36,6 +36,9 @@ public class Vehicle {
 	
 	@Column(name="current_location")
 	private String currentLocation;
+	
+	@Column(name="Ongoing_status", columnDefinition = "BOOLEAN DEFAULT FALSE")
+	private boolean ongoingStatus;
 
 	public Long getId() {
 		return id;
@@ -83,6 +86,14 @@ public class Vehicle {
 
 	public void setCurrentLocation(String currentLocation) {
 		this.currentLocation = currentLocation;
+	}
+
+	public boolean getOngoingStatus() {
+		return ongoingStatus;
+	}
+
+	public void setOngoingStatus(boolean ongoingStatus) {
+		this.ongoingStatus = ongoingStatus;
 	}
 	
 	

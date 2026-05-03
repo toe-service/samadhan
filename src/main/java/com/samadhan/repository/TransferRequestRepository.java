@@ -62,7 +62,8 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
 	        ") <= 30000" +
 
-	        ")",
+	        ")" +
+	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
 	List<TransferRequestDetails> showRidestoVendors(Long vendorId);
 
