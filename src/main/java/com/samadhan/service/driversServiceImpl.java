@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Optional;
 
 import com.samadhan.entity.UserDetails;
+import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.api.client.util.Objects;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.enums.rideStatusEnum;
@@ -18,6 +20,8 @@ import com.samadhan.exception.SamadhanException;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.RidesRepository;
 import com.samadhan.repository.UserRepository;
+import com.samadhan.repository.VehicleRepository;
+import com.samadhan.response.LoginResponse;
 
 @Service
 public class driversServiceImpl implements driversService {
@@ -31,6 +35,9 @@ public class driversServiceImpl implements driversService {
     @Autowired
     UserRepository userRepo;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    
+    @Autowired
+	VehicleRepository vehicleRepo;
 
     @Override
     public Driver getById(Long id) {
@@ -111,6 +118,7 @@ public class driversServiceImpl implements driversService {
     @Override
     public Driver createdriver(Driver driver) {
     	System.out.println("Inside driver"+driver);
+    	driver.setPassword(driver.getDriverContactNumber());
         Driver driverData = driverRepo.save(driver);
         return driverData;
     }
@@ -157,6 +165,43 @@ public class driversServiceImpl implements driversService {
 	public List<Driver> getAllDriversByVendor(Long vendorId) {
 		List<Driver> drivers = driverRepo.findByVendorId(vendorId);
 		return drivers;
+	}
+
+
+	@Override
+	public Driver loginDriver(String userName, String password) {
+
+		Driver driver = driverRepo.findByUserNamePassword(userName,password);
+		
+		return driver;
+	}
+
+
+	@Override
+	public LoginResponse loginRole(String username, String password) {
+
+	    // 🔹 Check Driver
+	    Driver driver = driverRepo.findByUserNamePassword(username, password);
+
+	    if (driver != null) {
+	        LoginResponse res = new LoginResponse();
+	        res.setUsername(driver.getDriverEmail());
+	        res.setUserType("driver");
+	        return res;
+	    }
+
+	    // 🔹 Check Vehicle
+	    Vehicle vehicle = vehicleRepo.findByUserNamePassword(username, password);
+
+	    if (vehicle != null) {
+	        LoginResponse res = new LoginResponse();
+	        res.setUsername(vehicle.getUserName());
+	        res.setUserType("vehicle");
+	        return res;
+	    }
+
+	    // ❌ Not found
+	    throw new RuntimeException("Invalid credentials");
 	}
 
 }

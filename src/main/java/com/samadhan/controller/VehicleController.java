@@ -43,5 +43,13 @@ public class VehicleController {
 		Vehicle vehicle=vehicleService.updateLocation(address,vehicleId);
 		return vehicle;
 	}
+	
+	@PostMapping(value = "/register-Vehicle")
+	public Vehicle registerVehicle(@RequestBody Vehicle vehicle) {
+		
+		Vehicle resp = vehicleService.registerVehicle(vehicle);
+		return resp;
+	}
+	
 
 }
