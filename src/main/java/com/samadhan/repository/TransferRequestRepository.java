@@ -9,10 +9,10 @@ import com.samadhan.entity.TransferRequestDetails;
 
 public interface TransferRequestRepository   extends JpaRepository<TransferRequestDetails, Long> {
 
-	@Query(value="select * from transfer_request_details where user_id=:userId" ,nativeQuery = true)
+	@Query(value="select * from transfer_request_details where user_id=:userId ORDER BY request_created_date DESC" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByUserId(Long userId);
 
-	@Query(value="select * from transfer_request_details where driver_id=:driverId AND transfer_status IN(3,4)" ,nativeQuery = true)
+	@Query(value="select * from transfer_request_details where driver_id=:driverId AND transfer_status IN(3,4) ORDER BY request_created_date DESC" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByDriverId(Long driverId);
 
 //	@Query(value="SELECT trd.*\r\n"
@@ -67,7 +67,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	List<TransferRequestDetails> showRidestoVendors(Long vendorId);
 
-	@Query(value="select * from transfer_request_details where vehicle_id=:vehicleId AND transfer_status IN(5,6,7,8) " ,nativeQuery = true)
+	@Query(value="select * from transfer_request_details where vehicle_id=:vehicleId AND transfer_status IN(5,6,7,8) ORDER BY request_created_date DESC " ,nativeQuery = true)
 	List<TransferRequestDetails> getRidesByVehicle(Long vehicleId);
 
 }
