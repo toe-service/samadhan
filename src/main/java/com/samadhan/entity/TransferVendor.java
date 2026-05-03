@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 @Entity
 @Table(name="transfer_vendor")
 public class TransferVendor {
@@ -50,6 +50,9 @@ public class TransferVendor {
 	 
 	 @Column(name="vendor_city")
 	 private String vendorCity;
+	 
+	 @OneToMany(mappedBy = "transferVendor")
+	 private List<TransferRequestDetails> transferRequests;
 	
 	public Long getId() {
 		return id;

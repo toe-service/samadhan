@@ -118,7 +118,13 @@ public class driversServiceImpl implements driversService {
     @Override
     public Driver createdriver(Driver driver) {
     	System.out.println("Inside driver"+driver);
-    	driver.setPassword(driver.getDriverContactNumber());
+    	String name=driver.getDriverName();
+    	String contactNumber=driver.getDriverContactNumber();
+    	
+    	String password = name.substring(0, Math.min(3, name.length())) +
+                contactNumber.substring(Math.max(0, contactNumber.length() - 5));
+    	
+    	driver.setPassword(password);
         Driver driverData = driverRepo.save(driver);
         return driverData;
     }
@@ -186,6 +192,7 @@ public class driversServiceImpl implements driversService {
 	    if (driver != null) {
 	        LoginResponse res = new LoginResponse();
 	        res.setUsername(driver.getDriverEmail());
+	        res.setDriverId(driver.getId());
 	        res.setUserType("driver");
 	        return res;
 	    }
@@ -196,6 +203,7 @@ public class driversServiceImpl implements driversService {
 	    if (vehicle != null) {
 	        LoginResponse res = new LoginResponse();
 	        res.setUsername(vehicle.getUserName());
+	        res.setVehicleId(vehicle.getId());
 	        res.setUserType("vehicle");
 	        return res;
 	    }

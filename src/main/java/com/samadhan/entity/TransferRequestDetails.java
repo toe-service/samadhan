@@ -16,6 +16,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
 
@@ -66,7 +67,7 @@ public class TransferRequestDetails {
 	 
 	 @OneToOne(cascade = CascadeType.ALL)
 	 @JoinColumn(name = "transfer_id", referencedColumnName = "id")
-	 @JsonIgnore
+	 @JsonIgnoreProperties({"drivers", "vehicles"})
 	 private TransferVendor transferVendor;
 	 
 	 @Column(name="vehicle_type")
@@ -314,21 +315,14 @@ public class TransferRequestDetails {
 		VehicleAssignDateTime = vehicleAssignDateTime;
 	}
 
-	public TransferVendor gettransferVendor() {
-		return transferVendor;
-	}
-
-	public void settransferVendor(TransferVendor transferVendor) {
-		this.transferVendor = transferVendor;
-	}
-
-//	public TransferVendor getTransferVendor() {
+//	public TransferVendor gettransferVendor() {
 //		return transferVendor;
 //	}
 //
-//	public void setTransferVendor(TransferVendor transferVendor) {
+//	public void settransferVendor(TransferVendor transferVendor) {
 //		this.transferVendor = transferVendor;
 //	}
+
 
 	public Double getDistanceKm() {
 		return distanceKm;
