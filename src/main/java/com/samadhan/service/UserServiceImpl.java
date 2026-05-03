@@ -19,4 +19,10 @@ public class UserServiceImpl implements UserService{
         return userList.get();
 
     }
+
+	@Override
+	public UserDetails loginUser(String userName, String password) {
+		 UserDetails user=userrepo.findByUserNamePassword(userName, password);
+		return user;
+	}
 }
