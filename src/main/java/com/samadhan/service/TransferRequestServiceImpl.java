@@ -115,7 +115,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
-		transferdetails.settransferVendor(transferVendor);
+		transferdetails.setTransferVendor(transferVendor);
 
 		transferRepo.save(transferdetails);
 
