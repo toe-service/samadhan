@@ -31,7 +31,18 @@ public class VehicleServiceImpl implements VehicleService{
 
 	@Override
 	public Vehicle createVehicle(Vehicle vehicle) {
-
+		
+		if (vehicle.getVehicleNumber() != null) {
+		String userName=vehicle.getVehicleNumber().replaceAll("\\s+", "")+ "@gmail.com";
+		
+		String password = vehicle.getVehicleNumber() == null ? "" :
+			vehicle.getVehicleNumber().replaceAll("\\s+", "")
+		                 .substring(Math.max(0, vehicle.getVehicleNumber().replaceAll("\\s+", "").length() - 6));
+		
+		vehicle.setUserName(userName);
+		vehicle.setPassword(password);
+		}
+		
 		Vehicle vehicleregister=vehicleRepo.save(vehicle);
 		return vehicleregister;
 	}

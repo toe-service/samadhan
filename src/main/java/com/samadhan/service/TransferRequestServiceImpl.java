@@ -70,10 +70,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	//	transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleModel]);
 		LocalDate currentDate=LocalDate.now();
 		LocalTime cuurentTime=LocalTime.now();
+		LocalDateTime currentDateTime=LocalDateTime.now();
 		transferRequest.setPickupDate(pickupDate);
 		transferRequest.setPickupSchedule(pickupSchedule);
 		transferRequest.setRideCost(rideCost);
 		transferRequest.setUserDetails(user);
+		transferRequest.setRequestCreatedDate(currentDateTime);
 		transferRequest.setDestinationLatitude(destinationlatitude);
 		transferRequest.setDestinationLongitude(destinationlongitude);
 		transferRequest.setSourceLatitude(pickuplatitude);
