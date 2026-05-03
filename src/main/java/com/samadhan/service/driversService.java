@@ -4,6 +4,7 @@ import java.util.List;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.exception.NotFoundException;
+import com.samadhan.response.LoginResponse;
 
 
 public interface driversService {
@@ -25,5 +26,9 @@ public interface driversService {
 	List<Driver> getAllDrivers();
 
 	List<Driver> getAllDriversByVendor(Long vendorId);
+
+	Driver loginDriver(String userName, String password);
+
+	LoginResponse loginRole(String userName, String password);
 
 }

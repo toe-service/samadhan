@@ -90,8 +90,14 @@ public class TransferRequestDetails {
 	 @Column(name="otp")
 	 private int otp;
 	 
+	 @Column(name="closure_otp")
+	 private Integer  closureotp;
+	 
 	 @Column(name="vehicle_id")
 	 private Integer vehicleId;
+	 
+	 @Column(name="request_created_date")
+	 private LocalDateTime requestCreatedDate;
 	 
 	 @Column(name="request_approval_date")
 	 private LocalDateTime RequestApprovalDate;
@@ -284,6 +290,22 @@ public class TransferRequestDetails {
 		HandoveredDateTime = handoveredDateTime;
 	}
 
+	public TransferVendor getTransferVendor() {
+		return transferVendor;
+	}
+
+	public void setTransferVendor(TransferVendor transferVendor) {
+		this.transferVendor = transferVendor;
+	}
+
+	public Integer getClosureotp() {
+		return closureotp;
+	}
+
+	public void setClosureotp(Integer closureotp) {
+		this.closureotp = closureotp;
+	}
+
 	public LocalDateTime getVehicleAssignDateTime() {
 		return VehicleAssignDateTime;
 	}
@@ -314,6 +336,14 @@ public class TransferRequestDetails {
 
 	public void setDistanceKm(Double distanceKm) {
 		this.distanceKm = distanceKm;
+	}
+
+	public LocalDateTime getRequestCreatedDate() {
+		return requestCreatedDate;
+	}
+
+	public void setRequestCreatedDate(LocalDateTime requestCreatedDate) {
+		this.requestCreatedDate = requestCreatedDate;
 	}
 
 

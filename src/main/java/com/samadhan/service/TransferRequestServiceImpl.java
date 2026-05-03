@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.security.SecureRandom;
 
 import javax.transaction.Transactional;
 
@@ -24,11 +25,13 @@ import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
+import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VehicleTransfer;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
+import com.samadhan.repository.VehicleRepository;
 
 
 
@@ -45,7 +48,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	DriverRepository driverRepo;
 	
 	@Autowired
+	VehicleRepository vehicleRepo;
+	
+	@Autowired
 	TransferVendorRepository transferVendorRepo;
+	
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
 	//private static final Logger logger = LoggerFactory.logger(TransferRequestService.class);
 	
@@ -136,6 +144,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
 
 		LocalDateTime dateTime = LocalDateTime.now();
+		int otp = 1000 + SECURE_RANDOM.nextInt(9000);
 
 		if (driverId != null) {
 			Driver driver = driverRepo.findById(driverId)
@@ -143,6 +152,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			transfer.setDriver(driver);
 			transfer.setDriverAssignDateTime(dateTime);
+			transfer.setOtp(otp);
 			transfer.setTransferStatus(rideStatusEnum.READYFORPICKUP);
 		}
 
@@ -154,8 +164,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 
 		if (rideStatus != null && rideStatus == 0) {
-
+			long vehiId = (long) vehicleId;
+			Optional<Vehicle> vehicleopt=vehicleRepo.findById(vehiId);
+			Vehicle vehicle=vehicleopt.get();
+			vehicle.setOngoingStatus(true);
+			vehicleRepo.save(vehicle);
+			
 			transfer.setRidestartTime(dateTime);
+			transfer.setClosureotp(otp);
+			
 			transfer.setTransferStatus(rideStatusEnum.ONGOING);
 		} else if (rideStatus != null && rideStatus == 1) {
 
@@ -182,6 +199,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setHandoveredDateTime(dateTime);
 
 			if(flag) {
+			transferdetails.setRideendTime(dateTime);
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);	
 			}else {
 			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);

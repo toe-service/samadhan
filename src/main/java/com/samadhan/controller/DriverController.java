@@ -122,9 +122,9 @@ public class DriverController {
 		}
 	 
 	 @GetMapping(value = "/getAllVehiclesByVendor")
-		public List<Vehicle> getAllVehiclesByVendor(@RequestParam Long vendorId) {
+		public List<Vehicle> getAllVehiclesByVendor(@RequestParam Long vendorId,@RequestParam boolean isActive) {
 			
-		 	List<Vehicle> vehiclesByVendor = vehicleService.getAllVehiclesByVendor(vendorId);
+		 	List<Vehicle> vehiclesByVendor = vehicleService.getAllVehiclesByVendor(vendorId, isActive);
 			return vehiclesByVendor;
 		}
 	 

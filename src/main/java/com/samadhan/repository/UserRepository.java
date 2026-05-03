@@ -26,6 +26,9 @@ public interface UserRepository extends JpaRepository<UserDetails, Long> {
     );
 
     Optional<UserDetails> findByUserContactNumber(String mobileNumber);
+
+    @Query(value = "Select * from user_details where user_email = :userName AND user_password =:password", nativeQuery = true)
+	UserDetails findByUserNamePassword(String userName, String password);
 }
 
 

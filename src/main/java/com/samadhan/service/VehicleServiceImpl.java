@@ -1,5 +1,6 @@
 package com.samadhan.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,9 +18,14 @@ public class VehicleServiceImpl implements VehicleService{
 	VehicleRepository vehicleRepo;
 
 	@Override
-	public List<Vehicle> getAllVehiclesByVendor(Long vendorId) {
-
-		List<Vehicle> vehicleByVendor=vehicleRepo.findByVendorId(vendorId);
+	public List<Vehicle> getAllVehiclesByVendor(Long vendorId, boolean isActive) {
+		List<Vehicle> vehicleByVendor=new ArrayList<>();
+		if(isActive) {
+		boolean isOngoing=false;
+		vehicleByVendor=vehicleRepo.findByActiveVendorId(vendorId, isOngoing);
+		}else {
+		vehicleByVendor=vehicleRepo.findByVendorId(vendorId);
+		}
 		return vehicleByVendor;
 	}
 
@@ -38,6 +44,18 @@ public class VehicleServiceImpl implements VehicleService{
 		vehicle.setCurrentLocation(address);
 		vehicleRepo.save(vehicle);
 		return vehicle;
+	}
+
+	@Override
+	public Vehicle loginVehicle(String userName, String password) {
+		Vehicle vehicle=vehicleRepo.findByUserNamePassword(userName, password);
+		return vehicle;
+	}
+
+	@Override
+	public Vehicle registerVehicle(Vehicle vehicle) {
+		
+		return null;
 	}
 
 }

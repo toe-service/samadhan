@@ -22,8 +22,10 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 	List<Driver> findAllDriversByfilters(String pickuplatitude, String pickuplongitude,double distance);
 
 	@Query(value="SELECT * FROM driver WHERE transfer_id=:vendorId" ,nativeQuery = true)
-	         
 	List<Driver> findByVendorId(Long vendorId);
+
+	@Query(value="SELECT * FROM driver WHERE driver_email=:userName AND password=:password" ,nativeQuery = true)
+	Driver findByUserNamePassword(String userName, String password);
 	
 }
 
