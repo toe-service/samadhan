@@ -33,6 +33,11 @@ public class LocationController {
         return locationService.searchLocation(query);
     }
     
+    @GetMapping("/source/search")
+    public List<String> sourceSearch(@RequestParam String query) throws JsonMappingException, JsonProcessingException, RestClientException {
+        return locationService.sourceSearchLocation(query);
+    }
+    
     @GetMapping("/latlong")
     public Map<String, Double> getLatLong(@RequestParam String address) throws Exception {
 

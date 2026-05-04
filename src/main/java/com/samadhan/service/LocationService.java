@@ -60,7 +60,8 @@ public class LocationService {
 	@Cacheable(value = "SearchLocationCache", key = "#input")
 	public List<String> searchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {
 		 String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
-	                + input + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
+	                + input + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM"
+	                 + "&components=country:in";   // India only
 
 	        RestTemplate restTemplate = new RestTemplate();
 
@@ -103,5 +104,42 @@ public class LocationService {
 	        result.put("longitude", lng);
 
 	        return result;
+	}
+
+	public List<String> sourceSearchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {
+		String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
+		        + input
+		        + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM"
+		        + "&components=country:in"   // India only
+		        + "&location=28.6139,77.2090" // Delhi center
+		        + "&radius=50000";           // 50 km (NCR range)
+		
+		List<String> result = new ArrayList<>();
+		  RestTemplate restTemplate = new RestTemplate();
+		
+		 ObjectMapper mapper = new ObjectMapper();
+	        JsonNode root = mapper.readTree(restTemplate.getForObject(url, String.class));
+
+	        JsonNode predictions = root.path("predictions");
+
+		List<String> allowedCities = Arrays.asList(
+		        "Delhi", "Noida", "Greater Noida", "Ghaziabad", "Gurgaon", "Gurugram", "Faridabad"
+		);
+
+		for (int i = 0; i < Math.min(10, predictions.size()); i++) {
+
+		    String location = predictions.get(i).get("description").asText();
+		    
+		    System.out.println(location);
+
+		    boolean isAllowed = allowedCities.stream()
+		            .anyMatch(city -> location.toLowerCase().contains(city.toLowerCase()));
+
+		    if (isAllowed) {
+		        result.add(location);
+		    }
+		}
+		
+		return result;
 	}
 }
