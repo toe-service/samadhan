@@ -166,7 +166,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 
 		if (rideStatus != null && rideStatus == 0) {
-			long vehiId = (long) vehicleId;
+			//long vehiId = (long) vehicleId;
+			long vehiId =(long) transfer.getVehicleId();
 			Optional<Vehicle> vehicleopt=vehicleRepo.findById(vehiId);
 			Vehicle vehicle=vehicleopt.get();
 			vehicle.setOngoingStatus(true);
