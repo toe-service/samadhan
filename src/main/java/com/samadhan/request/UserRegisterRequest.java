@@ -21,4 +21,27 @@ public class UserRegisterRequest {
     @NotBlank(message = "password cannot be blank")
     private String userPassword;
 
+	public String getUserContactNumber() {
+		return userContactNumber;
+	}
+
+	public void setUserContactNumber(String userContactNumber) {
+		this.userContactNumber = userContactNumber;
+	}
+
+	public String getUserEmail() {
+		return userEmail;
+	}
+
+	public void setUserEmail(String userEmail) {
+		this.userEmail = userEmail;
+	}
+
+	public String getUserPassword() {
+		return userPassword;
+	}
+
+	public void setUserPassword(String userPassword) {
+		this.userPassword = userPassword;
+	}
 }

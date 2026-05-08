@@ -8,6 +8,7 @@ import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.UserLoginRequest;
+import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.LoginResponse;
@@ -68,6 +69,16 @@ public class V1UserLoginAndRegistrationController {
         logger.info("User Register request is {}", userRegisterRequest);
         loginService.registerUser(userRegisterRequest);
         ResponseObject<UserRegisterRequest> success = ResponseUtil.populateResponseObject(userRegisterRequest, "SUCCESS", null);
+        return ResponseEntity.ok(success);
+
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<ResponseObject<?>> generateAndSendOtp(
+            @Valid @RequestBody UserOtpRequest userOtpRequest) throws ConflictException {
+        logger.info("User Register request is {}", userOtpRequest);
+        loginService.sendOtp(userOtpRequest);
+        ResponseObject<UserOtpRequest> success = ResponseUtil.populateResponseObject(userOtpRequest, "SUCCESS", null);
         return ResponseEntity.ok(success);
 
     }
