@@ -13,6 +13,7 @@ import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.LoginResponse;
 import com.samadhan.response.ResponseObject;
+import com.samadhan.response.UserOtpVerifyResponse;
 import com.samadhan.service.LoginService;
 import com.samadhan.service.UserService;
 import com.samadhan.service.VehicleService;
@@ -49,14 +50,22 @@ public class V1UserLoginAndRegistrationController {
     public ResponseEntity<ResponseObject<?>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         logger.info("User login request is {}", userOtpVerifyRequest.toString());
         if (userOtpVerifyRequest.getOtp() == 1234) {
-            ResponseObject<UserOtpVerifyRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userOtpVerifyRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+            UserDetails userDetails = userService.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
+                    .orElseThrow(() -> new OtpMismatchException("user details not found"));
+            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
+            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
+            response.setOtp(userOtpVerifyRequest.getOtp());
+            response.setUserId(userDetails.getId());
+            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
             return ResponseEntity.ok(userLoginRequestResponseObject);
         } else {
-            boolean isOtpValid = loginService.isOtpValid(userOtpVerifyRequest);
-            System.out.println("isOtpValid " + isOtpValid);
-            ResponseObject<UserOtpVerifyRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userOtpVerifyRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+            UserDetails userDetails = loginService.isOtpValid(userOtpVerifyRequest);
+            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
+            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
+            response.setOtp(userOtpVerifyRequest.getOtp());
+            response.setUserId(userDetails.getId());
+            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
             return ResponseEntity.ok(userLoginRequestResponseObject);
-
         }
     }
 
