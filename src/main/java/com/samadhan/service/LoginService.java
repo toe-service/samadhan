@@ -36,17 +36,14 @@ public class LoginService {
     @Autowired
     private TransferVendorRepository transferVendorRepository;
 
-    public boolean isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
-        Optional<UserDetails> userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
-
-        Boolean isOtpValid = userDetails
-                .map(data -> data.getOtp() == userOtpVerifyRequest.getOtp())
+    public UserDetails isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
+        UserDetails userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
                 .orElseThrow(() -> new OtpMismatchException("user details not found"));
 
-        if(!isOtpValid) {
+        if (userDetails.getOtp() != userOtpVerifyRequest.getOtp()) {
             throw new OtpMismatchException("otp is invalid");
         }
-        return isOtpValid;
+        return userDetails;
     }
 
     public void registerUser(UserRegisterRequest userRegisterRequest) throws ConflictException {
