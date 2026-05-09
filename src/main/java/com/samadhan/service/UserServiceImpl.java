@@ -20,6 +20,11 @@ public class UserServiceImpl implements UserService{
 
     }
 
+    @Override
+    public Optional<UserDetails> findByUserContactNumber(String userContactNumber) {
+        return userrepo.findByUserContactNumber(userContactNumber);
+    }
+
 	@Override
 	public UserDetails loginUser(String userName, String password) {
 		 UserDetails user=userrepo.findByUserNamePassword(userName, password);

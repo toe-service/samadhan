@@ -11,4 +11,19 @@ public class UserOtpVerifyRequest {
     public String userContactNumber;
     public Integer otp;
 
+	public String getUserContactNumber() {
+		return userContactNumber;
+	}
+
+	public void setUserContactNumber(String userContactNumber) {
+		this.userContactNumber = userContactNumber;
+	}
+
+	public Integer getOtp() {
+		return otp;
+	}
+
+	public void setOtp(Integer otp) {
+		this.otp = otp;
+	}
 }

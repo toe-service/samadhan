@@ -8,10 +8,12 @@ import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.UserLoginRequest;
+import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.LoginResponse;
 import com.samadhan.response.ResponseObject;
+import com.samadhan.response.UserOtpVerifyResponse;
 import com.samadhan.service.LoginService;
 import com.samadhan.service.UserService;
 import com.samadhan.service.VehicleService;
@@ -48,14 +50,22 @@ public class V1UserLoginAndRegistrationController {
     public ResponseEntity<ResponseObject<?>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         logger.info("User login request is {}", userOtpVerifyRequest.toString());
         if (userOtpVerifyRequest.getOtp() == 1234) {
-            ResponseObject<UserOtpVerifyRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userOtpVerifyRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+            UserDetails userDetails = userService.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
+                    .orElseThrow(() -> new OtpMismatchException("user details not found"));
+            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
+            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
+            response.setOtp(userOtpVerifyRequest.getOtp());
+            response.setUserId(userDetails.getId());
+            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
             return ResponseEntity.ok(userLoginRequestResponseObject);
         } else {
-            boolean isOtpValid = loginService.isOtpValid(userOtpVerifyRequest);
-            System.out.println("isOtpValid " + isOtpValid);
-            ResponseObject<UserOtpVerifyRequest> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(userOtpVerifyRequest, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+            UserDetails userDetails = loginService.isOtpValid(userOtpVerifyRequest);
+            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
+            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
+            response.setOtp(userOtpVerifyRequest.getOtp());
+            response.setUserId(userDetails.getId());
+            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
             return ResponseEntity.ok(userLoginRequestResponseObject);
-
         }
     }
 
@@ -68,6 +78,16 @@ public class V1UserLoginAndRegistrationController {
         logger.info("User Register request is {}", userRegisterRequest);
         loginService.registerUser(userRegisterRequest);
         ResponseObject<UserRegisterRequest> success = ResponseUtil.populateResponseObject(userRegisterRequest, "SUCCESS", null);
+        return ResponseEntity.ok(success);
+
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<ResponseObject<?>> generateAndSendOtp(
+            @Valid @RequestBody UserOtpRequest userOtpRequest) throws ConflictException {
+        logger.info("User Register request is {}", userOtpRequest);
+        loginService.sendOtp(userOtpRequest);
+        ResponseObject<UserOtpRequest> success = ResponseUtil.populateResponseObject(userOtpRequest, "SUCCESS", null);
         return ResponseEntity.ok(success);
 
     }
