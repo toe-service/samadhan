@@ -6,6 +6,7 @@ import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
+import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import org.json.simple.JSONObject;
@@ -35,17 +36,14 @@ public class LoginService {
     @Autowired
     private TransferVendorRepository transferVendorRepository;
 
-    public boolean isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
-        Optional<UserDetails> userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.userContactNumber);
-
-        Boolean isOtpValid = userDetails
-                .map(data -> data.getOtp() == userOtpVerifyRequest.getOtp())
+    public UserDetails isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
+        UserDetails userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
                 .orElseThrow(() -> new OtpMismatchException("user details not found"));
 
-        if(!isOtpValid) {
+        if (userDetails.getOtp() != userOtpVerifyRequest.getOtp()) {
             throw new OtpMismatchException("otp is invalid");
         }
-        return isOtpValid;
+        return userDetails;
     }
 
     public void registerUser(UserRegisterRequest userRegisterRequest) throws ConflictException {
@@ -60,6 +58,19 @@ public class LoginService {
         userDetails.setUserContactNumber(userRegisterRequest.getUserContactNumber());
         userDetails.setUserPassword(userRegisterRequest.getUserPassword());
         Integer otp = generateAndSendOtp(userRegisterRequest.getUserContactNumber());
+        userDetails.setOtp(otp);
+        userRepository.save(userDetails);
+    }
+
+    public void sendOtp(UserOtpRequest userOtpRequest) throws ConflictException {
+        Integer otp = generateAndSendOtp(userOtpRequest.getContactNumber());
+        UserDetails userDetails = userRepository.findByUserContactNumber(userOtpRequest.getContactNumber())
+                .orElseGet(() -> {
+                    UserDetails newUser = new UserDetails();
+                    newUser.setUserContactNumber(userOtpRequest.getContactNumber());
+                    return newUser;
+                });
+
         userDetails.setOtp(otp);
         userRepository.save(userDetails);
     }
