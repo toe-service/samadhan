@@ -43,6 +43,10 @@ public class VehicleServiceImpl implements VehicleService{
 		vehicle.setPassword(password);
 		}
 		
+		if (vehicle.getVehicleContactNumber() != null) {
+			vehicle.setVehicleContactNumber(vehicle.getVehicleContactNumber());
+		}
+		
 		Vehicle vehicleregister=vehicleRepo.save(vehicle);
 		return vehicleregister;
 	}
