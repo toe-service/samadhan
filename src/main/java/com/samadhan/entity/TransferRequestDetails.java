@@ -94,8 +94,12 @@ public class TransferRequestDetails {
 	 @Column(name="closure_otp")
 	 private Integer  closureotp;
 	 
-	 @Column(name="vehicle_id")
-	 private Integer vehicleId;
+	 @OneToOne(cascade = CascadeType.ALL)
+	 @JoinColumn(name = "vehicle_id", referencedColumnName = "id")
+	 private Vehicle vehicleId;
+	 
+//	 @Column(name="vehicle_id")
+//	 private Integer vehicleId;
 	 
 	 @Column(name="request_created_date")
 	 private LocalDateTime requestCreatedDate;
@@ -259,16 +263,24 @@ public class TransferRequestDetails {
 		this.otp = otp;
 	}
 
-	public Integer getVehicleId() {
-		return vehicleId;
-	}
-
-	public void setVehicleId(Integer vehicleId) {
-		this.vehicleId = vehicleId;
-	}
+//	public Integer getVehicleId() {
+//		return vehicleId;
+//	}
+//
+//	public void setVehicleId(Integer vehicleId) {
+//		this.vehicleId = vehicleId;
+//	}
 
 	public LocalDateTime getRequestApprovalDate() {
 		return RequestApprovalDate;
+	}
+
+	public Vehicle getVehicleId() {
+		return vehicleId;
+	}
+
+	public void setVehicleId(Vehicle vehicleId) {
+		this.vehicleId = vehicleId;
 	}
 
 	public void setRequestApprovalDate(LocalDateTime requestApprovalDate) {

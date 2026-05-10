@@ -32,4 +32,6 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getrideTransferByVehicle(Long vehicleId);
 
+	public TransferRequestDetails requestTransferDelete(Long transferId);
+
 }
