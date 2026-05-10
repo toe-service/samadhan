@@ -51,6 +51,9 @@ public class TransferVendor {
 	 @Column(name="vendor_city")
 	 private String vendorCity;
 	 
+	 @Column(name="vendor_address")
+	 private String vendorAddress;
+	 
 	 @OneToMany(mappedBy = "transferVendor")
 	 private List<TransferRequestDetails> transferRequests;
 	
@@ -124,6 +127,14 @@ public class TransferVendor {
 
 	public void setVendorCity(String vendorCity) {
 		this.vendorCity = vendorCity;
+	}
+
+	public String getVendorAddress() {
+		return vendorAddress;
+	}
+
+	public void setVendorAddress(String vendorAddress) {
+		this.vendorAddress = vendorAddress;
 	}
 	
 	
