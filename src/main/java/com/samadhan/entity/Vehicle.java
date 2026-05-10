@@ -23,6 +23,9 @@ public class Vehicle {
 	@Column(name="vehicle_number")
 	private String vehicleNumber;
 	
+	@Column(name="vehicle_contact_number")
+	private String vehicleContactNumber;
+	
 	@ManyToOne
 	@JoinColumn(name = "transfer_id")
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -94,6 +97,14 @@ public class Vehicle {
 
 	public void setOngoingStatus(boolean ongoingStatus) {
 		this.ongoingStatus = ongoingStatus;
+	}
+
+	public String getVehicleContactNumber() {
+		return vehicleContactNumber;
+	}
+
+	public void setVehicleContactNumber(String vehicleContactNumber) {
+		this.vehicleContactNumber = vehicleContactNumber;
 	}
 	
 	
