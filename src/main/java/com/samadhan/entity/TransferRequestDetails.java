@@ -93,7 +93,7 @@ public class TransferRequestDetails {
 	 private rideStatusEnum transferStatus;
 	 
 	 @Column(name="otp")
-	 private int otp;
+	 private Integer otp;
 	 
 	 @Column(name="closure_otp")
 	 private Integer  closureotp;
@@ -259,11 +259,11 @@ public class TransferRequestDetails {
 		this.source = source;
 	}
 
-	public int getOtp() {
+	public Integer getOtp() {
 		return otp;
 	}
 
-	public void setOtp(int otp) {
+	public void setOtp(Integer otp) {
 		this.otp = otp;
 	}
 

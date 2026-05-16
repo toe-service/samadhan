@@ -200,20 +200,29 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		            .orElseThrow(() -> new ResourceNotFoundException(
 		                    "Transfer not found with id: " + transferId));
 		  
-		 
-		if(transferdetails.getOtp()==otp) {
-			LocalDateTime dateTime=LocalDateTime.now();
-			transferdetails.setHandoveredDateTime(dateTime);
+		  LocalDateTime dateTime=LocalDateTime.now();
+		//if(transferdetails.getOtp()==otp) {
+			
+//			transferdetails.setHandoveredDateTime(dateTime);
 
 			if(flag) {
+				if(transferdetails.getClosureotp() !=null && transferdetails.getClosureotp()==otp) {
 			transferdetails.setRideendTime(dateTime);
-			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);	
-			}else {
-			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);
-			}
+			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
 			return true;
-		}
+				}
+			}else {
+				if(transferdetails.getOtp() !=null && transferdetails.getOtp()==otp) {
+			transferdetails.setHandoveredDateTime(dateTime);
+			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);
+			transferRepo.save(transferdetails);
+			return true;
+				}
+			}
+//			transferRepo.save(transferdetails);
+//			return true;
+		//}
 
 		return false;
 	}
