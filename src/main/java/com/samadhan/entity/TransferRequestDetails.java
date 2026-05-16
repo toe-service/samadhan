@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
 
@@ -55,23 +56,26 @@ public class TransferRequestDetails {
 	 @Column(name="source")
 	 private String source;
 
-	 @OneToOne(cascade = CascadeType.ALL)
+	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
 	 @JsonIgnore
 	 private UserDetails userDetails;
 	 
-	 @OneToOne(cascade = CascadeType.ALL)
+	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "driver_id", referencedColumnName = "id")
 	// @JsonIgnore
 	 private Driver driver;
 	 
-	 @OneToOne(cascade = CascadeType.ALL)
+	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "transfer_id", referencedColumnName = "id")
 	 @JsonIgnoreProperties({"drivers", "vehicles"})
 	 private TransferVendor transferVendor;
 	 
 	 @Column(name="vehicle_type")
 	 private VehicleTypeEnum VehicleType;
+	 
+	 @Column(name="parcel_type")
+	 private ParcelTypeEnum ParcelType;
 	 
 	 @Column(name="ride_cost")
 	 private double rideCost;
@@ -94,7 +98,7 @@ public class TransferRequestDetails {
 	 @Column(name="closure_otp")
 	 private Integer  closureotp;
 	 
-	 @OneToOne(cascade = CascadeType.ALL)
+	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "vehicle_id", referencedColumnName = "id")
 	 private Vehicle vehicleId;
 	 
@@ -352,7 +356,14 @@ public class TransferRequestDetails {
 		this.requestCreatedDate = requestCreatedDate;
 	}
 
+	public ParcelTypeEnum getParcelType() {
+		return ParcelType;
+	}
 
-	 
+	public void setParcelType(ParcelTypeEnum parcelType) {
+		ParcelType = parcelType;
+	}
+
+
 	 
 }
