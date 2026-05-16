@@ -61,6 +61,10 @@ public class TransferRequestDetails {
 	 @JsonIgnore
 	 private UserDetails userDetails;
 	 
+	 @OneToOne(cascade = CascadeType.ALL)
+	 @JoinColumn(name = "parcel_details_id", referencedColumnName = "id")
+	 private ParcelDetails parcelDetails;
+	 
 	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "driver_id", referencedColumnName = "id")
 	// @JsonIgnore
@@ -362,6 +366,14 @@ public class TransferRequestDetails {
 
 	public void setParcelType(ParcelTypeEnum parcelType) {
 		ParcelType = parcelType;
+	}
+
+	public ParcelDetails getParcelDetails() {
+		return parcelDetails;
+	}
+
+	public void setParcelDetails(ParcelDetails parcelDetails) {
+		this.parcelDetails = parcelDetails;
 	}
 
 

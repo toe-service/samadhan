@@ -4,7 +4,7 @@ public enum ParcelTypeEnum {
 	
 	Car(0,"Car"),
 	Bike(1,"Bike"),
-	Parcel(2,"Parcel");
+	Package(2,"Package");
 	
 	
 	int id;
