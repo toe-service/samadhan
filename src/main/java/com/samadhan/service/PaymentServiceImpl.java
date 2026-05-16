@@ -51,7 +51,7 @@ public class PaymentServiceImpl {
 
 	public RideCostSummary getrideCostCalculation(String pickuplatitude, String pickuplongitude,
 			String destinationlatitude, String destinationlongitude, ParcelTypeEnum parcelType, CarModelEnum carModel,
-			BikeModelEnum bikeModel, Integer parcelWeight) {
+			BikeModelEnum bikeModel, Double parcelWeight) {
 
 		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickuplatitude + ","
 				+ pickuplongitude + "&destination=" + destinationlatitude + "," + destinationlongitude
@@ -72,9 +72,9 @@ public class PaymentServiceImpl {
 			double distanceInKm = distanceInMeters / 1000.0;
 
 			// ✅ Step 1: Get weight
-			double effectiveWeight = 0;
+			Double effectiveWeight = 0.0;
 
-			if (parcelType != null && parcelType.getType().equalsIgnoreCase("Parcel")) {
+			if (parcelType != null && parcelType.getType().equalsIgnoreCase("Package")) {
 				effectiveWeight = parcelWeight;
 			} else if (carModel != null) {
 				effectiveWeight = carModel.getAverageWeightKg();
@@ -83,7 +83,7 @@ public class PaymentServiceImpl {
 			}
 
 			// ✅ Step 2: Weight factor
-			double weightFactor = 1.0;
+			Double weightFactor = 1.0;
 
 			if (effectiveWeight <= 5) {
 				weightFactor = 1.0;

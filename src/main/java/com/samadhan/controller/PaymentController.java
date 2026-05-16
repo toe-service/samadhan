@@ -109,7 +109,7 @@ public class PaymentController {
             @RequestParam ParcelTypeEnum parcelType,
             @RequestParam(required = false) CarModelEnum carModel,
             @RequestParam(required = false) BikeModelEnum bikeModel,
-            @RequestParam(required = false) Integer parcelWeight) {
+            @RequestParam(required = false) Double parcelWeight) {
 		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
 	}
