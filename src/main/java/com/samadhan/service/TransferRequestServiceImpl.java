@@ -10,6 +10,9 @@ import java.security.SecureRandom;
 
 import javax.transaction.Transactional;
 
+import com.samadhan.enums.BikeModelEnum;
+import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.ResourceNotFoundException;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.api.client.util.Objects;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.ParcelDetails;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
@@ -58,16 +62,45 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	//private static final Logger logger = LoggerFactory.logger(TransferRequestService.class);
 	
 	@Override
-	public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
-			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination) {
+//	public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
+//			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination) {
+	
+		public TransferRequestDetails requestRideTransfer(ParcelTypeEnum parcelType, CarModelEnum carModel,
+				String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
+				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
+				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
+				String packageDescription) {	
 		
 		 UserDetails user = userRepo.findById(userId)
 		            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
+		ParcelDetails parcelDetails=new ParcelDetails();
+		parcelDetails.setParcelType(parcelType);
+		
+		if(parcelType.getType().equalsIgnoreCase("Car")) {
+			
+		packageWeight = carModel.getAverageWeightKg();
+		parcelDetails.setCarModel(carModel);
+		parcelDetails.setParcelWeight(packageWeight);
+		parcelDetails.setCarNumber(carNumber);
+		}
+		
+		if(parcelType.getType().equalsIgnoreCase("Bike")) {
+		packageWeight = bikeModel.getAverageWeightKg();
+		parcelDetails.setBikeModel(bikeModel);
+		parcelDetails.setParcelWeight(packageWeight);
+		parcelDetails.setBikeNumber(bikeNumber);
+		}
+		
+		if(parcelType.getType().equalsIgnoreCase("Package")) {
+		parcelDetails.setParcelWeight(packageWeight);
+		parcelDetails.setPackageDescription(packageDescription);
+		}
 		
 		TransferRequestDetails transferRequest=new TransferRequestDetails();
-		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleType]);
+//		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleType]);
 	//	transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleModel]);
+		transferRequest.setParcelDetails(parcelDetails);
 		LocalDate currentDate=LocalDate.now();
 		LocalTime cuurentTime=LocalTime.now();
 		LocalDateTime currentDateTime=LocalDateTime.now();

@@ -2,18 +2,18 @@ package com.samadhan.enums;
 
 public enum CarModelEnum {
 
-    Sedan(0, "Sedan", 1500),
-    SUV(1, "SUV", 2000),
-    Hatchback(2, "Hatchback", 1200),
-    MUV(3, "MUV", 1900),
-    PickupTruck(4, "Pickup-Truck", 2500),
-    Luxury(5, "Luxury", 1800);
+    Sedan(0, "Sedan", 1500.0),
+    SUV(1, "SUV", 2000.0),
+    Hatchback(2, "Hatchback", 1200.0),
+    MUV(3, "MUV", 1900.0),
+    PickupTruck(4, "Pickup-Truck", 2500.0),
+    Luxury(5, "Luxury", 1800.0);
 
     private final int id;
     private final String label;
-    private final int averageWeightKg;
+    private final Double averageWeightKg;
 
-    private CarModelEnum(int id, String label, int averageWeightKg) {
+    private CarModelEnum(int id, String label, Double averageWeightKg) {
         this.id = id;
         this.label = label;
         this.averageWeightKg = averageWeightKg;
@@ -27,7 +27,7 @@ public enum CarModelEnum {
         return label;
     }
 
-    public int getAverageWeightKg() {
+    public Double getAverageWeightKg() {
         return averageWeightKg;
     }
 

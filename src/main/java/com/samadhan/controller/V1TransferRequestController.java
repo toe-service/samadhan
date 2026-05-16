@@ -24,6 +24,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.VehicleTransfer;
+import com.samadhan.enums.BikeModelEnum;
+import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.service.TransferRequestService;
 
@@ -37,10 +40,15 @@ TransferRequestService transferRequestService;
 	
 	
 	  @PostMapping(value = "/requestRideTransfer")
-	  public TransferRequestDetails requestRideTransfer(@RequestParam int vehicleType,
-	                                               @RequestParam int VehicleModel,
+	  public TransferRequestDetails requestRideTransfer(@RequestParam ParcelTypeEnum parcelType,
+	                                               @RequestParam(required = false) CarModelEnum carModel,
+	                                               @RequestParam(required = false) String carNumber,
+	                                               @RequestParam(required = false) BikeModelEnum bikeModel,
+	                                               @RequestParam(required = false) String bikeNumber,
+	                                               @RequestParam(required = false) Double packageWeight,
+	                                               @RequestParam(required = false) String packageDescription,
 	                                               @RequestParam Long userId,
-	                                              @RequestParam double rideCost,
+	                                               @RequestParam double rideCost,
 	                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
 	                                               @RequestParam String pickupSchedule,
 	                                               @RequestParam String pickuplatitude,
@@ -50,8 +58,8 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam String destinationlatitude,
 	                                               @RequestParam String destinationlongitude) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(vehicleType, VehicleModel,
-	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(parcelType, carModel,
+	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber, packageWeight, packageDescription);
 	        return rideTransfer;
 	  }
 	  

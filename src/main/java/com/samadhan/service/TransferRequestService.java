@@ -9,12 +9,15 @@ import org.springframework.stereotype.Component;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.VehicleTransfer;
+import com.samadhan.enums.BikeModelEnum;
+import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.ParcelTypeEnum;
 
 
 public interface TransferRequestService{
 
-	 public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
-			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination);
+//	 public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
+//			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination);
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 
@@ -33,5 +36,11 @@ public interface TransferRequestService{
 	public List<TransferRequestDetails> getrideTransferByVehicle(Long vehicleId);
 
 	public TransferRequestDetails requestTransferDelete(Long transferId);
+
+	public TransferRequestDetails requestRideTransfer(ParcelTypeEnum parcelType, CarModelEnum carModel,
+			String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
+			Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
+			String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
+			String packageDescription);
 
 }
