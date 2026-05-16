@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.samadhan.dto.RideCostSummary;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
+import com.samadhan.enums.BikeModelEnum;
+import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.service.PaymentService;
 
 import java.util.ArrayList;
@@ -102,8 +105,12 @@ public class PaymentController {
 	public ResponseEntity<ResponseObject<RideCostSummary>> getrideCostCalculation(@RequestParam String pickuplatitude,
             @RequestParam String pickuplongitude,
             @RequestParam String destinationlatitude,
-            @RequestParam String destinationlongitude) {
-		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude);
+            @RequestParam String destinationlongitude,
+            @RequestParam ParcelTypeEnum parcelType,
+            @RequestParam(required = false) CarModelEnum carModel,
+            @RequestParam(required = false) BikeModelEnum bikeModel,
+            @RequestParam(required = false) Integer parcelWeight) {
+		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
 	}
 
