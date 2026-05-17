@@ -212,4 +212,14 @@ public class driversServiceImpl implements driversService {
 	    throw new RuntimeException("Invalid credentials");
 	}
 
+
+	@Override
+	public Driver updateLocation(String address, Long id) {
+		 Driver driver = driverRepo.findById(id)
+		            .orElseThrow(() -> new RuntimeException("Driver not found with id: " + id));
+		 driver.setCurrentLocation(address);
+		 driverRepo.save(driver);
+		return driver;
+	}
+
 }

@@ -18,6 +18,7 @@ import com.samadhan.entity.Vehicle;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.service.LocationService;
 import com.samadhan.service.VehicleService;
+import com.samadhan.service.driversService;
 
 @RestController
 @RequestMapping(value = "/vehicle")
@@ -31,17 +32,26 @@ public class VehicleController {
 
 	  @Autowired
 	  VehicleService vehicleService;
+	  
+	  @Autowired
+	  driversService driverService;
 	
-	@PatchMapping(value = "/update-vehicleLocation/{vehicleId}")
-	public Vehicle  updateVehicleLocation(@PathVariable Long vehicleId, @RequestParam double lat,
-            @RequestParam double lng) {
+	@PatchMapping(value = "/update-roleLocation/{Id}")
+	public String  updateRoleLocation(@PathVariable Long Id, @RequestParam double lat,
+            @RequestParam double lng, @RequestParam String userType) {
 		
 		Map<String, Object>  resp = locationService.getLocation(lat,lng);
 		
 		String address = (String) resp.get("address");
 		
-		Vehicle vehicle=vehicleService.updateLocation(address,vehicleId);
-		return vehicle;
+		if(userType.equalsIgnoreCase("vehicle")) {
+		Vehicle vehicle=vehicleService.updateLocation(address,Id);
+		return "Vehicle Location Updated";
+		}else {
+		Driver driver=driverService.updateLocation(address,Id);	
+		return "Driver Location Updated";
+		}
+		
 	}
 	
 	@PostMapping(value = "/register-Vehicle")

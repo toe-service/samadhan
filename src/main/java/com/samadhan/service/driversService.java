@@ -31,4 +31,6 @@ public interface driversService {
 
 	LoginResponse loginRole(String userName, String password);
 
+	Driver updateLocation(String address, Long id);
+
 }
