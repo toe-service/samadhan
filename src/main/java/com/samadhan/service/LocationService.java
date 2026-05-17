@@ -36,7 +36,7 @@ public class LocationService {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(response);
-            if (node.isArray() && node.size() > 0) {
+            if (node.size() > 0) {
 	            String address = node
 	                    .get("results")
 	                    .get(0)
