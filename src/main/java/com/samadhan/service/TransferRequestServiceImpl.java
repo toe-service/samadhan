@@ -206,7 +206,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			//long vehiId = (long) vehicleId;
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
-			//Vehicle vehicle=vehicleopt.get();
+			
 			vehicle.setOngoingStatus(true);
 			vehicleRepo.save(vehicle);
 			
@@ -215,7 +215,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 			transfer.setTransferStatus(rideStatusEnum.ONGOING);
 		} else if (rideStatus != null && rideStatus == 1) {
-
+			Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
+		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+			
+			vehicle.setOngoingStatus(true);
+			vehicleRepo.save(vehicle);
 			transfer.setRideendTime(dateTime);
 			transfer.setTransferStatus(rideStatusEnum.COMPLETED);
 		}

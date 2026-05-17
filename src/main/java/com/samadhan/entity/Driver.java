@@ -38,6 +38,9 @@ public class Driver {
 	@Column(name="password")
 	private String password;
 	
+	@Column(name="current_location")
+	private String currentLocation;
+	
 	@OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
 	private List<Ride> rides;
 	
@@ -204,6 +207,14 @@ public class Driver {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getCurrentLocation() {
+		return currentLocation;
+	}
+
+	public void setCurrentLocation(String currentLocation) {
+		this.currentLocation = currentLocation;
 	}
 
 	

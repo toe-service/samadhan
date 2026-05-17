@@ -54,8 +54,8 @@ public class VehicleServiceImpl implements VehicleService{
 	@Override
 	public Vehicle updateLocation(String address, Long vehicleId) {
 		
-		Optional<Vehicle> vehicleopt=vehicleRepo.findById(vehicleId);
-		Vehicle vehicle=vehicleopt.get();
+		Vehicle vehicle = vehicleRepo.findById(vehicleId)
+		            .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
 		vehicle.setCurrentLocation(address);
 		vehicleRepo.save(vehicle);
 		return vehicle;
