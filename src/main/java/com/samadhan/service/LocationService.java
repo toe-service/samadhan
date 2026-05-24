@@ -80,30 +80,68 @@ public class LocationService {
 	}
 
 	@Cacheable(value = "GetAddressCache", key = "#address")
-	public Map<String, Double> getLatLong(String address) throws UnsupportedEncodingException, JsonMappingException, JsonProcessingException {
-		 String url = "https://maps.googleapis.com/maps/api/geocode/json?address="
-	                + URLEncoder.encode(address, "UTF-8")
-	                + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
+	public Map<String, Object> getLatLong(String address)
+	        throws UnsupportedEncodingException,
+	        JsonProcessingException {
 
-	        RestTemplate restTemplate = new RestTemplate();
-	        String response = restTemplate.getForObject(url, String.class);
+	    String url =
+	            "https://maps.googleapis.com/maps/api/geocode/json?address="
+	                    + URLEncoder.encode(address, "UTF-8")
+	                    + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
 
-	        ObjectMapper mapper = new ObjectMapper();
-	        JsonNode root = mapper.readTree(response);
+	    RestTemplate restTemplate = new RestTemplate();
 
-	        JsonNode location = root.path("results")
-	                                .get(0)
-	                                .path("geometry")
-	                                .path("location");
+	    String response =
+	            restTemplate.getForObject(url, String.class);
 
-	        double lat = location.get("lat").asDouble();
-	        double lng = location.get("lng").asDouble();
+	    ObjectMapper mapper = new ObjectMapper();
 
-	        Map<String, Double> result = new HashMap<>();
-	        result.put("latitude", lat);
-	        result.put("longitude", lng);
+	    JsonNode root = mapper.readTree(response);
 
-	        return result;
+	    JsonNode resultNode =
+	            root.path("results").get(0);
+
+	    JsonNode location =
+	            resultNode.path("geometry")
+	                    .path("location");
+
+	    double lat = location.get("lat").asDouble();
+
+	    double lng = location.get("lng").asDouble();
+
+	    // Extract pincode
+	    String pincode = "";
+
+	    JsonNode addressComponents =
+	            resultNode.path("address_components");
+
+	    for (JsonNode component : addressComponents) {
+
+	        JsonNode types = component.get("types");
+
+	        for (JsonNode type : types) {
+
+	            if (type.asText().equals("postal_code")) {
+
+	                pincode =
+	                        component.get("long_name").asText();
+
+	                break;
+	            }
+	        }
+
+	        if (!pincode.isEmpty()) {
+	            break;
+	        }
+	    }
+
+	    Map<String, Object> result = new HashMap<>();
+
+	    result.put("latitude", lat);
+	    result.put("longitude", lng);
+	    result.put("pincode", pincode);
+
+	    return result;
 	}
 
 	public List<String> sourceSearchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {

@@ -39,7 +39,7 @@ public class LocationController {
     }
     
     @GetMapping("/latlong")
-    public Map<String, Double> getLatLong(@RequestParam String address) throws Exception {
+    public Map<String, Object> getLatLong(@RequestParam String address) throws Exception {
 
         return locationService.getLatLong(address);
     }

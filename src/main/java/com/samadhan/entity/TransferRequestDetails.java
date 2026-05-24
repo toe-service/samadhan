@@ -58,7 +58,7 @@ public class TransferRequestDetails {
 
 	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
-	 @JsonIgnore
+	// @JsonIgnore
 	 private UserDetails userDetails;
 	 
 	 @OneToOne(cascade = CascadeType.ALL)
