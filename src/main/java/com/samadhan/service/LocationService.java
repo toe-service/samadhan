@@ -59,7 +59,13 @@ public class LocationService {
 
 	@Cacheable(value = "SearchLocationCache", key = "#input")
 	public List<String> searchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {
-		 String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
+		 
+		List<String> result = new ArrayList<>();
+		 if (input == null || input.trim().length() < 4) {
+		        return result;
+		    }
+		
+		String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
 	                + input + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM"
 	                 + "&components=country:in";   // India only
 
@@ -70,7 +76,7 @@ public class LocationService {
 
 	        JsonNode predictions = root.path("predictions");
 
-	        List<String> result = new ArrayList<>();
+	      //  List<String> result = new ArrayList<>();
 
 	        for (int i = 0; i < Math.min(10, predictions.size()); i++) {
 	            result.add(predictions.get(i).get("description").asText());
@@ -145,6 +151,12 @@ public class LocationService {
 	}
 
 	public List<String> sourceSearchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {
+		
+		List<String> result = new ArrayList<>();
+		 if (input == null || input.trim().length() < 4) {
+		        return result;
+		    }
+		
 		String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
 		        + input
 		        + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM"
@@ -152,7 +164,7 @@ public class LocationService {
 		        + "&location=28.6139,77.2090" // Delhi center
 		        + "&radius=50000";           // 50 km (NCR range)
 		
-		List<String> result = new ArrayList<>();
+		
 		  RestTemplate restTemplate = new RestTemplate();
 		
 		 ObjectMapper mapper = new ObjectMapper();
@@ -177,6 +189,13 @@ public class LocationService {
 		        result.add(location);
 		    }
 		}
+		
+		
+	    if (result.isEmpty()) {
+
+	     
+	        result.add("We are not serviceable here");
+	    }
 		
 		return result;
 	}
