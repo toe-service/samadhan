@@ -86,19 +86,32 @@ public class PaymentServiceImpl {
 			Double weightFactor = 1.0;
 
 			if (effectiveWeight <= 5) {
-				weightFactor = 1.0;
+				weightFactor = 1.05;
 			} else if (effectiveWeight <= 20) {
-				weightFactor = 1.2;
+				weightFactor = 1.1;
 			} else if (effectiveWeight <= 100) {
+				weightFactor = 1.2;
+			} else if (effectiveWeight <= 200) {
+				weightFactor = 1.3;
+			} else if (effectiveWeight <= 300) {
+				weightFactor = 1.4;
+			} else if (effectiveWeight <= 400) {
 				weightFactor = 1.5;
-			} else if (effectiveWeight <= 500) {
-				weightFactor = 2.0;
+			}
+			else if (effectiveWeight <= 500) {
+				weightFactor = 1.6;
+			}else if (effectiveWeight <= 600) {
+				weightFactor = 1.7;
+			}else if (effectiveWeight <= 800) {
+				weightFactor = 1.8;
+			}else if (effectiveWeight <= 1000) {
+				weightFactor = 1.9;
 			} else {
-				weightFactor = 2.5;
+				weightFactor = 2.0;
 			}
 
 			// ✅ Step 3: Distance pricing
-			double perKmRate = (distanceInKm <= 25) ? 10 : 7;
+			double perKmRate = (distanceInKm <= 75) ? 10 : 7;
 
 			// ✅ Step 4: Final ride cost
 			double rideCalculation = distanceInKm * perKmRate * weightFactor;
@@ -108,7 +121,7 @@ public class PaymentServiceImpl {
 			if(distanceInKm >=100 && effectiveWeight>120) {
 
 			 loadingUnloading = 500.0;
-			 packaging = 500.0;
+			 packaging = 300.0;
 			
 			}
 
