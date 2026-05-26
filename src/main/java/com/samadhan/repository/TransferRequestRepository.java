@@ -63,7 +63,10 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        ") <= 30000" +
 
 	        ")" +
-	        "ORDER BY trd.request_created_date DESC",
+	       // "ORDER BY trd.request_created_date DESC",
+	       "ORDER BY " +
+	        "CASE WHEN trd.transfer_status = 'COMPLETED' THEN 1 ELSE 0 END ASC, " +
+	        "trd.request_created_date DESC",
 	        nativeQuery = true)
 	List<TransferRequestDetails> showRidestoVendors(Long vendorId);
 
