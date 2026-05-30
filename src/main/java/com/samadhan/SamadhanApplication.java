@@ -2,6 +2,7 @@ package com.samadhan;
 
 
 import com.google.auth.oauth2.GoogleCredentials;
+import java.util.TimeZone;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -31,6 +32,10 @@ public class SamadhanApplication {
 	  }
 
 	public static void main(String[] args) throws IOException {
+		 TimeZone.setDefault(
+		            TimeZone.getTimeZone("Asia/Kolkata")
+		        );
+		
 		SpringApplication.run(SamadhanApplication.class, args);
 	}
 
