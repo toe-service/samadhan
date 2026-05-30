@@ -222,4 +222,13 @@ public class driversServiceImpl implements driversService {
 		return driver;
 	}
 
+
+	@Override
+	public Driver deleteDriver(Long driverId) {
+		 Driver driver = driverRepo.findById(driverId)
+		            .orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
+		 driverRepo.delete(driver);
+		return driver;
+	}
+
 }
