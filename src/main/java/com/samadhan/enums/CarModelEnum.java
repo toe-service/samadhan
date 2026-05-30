@@ -3,11 +3,12 @@ package com.samadhan.enums;
 public enum CarModelEnum {
 
     Sedan(0, "Sedan", 1500.0),
-    SUV(1, "SUV", 2000.0),
-    Hatchback(2, "Hatchback", 1200.0),
+    SUV(1, "SUV", 1800.0),
+    Hatchback(2, "Hatchback", 1000.0),
     MUV(3, "MUV", 1900.0),
+    EV(7, "Electric Car", 1900.0),
     PickupTruck(4, "Pickup-Truck", 2500.0),
-    Luxury(5, "Luxury", 1800.0);
+    Luxury(5, "Luxury", 2000.0);
 
     private final int id;
     private final String label;
