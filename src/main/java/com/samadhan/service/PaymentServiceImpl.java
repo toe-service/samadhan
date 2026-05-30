@@ -84,22 +84,23 @@ public class PaymentServiceImpl {
 
 			// ✅ Step 2: Weight factor
 			Double weightFactor = 1.0;
-
 			if (effectiveWeight <= 5) {
-				weightFactor = 1.05;
+				weightFactor = 1.0;
 			} else if (effectiveWeight <= 20) {
 				weightFactor = 1.1;
-			} else if (effectiveWeight <= 100) {
+			} else if (effectiveWeight <= 50) {
 				weightFactor = 1.2;
-			} else if (effectiveWeight <= 200) {
+			} else if (effectiveWeight <= 100) {
 				weightFactor = 1.3;
-			} else if (effectiveWeight <= 300) {
+			} else if (effectiveWeight <= 200) {
 				weightFactor = 1.4;
-			} else if (effectiveWeight <= 400) {
+			} else if (effectiveWeight <= 300) {
 				weightFactor = 1.5;
+			} else if (effectiveWeight <= 400) {
+				weightFactor = 1.6;
 			}
 			else if (effectiveWeight <= 500) {
-				weightFactor = 1.6;
+				weightFactor = 1.7;
 			}else if (effectiveWeight <= 600) {
 				weightFactor = 1.7;
 			}else if (effectiveWeight <= 800) {
@@ -107,9 +108,24 @@ public class PaymentServiceImpl {
 			}else if (effectiveWeight <= 1000) {
 				weightFactor = 1.9;
 			} else {
-				weightFactor = 2.0;
-			}
 
+			    // After 1000kg:
+			    // every extra 200kg adds +0.1
+
+			    double extraWeight = effectiveWeight - 1000.0;
+
+			    int slabs = (int) Math.ceil(extraWeight / 200.0);
+
+			    weightFactor = 2.1 + (slabs * 0.1);
+
+			    // Optional max limit till 3000kg
+			    if (effectiveWeight > 3000) {
+			        weightFactor = 3.1;
+			    }
+
+			    // Round to 1 decimal
+			    weightFactor = Math.round(weightFactor * 10.0) / 10.0;
+			}
 			// ✅ Step 3: Distance pricing
 			double perKmRate = (distanceInKm <= 75) ? 10 : 7;
 
@@ -118,7 +134,7 @@ public class PaymentServiceImpl {
 			double loadingUnloading =0.0;
 			double packaging =0.0;
 			
-			if(distanceInKm >=100 && effectiveWeight>120) {
+			if(distanceInKm >=100 && effectiveWeight>100) {
 
 			 loadingUnloading = 500.0;
 			 packaging = 300.0;
