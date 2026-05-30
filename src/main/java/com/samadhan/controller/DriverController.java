@@ -147,6 +147,13 @@ public class DriverController {
 		Vehicle resp = vehicleService.createVehicle(vehicle);
 		return resp;
 	}
+	
+	@DeleteMapping(value = "/delete-driver")
+	public Driver deleteDriver(@RequestParam Long driverId) {
+		
+		Driver resp = driversService.deleteDriver(driverId);
+		return resp;
+	}
 
 
 

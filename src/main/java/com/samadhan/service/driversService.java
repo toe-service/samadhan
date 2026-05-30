@@ -3,6 +3,7 @@ import java.util.List;
 
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
+import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.NotFoundException;
 import com.samadhan.response.LoginResponse;
 
@@ -32,5 +33,7 @@ public interface driversService {
 	LoginResponse loginRole(String userName, String password);
 
 	Driver updateLocation(String address, Long id);
+
+	Driver deleteDriver(Long driverId);
 
 }

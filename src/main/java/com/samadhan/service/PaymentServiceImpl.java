@@ -84,24 +84,23 @@ public class PaymentServiceImpl {
 
 			// ✅ Step 2: Weight factor
 			Double weightFactor = 1.0;
-
 			if (effectiveWeight <= 5) {
-				weightFactor = 1.1;
+				weightFactor = 1.0;
 			} else if (effectiveWeight <= 20) {
-				weightFactor = 1.2;
+				weightFactor = 1.1;
 			} else if (effectiveWeight <= 50) {
-				weightFactor = 1.3;
+				weightFactor = 1.2;
 			} else if (effectiveWeight <= 100) {
-				weightFactor = 1.4;
+				weightFactor = 1.3;
 			} else if (effectiveWeight <= 200) {
-				weightFactor = 1.5;
+				weightFactor = 1.4;
 			} else if (effectiveWeight <= 300) {
-				weightFactor = 1.6;
+				weightFactor = 1.5;
 			} else if (effectiveWeight <= 400) {
-				weightFactor = 1.7;
+				weightFactor = 1.6;
 			}
 			else if (effectiveWeight <= 500) {
-				weightFactor = 1.8;
+				weightFactor = 1.7;
 			}else if (effectiveWeight <= 600) {
 				weightFactor = 1.7;
 			}else if (effectiveWeight <= 800) {
@@ -135,7 +134,7 @@ public class PaymentServiceImpl {
 			double loadingUnloading =0.0;
 			double packaging =0.0;
 			
-			if(distanceInKm >=100 && effectiveWeight>120) {
+			if(distanceInKm >=100 && effectiveWeight>100) {
 
 			 loadingUnloading = 500.0;
 			 packaging = 300.0;
