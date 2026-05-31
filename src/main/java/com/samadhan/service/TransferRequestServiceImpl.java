@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.google.api.client.util.Objects;
+import com.samadhan.entity.CancelledRequest;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.ParcelDetails;
 import com.samadhan.entity.Ride;
@@ -31,6 +32,7 @@ import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VehicleTransfer;
+import com.samadhan.repository.CancelledRequestRepository;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
@@ -56,6 +58,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	
 	@Autowired
 	TransferVendorRepository transferVendorRepo;
+	
+	@Autowired
+	CancelledRequestRepository CancelledRequestRepo;
 	
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
@@ -136,7 +141,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId) {
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason) {
 
 		LocalDateTime dateTime = LocalDateTime.now();
 
@@ -145,6 +150,30 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
+		
+		if(transferApproval==2) {
+			
+			CancelledRequest cancelRequest=new CancelledRequest();
+			cancelRequest.setTransferVendor(transferVendor);
+			cancelRequest.setTransferRequest(transferdetails);
+			cancelRequest.setcancellationReason(cancellationReason);
+			cancelRequest.setRequestFlag(true);
+			CancelledRequestRepo.save(cancelRequest);
+			return transferdetails;
+		}if(transferApproval==3) {
+			
+			CancelledRequest cancelRequest=new CancelledRequest();
+			cancelRequest.setTransferVendor(transferVendor);
+			cancelRequest.setTransferRequest(transferdetails);
+			cancelRequest.setcancellationReason(cancellationReason);
+			cancelRequest.setRequestFlag(false);
+			CancelledRequestRepo.save(cancelRequest);
+			transferdetails.setTransferStatus(rideStatusEnum.PENDING);
+			transferdetails.setRequestApprovalDate(null);
+			transferdetails.setTransferVendor(null);
+			transferRepo.save(transferdetails);
+			return transferdetails;
+		}else {
 
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
@@ -153,6 +182,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRepo.save(transferdetails);
 
 		return transferdetails;
+		}
 	}
 
 //	@Override

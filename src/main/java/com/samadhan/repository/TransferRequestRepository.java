@@ -39,34 +39,81 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 //			+ "    );" ,nativeQuery = true)
 //	List<TransferRequestDetails> showRidestoVendors(Long transferId);
 	
-	@Query(value = "SELECT trd.*, " +
-			"ST_Distance_Sphere( " +
+//	@Query(value = "SELECT trd.*, " +
+//			"ST_Distance_Sphere( " +
+//	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
+//	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
+//	        ") / 1000 AS distance_km " +
+//	        "FROM transfer_request_details trd " +
+//	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
+//	        "WHERE " +
+//
+//	        // Assigned rides
+//	        "trd.transfer_id = :vendorId " +
+//
+//	        "OR (" +
+//
+//	        // Nearby rides (no restriction on transfer_id)
+//	        "trd.source_latitude IS NOT NULL " +
+//	        "AND trd.source_longitude IS NOT NULL " +
+//
+//	        "AND ST_Distance_Sphere( " +
+//	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
+//	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
+//	        ") <= 30000" +
+//	        
+//			 // Vendor has NOT declined this request
+//			 "AND NOT EXISTS ( " +
+//			     "SELECT 1 " +
+//			     "FROM cancelled_request cr " +
+//			     "WHERE cr.transfer_request_id = trd.id " +
+//			     "AND cr.vendor_id = :vendorId " +
+//			 ") " +
+//
+//	        ")" +
+//	       // "ORDER BY trd.request_created_date DESC",
+//	       "ORDER BY " +
+//	     //   "CASE WHEN trd.transfer_status = 'COMPLETED' THEN 1 ELSE 0 END ASC, " +
+//	        "trd.request_created_date DESC",
+//	        nativeQuery = true)
+//	List<TransferRequestDetails> showRidestoVendors(Long vendorId);
+	
+	
+	@Query(value =
+	        "SELECT trd.*, " +
+	        "ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
 	        ") / 1000 AS distance_km " +
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
-	        "WHERE " +
+	        "WHERE ( " +
 
-	        // Assigned rides
+	        // Assigned rides of current vendor
 	        "trd.transfer_id = :vendorId " +
 
-	        "OR (" +
+	        "OR ( " +
 
-	        // Nearby rides (no restriction on transfer_id)
-	        "trd.source_latitude IS NOT NULL " +
+	        // Only unassigned rides
+	        "trd.transfer_id IS NULL " +
+
+	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
 
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
-	        ") <= 30000" +
+	        ") <= 30000 " +
 
-	        ")" +
-	       // "ORDER BY trd.request_created_date DESC",
-	       "ORDER BY " +
-	     //   "CASE WHEN trd.transfer_status = 'COMPLETED' THEN 1 ELSE 0 END ASC, " +
-	        "trd.request_created_date DESC",
+	        "AND NOT EXISTS ( " +
+	        "SELECT 1 FROM cancelled_request cr " +
+	        "WHERE cr.transfer_request_id = trd.id " +
+	        "AND cr.vendor_id = :vendorId " +
+	        ") " +
+
+	        ") " +
+	        ") " +
+	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
 	List<TransferRequestDetails> showRidestoVendors(Long vendorId);
 
