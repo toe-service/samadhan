@@ -111,9 +111,10 @@ TransferRequestService transferRequestService;
 	  @PostMapping(value = "/requestTransferApproval")
 	  public TransferRequestDetails requestTransferApproval(@RequestParam Long transferId,
 	                                               @RequestParam Long vendorId,
-	                                               @RequestParam int transferApproval) throws JsonProcessingException {
+	                                               @RequestParam int transferApproval
+	                                               ,@RequestParam(required = false) String cancellationReason) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId, cancellationReason);
 	        return rideTransfer;
 	  }
 	  
