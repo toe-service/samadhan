@@ -145,14 +145,20 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		LocalDateTime dateTime = LocalDateTime.now();
 		
-		Boolean requestIsExist=transferRepo.IsExist(transferId,vendorId);
+		//Boolean requestIsExist=transferRepo.IsExist(transferId,vendorId);
 		
-		if(requestIsExist) {
-			throw new RuntimeException("Cancellation request already exists for this transfer.");
-		}
+//		if(requestIsExist) {
+//			throw new RuntimeException("This request already accepted.");
+//		}
 
 		TransferRequestDetails transferdetails = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
+		
+		TransferVendor existingVendor=transferdetails.getTransferVendor();
+		
+		if (existingVendor != null) {
+		    throw new RuntimeException("This request is already accepted.");
+		}
 
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
