@@ -144,6 +144,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason) {
 
 		LocalDateTime dateTime = LocalDateTime.now();
+		
+		Boolean requestIsExist=transferRepo.IsExist(transferId,vendorId);
+		
+		if(requestIsExist) {
+			throw new RuntimeException("Cancellation request already exists for this transfer.");
+		}
 
 		TransferRequestDetails transferdetails = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
@@ -322,7 +328,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	public TransferRequestDetails requestTransferDelete(Long transferId) {
 		TransferRequestDetails transfer = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
-		
+		CancelledRequestRepo.deleteByTransferRequest(transferId);
 		transferRepo.delete(transfer);
 		return transfer;
 	}

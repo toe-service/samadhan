@@ -120,4 +120,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select * from transfer_request_details where vehicle_id=:vehicleId AND transfer_status IN(5,6,7,8) ORDER BY request_created_date DESC " ,nativeQuery = true)
 	List<TransferRequestDetails> getRidesByVehicle(Long vehicleId);
 
+	@Query(value="select * from transfer_request_details where id=:transferId AND transfer_id=:vendorId" ,nativeQuery = true)
+	Boolean IsExist(Long transferId, Long vendorId);
+
 }
