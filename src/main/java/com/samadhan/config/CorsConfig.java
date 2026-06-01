@@ -13,7 +13,10 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                     "http://localhost:5173",
                     "http://localhost:8081",
-                    "https://transfer-vendor-production.up.railway.app"
+                    "http://localhost:8080",
+                    "https://transfer-vendor-production.up.railway.app",
+                    "https://transfereaze.com",
+                    "https://www.transfereaze.com"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
