@@ -47,6 +47,8 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) String bikeNumber,
 	                                               @RequestParam(required = false) Double packageWeight,
 	                                               @RequestParam(required = false) String packageDescription,
+	                                               @RequestParam(required = false) Long vendorId,
+	                                               @RequestParam(required = false) String userType,
 	                                               @RequestParam Long userId,
 	                                               @RequestParam double rideCost,
 	                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
@@ -59,7 +61,7 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam String destinationlongitude) throws JsonProcessingException {
 	        System.out.println("hi");
 	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(parcelType, carModel,
-	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber, packageWeight, packageDescription);
+	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber, packageWeight, packageDescription, vendorId, userType);
 	        return rideTransfer;
 	  }
 	  

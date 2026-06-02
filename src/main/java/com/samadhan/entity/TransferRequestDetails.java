@@ -44,6 +44,9 @@ public class TransferRequestDetails {
 	 @Column(name="destination_longitude")
 	 private String destinationLongitude;
 	 
+	 @Column(name="user_type")
+	 private String userType;
+	 
 	 @Column(name="destination")
 	 private String destination;
 	 
@@ -374,6 +377,14 @@ public class TransferRequestDetails {
 
 	public void setParcelDetails(ParcelDetails parcelDetails) {
 		this.parcelDetails = parcelDetails;
+	}
+
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
 	}
 
 

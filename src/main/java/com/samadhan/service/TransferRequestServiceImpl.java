@@ -32,12 +32,16 @@ import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VehicleTransfer;
+import com.samadhan.entity.VendorWallet;
+import com.samadhan.entity.WalletTransaction;
 import com.samadhan.repository.CancelledRequestRepository;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.repository.VehicleRepository;
+import com.samadhan.repository.WalletTransactionRepo;
+import com.samadhan.repository.walletRepository;
 
 
 
@@ -62,6 +66,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	@Autowired
 	CancelledRequestRepository CancelledRequestRepo;
 	
+	@Autowired
+	walletRepository walletRepository;
+	
+	@Autowired
+	WalletTransactionRepo walletTransactionRepo;
+	
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
 	//private static final Logger logger = LoggerFactory.logger(TransferRequestService.class);
@@ -74,7 +84,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-				String packageDescription) {	
+				String packageDescription, Long vendorId, String userType) {	
 		
 		 UserDetails user = userRepo.findById(userId)
 		            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -121,6 +131,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setSource(source);
 		transferRequest.setDestination(destination);
 		//transferRequest.setTransferCalculation(rideCost);
+		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
+			transferRequest.setTransferStatus(rideStatusEnum.ACCEPTED);
+			transferRequest.setRequestApprovalDate(currentDateTime);
+			transferRequest.setUserType(userType);
+		}
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		
 		transferRepo.save(transferRequest);
@@ -145,11 +160,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		LocalDateTime dateTime = LocalDateTime.now();
 		
-		//Boolean requestIsExist=transferRepo.IsExist(transferId,vendorId);
-		
-//		if(requestIsExist) {
-//			throw new RuntimeException("This request already accepted.");
-//		}
+
 
 		TransferRequestDetails transferdetails = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
@@ -162,6 +173,32 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
+	
+		if(transferApproval==1) {
+		VendorWallet wallet = walletRepository.findByVendorId(vendorId);
+		
+		double acceptanceFee = calculateAcceptanceFee(transferdetails);
+		
+		if(wallet.getBalance() < acceptanceFee){
+		    throw new RuntimeException(
+		        "Insufficient wallet balance. Please recharge."
+		    );
+		}
+
+		wallet.setBalance(
+			    wallet.getBalance() - acceptanceFee
+			);
+		
+		walletRepository.save(wallet);
+		
+		WalletTransaction walletTransaction=new WalletTransaction();
+		walletTransaction.setAmount(acceptanceFee);
+		walletTransaction.setTransactionType("Ride Acceptance Fee");
+		walletTransaction.setVendor(transferVendor);
+		walletTransaction.setTransferRequestDetail(transferdetails);
+		
+		walletTransactionRepo.save(walletTransaction);
+		}
 		
 		if(transferApproval==2) {
 			
@@ -205,6 +242,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 //		return transferRidesByUserId;
 //	}
 	
+	private double calculateAcceptanceFee(TransferRequestDetails transferdetails) {
+
+		double rideCost=transferdetails.getRideCost();
+		
+		return Math.round(rideCost * 0.025 * 100.0) / 100.0;
+	}
+
 	@Override
 	public TransferRequestDetails getRidesByTransferId(Long transferId) {
 
@@ -285,7 +329,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 //			transferdetails.setHandoveredDateTime(dateTime);
 
 			if(flag) {
-				if(transferdetails.getClosureotp() !=null && transferdetails.getClosureotp()==otp) {
+			if(transferdetails.getClosureotp() !=null && transferdetails.getClosureotp()==otp) {
 			transferdetails.setRideendTime(dateTime);
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
