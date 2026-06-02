@@ -49,7 +49,7 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) String packageDescription,
 	                                               @RequestParam(required = false) Long vendorId,
 	                                               @RequestParam(required = false) String userType,
-	                                               @RequestParam Long userId,
+	                                               @RequestParam(required = false) Long userId,
 	                                               @RequestParam double rideCost,
 	                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
 	                                               @RequestParam String pickupSchedule,
