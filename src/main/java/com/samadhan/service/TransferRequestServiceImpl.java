@@ -86,8 +86,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
 				String packageDescription, Long vendorId, String userType) {	
 		
-		 UserDetails user = userRepo.findById(userId)
+		UserDetails user=null;
+		if (userId != null) {
+		 user = userRepo.findById(userId)
 		            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+		
+		}
 
 		ParcelDetails parcelDetails=new ParcelDetails();
 		parcelDetails.setParcelType(parcelType);
@@ -132,11 +136,21 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setDestination(destination);
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
+			TransferVendor vendor = null;
+
+			if(vendorId != null){
+			    vendor = transferVendorRepo.findById(vendorId)
+			            .orElseThrow(() -> new ResourceNotFoundException(
+			                    "Vendor not found with id: " + vendorId));
+			}
+
+			transferRequest.setTransferVendor(vendor);
 			transferRequest.setTransferStatus(rideStatusEnum.ACCEPTED);
 			transferRequest.setRequestApprovalDate(currentDateTime);
 			transferRequest.setUserType(userType);
-		}
+		}else {
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
+		}
 		
 		transferRepo.save(transferRequest);
 		
