@@ -15,13 +15,26 @@ import org.springframework.web.bind.annotation.*;
 
 import com.samadhan.dto.RideCostSummary;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
+import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.service.PaymentService;
 
+import java.io.ByteArrayOutputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping(value = "/pay")
@@ -32,6 +45,9 @@ public class PaymentController {
 
 	 @Autowired
 	 private ObjectMapper mapper;
+	 
+	 @Autowired
+	 TransferRequestRepository transferRepository;
 
 
 	@PostMapping("/generate-new-invoice")
@@ -44,6 +60,77 @@ public class PaymentController {
 		System.out.println("invoice is "+invoice);
 		return ""+invoice.toJson();
 	}
+	
+	  @GetMapping("/generateInvoice")
+	    public ResponseEntity<byte[]> generateInvoice(
+	            @RequestParam Long transferId) throws Exception {
+
+	        TransferRequestDetails transfer =
+	                transferRepository.findById(transferId)
+	                        .orElseThrow(() ->
+	                                new RuntimeException("Transfer not found"));
+
+	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+	        PdfWriter writer = new PdfWriter(baos);
+	        PdfDocument pdfDocument = new PdfDocument(writer);
+	        Document document = new Document(pdfDocument);
+
+	        document.add(new Paragraph("TransferEaze Invoice")
+	                .setBold()
+	                .setFontSize(20));
+
+	        document.add(new Paragraph("Invoice No: INV-" + transfer.getId()));
+	        document.add(new Paragraph("Date: " + LocalDate.now()));
+
+	        document.add(new Paragraph(" "));
+
+	        Table table = new Table(2);
+
+	        table.addCell("Transfer ID");
+	        table.addCell(String.valueOf(transfer.getId()));
+
+	        table.addCell("Customer");
+	        table.addCell(
+	                transfer.getUserDetails().getUserName()
+	        );
+
+	        table.addCell("Source");
+	        table.addCell(transfer.getSource());
+
+	        table.addCell("Destination");
+	        table.addCell(transfer.getDestination());
+
+	        table.addCell("Status");
+	        table.addCell(transfer.getTransferStatus().name());
+
+	        table.addCell("Amount");
+	        table.addCell("₹" + transfer.getRideCost());
+
+	        document.add(table);
+
+	        document.add(new Paragraph(" "));
+	        document.add(new Paragraph(
+	                "Thank you for choosing TransferEaze."
+	        ));
+
+	        document.close();
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_PDF);
+
+	        headers.setContentDisposition(
+	                ContentDisposition.builder("attachment")
+	                        .filename(
+	                                "Invoice_" + transferId + ".pdf"
+	                        )
+	                        .build()
+	        );
+
+	        return ResponseEntity.ok()
+	                .headers(headers)
+	                .body(baos.toByteArray());
+	    }
 
 	private JSONObject getRequest(PaymentInvoiceRequest request) {
 		JSONObject invoiceRequest = new JSONObject();
