@@ -29,7 +29,7 @@ public class TransferVendorController {
 	}
 
 	@GetMapping(value = "/wallet-vendor/{vendorId}")
-	public VendorWallet walletByVendor(@PathVariable String vendorId) {
+	public VendorWallet walletByVendor(@PathVariable Long vendorId) {
 		
 		VendorWallet walletByVendor = transferVendorService.walletByVendor(vendorId);
 		return walletByVendor;

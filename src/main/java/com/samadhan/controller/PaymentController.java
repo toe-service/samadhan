@@ -14,19 +14,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.samadhan.dto.RideCostSummary;
+import com.samadhan.dto.WalletPaymentRequest;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
 import com.samadhan.entity.Payment;
 import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.entity.VendorWallet;
+import com.samadhan.entity.WalletTransaction;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.repository.TransferRequestRepository;
+import com.samadhan.repository.VendorWalletRepository;
+import com.samadhan.repository.WalletTransactionRepo;
 import com.samadhan.service.PaymentService;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -36,6 +43,10 @@ import com.itextpdf.layout.element.Table;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import org.json.JSONObject;
 
 @RestController
 @RequestMapping(value = "/pay")
@@ -49,6 +60,12 @@ public class PaymentController {
 	 
 	 @Autowired
 	 TransferRequestRepository transferRepository;
+	 
+	 @Autowired
+	 VendorWalletRepository  VendorWalletRepo;
+	 
+	 @Autowired
+	 WalletTransactionRepo walletTransactionRepository;
 
 
 	@PostMapping("/generate-new-invoice")
@@ -190,7 +207,7 @@ public class PaymentController {
 	}
 	
 	@GetMapping("/subscriptions/{vendorId}")
-	public ResponseEntity<Payment> getSubscriptionsByVendor(@PathVariable String vendorId) {
+	public ResponseEntity<Payment> getSubscriptionsByVendor(@PathVariable Long vendorId) {
 		Payment vendorSubscriptions = paymentService.getSubscriptionsByVendor(vendorId);
 		return ResponseEntity.ok(vendorSubscriptions);
 	}
@@ -207,7 +224,76 @@ public class PaymentController {
 		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
 	}
+	
+	
+	@PostMapping("/wallet/create-order")
+	public Map<String,Object> createOrder(
+	        @RequestParam Long vendorId,
+	        @RequestParam Double amount) throws Exception {
 
+	    RazorpayClient client =
+	        new RazorpayClient(KEY_ID, KEY_SECRET);
+
+	    JSONObject orderRequest = new JSONObject();
+	    orderRequest.put("amount", (int)(amount * 100));
+	    orderRequest.put("currency", "INR");
+	    orderRequest.put("receipt", "wallet_" + vendorId);
+
+	    Order order = client.orders.create(orderRequest);
+
+	    Map<String,Object> response = new HashMap<>();
+	    response.put("orderId", order.get("id"));
+	    response.put("amount", amount);
+
+	    return response;
+	}
+
+	
+	@PostMapping("/wallet/payment-success")
+	public String paymentSuccess(
+	        @RequestBody WalletPaymentRequest request)
+	        throws Exception {
+
+	    VendorWallet wallet =
+	            VendorWalletRepo.findByVendorId(
+	                    request.getVendorId());
+
+	    if (wallet == null) {
+	        throw new RuntimeException(
+	                "Wallet not found");
+	    }
+
+	    wallet.setBalance(
+	            wallet.getBalance()
+	            + request.getAmount());
+
+	    VendorWalletRepo.save(wallet);
+
+	    WalletTransaction txn =
+	            new WalletTransaction();
+
+	    txn.setAmount(request.getAmount());
+	    txn.setTransactionType("CREDIT");
+	    txn.setReferenceId(
+	            Long.parseLong(request.getRazorpayPaymentId()));
+	    txn.setDescription(
+	            "Wallet Recharge");
+
+	    txn.setVendor(wallet.getVendor());
+
+	    walletTransactionRepository.save(txn);
+
+	    return "SUCCESS";
+	}
+	
+	@PostMapping("/subscription/renew")
+	public ResponseEntity<String> renewSubscription(
+	        @RequestParam Long vendorId) {
+
+	    paymentService.renewSubscription(vendorId);
+
+	    return ResponseEntity.ok("Subscription renewed successfully");
+	}
 	
 	
 }
