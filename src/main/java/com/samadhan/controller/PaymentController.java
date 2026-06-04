@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.samadhan.dto.RideCostSummary;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
+import com.samadhan.entity.Payment;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
@@ -186,6 +187,12 @@ public class PaymentController {
 	public ResponseEntity<List<SubscriptionResponse>> getSubscriptions() {
 		List<SubscriptionResponse> allSubscriptions = paymentService.getAllSubscriptions();
 		return ResponseEntity.ok(allSubscriptions);
+	}
+	
+	@GetMapping("/subscriptions/{vendorId}")
+	public ResponseEntity<Payment> getSubscriptionsByVendor(@PathVariable String vendorId) {
+		Payment vendorSubscriptions = paymentService.getSubscriptionsByVendor(vendorId);
+		return ResponseEntity.ok(vendorSubscriptions);
 	}
 
 	@GetMapping("/rideCostCalculation")
