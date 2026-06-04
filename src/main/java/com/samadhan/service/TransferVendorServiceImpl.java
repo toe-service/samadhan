@@ -33,7 +33,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	}
 
 	@Override
-	public VendorWallet walletByVendor(String vendorId) {
+	public VendorWallet walletByVendor(Long vendorId) {
 		VendorWallet walletByVendor=VendorWalletRepo.findByVendor(vendorId);
 
 		return walletByVendor;

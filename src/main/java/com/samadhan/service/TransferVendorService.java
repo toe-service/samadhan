@@ -7,6 +7,6 @@ public interface TransferVendorService {
 
 	TransferVendor registerVendor(TransferVendor transferVendor);
 
-	VendorWallet walletByVendor(String vendorId);
+	VendorWallet walletByVendor(Long vendorId);
 
 }
