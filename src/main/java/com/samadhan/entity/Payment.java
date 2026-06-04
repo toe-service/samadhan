@@ -44,6 +44,10 @@ public class Payment {
 	@ManyToOne
 	@JoinColumn(name = "service_centre_id")
 	private ServiceCentre serviceCentre;
+	
+	@ManyToOne
+	@JoinColumn(name = "vendor_id")
+	private TransferVendor vendor;
 
 	public Long getId() {
 		return id;
