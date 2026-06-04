@@ -24,6 +24,7 @@ public class VendorWallet {
 	    private Double securityDeposit;
 
 	    @OneToOne
+	    @JsonIgnore
 	    @JoinColumn(name = "vendor_id")
 	    private TransferVendor vendor;
 

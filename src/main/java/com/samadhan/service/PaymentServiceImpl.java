@@ -5,11 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.samadhan.dto.RideCostSummary;
+import com.samadhan.entity.Payment;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.SubscriptionPrice;
+import com.samadhan.repository.PaymentRepository;
 import com.samadhan.response.SubscriptionResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +34,9 @@ public class PaymentServiceImpl {
 
     @Value("${pay.secret}")
     private String secret;
+    
+    @Autowired
+    PaymentRepository PaymentRepo;
 
     public RazorpayClient getPaymentClient() throws RazorpayException {
         return new RazorpayClient(key,secret);
@@ -174,4 +181,10 @@ public class PaymentServiceImpl {
 
         return EARTH_RADIUS_KM * c; // Distance in kilometers
     }
+
+
+	public Payment getSubscriptionsByVendor(String vendorId) {
+		Payment payment=PaymentRepo.findByVendorId(vendorId);
+		return payment;
+	}
 }
