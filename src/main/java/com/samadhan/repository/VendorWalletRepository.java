@@ -8,6 +8,6 @@ import com.samadhan.entity.VendorWallet;
 public interface VendorWalletRepository   extends JpaRepository<VendorWallet, Long>{
 
 	@Query(value="select * from vendor_wallet where vendor_id=:vendorId" ,nativeQuery = true)
-	VendorWallet findByVendor(String vendorId);
+	VendorWallet findByVendor(Long vendorId);
 
 }

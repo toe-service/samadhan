@@ -19,10 +19,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.transaction.Transactional;
 
 @Component
 public class PaymentServiceImpl {
@@ -183,8 +187,30 @@ public class PaymentServiceImpl {
     }
 
 
-	public Payment getSubscriptionsByVendor(String vendorId) {
+	public Payment getSubscriptionsByVendor(Long vendorId) {
 		Payment payment=PaymentRepo.findByVendorId(vendorId);
 		return payment;
+	}
+
+
+	@Transactional
+	public void renewSubscription(Long vendorId) {
+
+	    Payment payment =
+	    		PaymentRepo.findByVendorId(vendorId);
+
+	    if (payment == null) {
+	        throw new RuntimeException(
+	                "Subscription not found");
+	    }
+
+	    payment.setStartDate(new Date());
+
+	    Calendar cal = Calendar.getInstance();
+	    cal.add(Calendar.MONTH, 1);
+
+	    payment.setEndDate(cal.getTime());
+
+	    PaymentRepo.save(payment);
 	}
 }
