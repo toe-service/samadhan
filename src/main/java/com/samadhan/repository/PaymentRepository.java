@@ -10,6 +10,6 @@ import com.samadhan.entity.Payment;
 public interface PaymentRepository  extends JpaRepository<Payment, Long>{
 
 	@Query(value="select * from payment where vendor_id=:vendorId" ,nativeQuery = true)
-	Payment findByVendorId(String vendorId);
+	Payment findByVendorId(Long vendorId);
 
 }

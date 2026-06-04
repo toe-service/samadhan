@@ -40,8 +40,9 @@ import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.repository.VehicleRepository;
+import com.samadhan.repository.VendorWalletRepository;
 import com.samadhan.repository.WalletTransactionRepo;
-import com.samadhan.repository.walletRepository;
+import com.samadhan.repository.*;
 
 
 
@@ -67,7 +68,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	CancelledRequestRepository CancelledRequestRepo;
 	
 	@Autowired
-	walletRepository walletRepository;
+	VendorWalletRepository walletRepository;
 	
 	@Autowired
 	WalletTransactionRepo walletTransactionRepo;
@@ -189,7 +190,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 	
 		if(transferApproval==1) {
-		VendorWallet wallet = walletRepository.findByVendorId(vendorId);
+		VendorWallet wallet = walletRepository.findByVendor(vendorId);
 		
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
 		
