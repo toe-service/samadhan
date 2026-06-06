@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
@@ -22,9 +24,20 @@ public class TransferVendorController {
 	 TransferVendorService transferVendorService;
 	 
 	@PostMapping(value = "/register-vendor")
-	public TransferVendor registerVendor(@RequestBody TransferVendor transferVendor) {
+	public TransferVendor registerVendor(
+	        @RequestParam String vendorName,
+	        @RequestParam String vendorEmail,
+	        @RequestParam String vendorContactNumber,
+	        @RequestParam String vendorCity,
+	        @RequestParam String vendorAddress,
+	        @RequestParam String vendorLatitude,
+	        @RequestParam String vendorLongitude,
+	        @RequestParam String gst,
+	        @RequestParam(required = false) MultipartFile aadhaarFile,
+	        @RequestParam(required = false) MultipartFile panFile
+	) {
 		
-		TransferVendor resp = transferVendorService.registerVendor(transferVendor);
+		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst );
 		return resp;
 	}
 

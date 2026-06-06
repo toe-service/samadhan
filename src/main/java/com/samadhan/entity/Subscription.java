@@ -19,8 +19,8 @@ import com.samadhan.enums.PaymentTypeEnum;
 import com.samadhan.enums.SubscriptionPeriodEnum;
 
 @Entity
-@Table(name="payment")
-public class Payment {
+@Table(name="subscription")
+public class Subscription {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

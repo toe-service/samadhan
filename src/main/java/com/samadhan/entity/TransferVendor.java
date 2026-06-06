@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.samadhan.enums.VendorStatusEnum;
 
 //@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 @Entity
@@ -54,11 +55,17 @@ public class TransferVendor {
 	 @Column(name="vendor_address")
 	 private String vendorAddress;
 	 
+	 @Column(name="gst_number")
+	 private String gstNumber;
+	 
 	 @OneToMany(mappedBy = "transferVendor")
 	 private List<TransferRequestDetails> transferRequests;
 	 
 	 @Column(name="vendor_contact_number")
 	 private String vendorContactNumber;
+	 
+	 @Column(name="vendor_status")
+	 private VendorStatusEnum vendorStatus;
 	
 	public Long getId() {
 		return id;
@@ -146,6 +153,30 @@ public class TransferVendor {
 
 	public void setVendorContactNumber(String vendorContactNumber) {
 		this.vendorContactNumber = vendorContactNumber;
+	}
+
+	public List<TransferRequestDetails> getTransferRequests() {
+		return transferRequests;
+	}
+
+	public void setTransferRequests(List<TransferRequestDetails> transferRequests) {
+		this.transferRequests = transferRequests;
+	}
+
+	public VendorStatusEnum getVendorStatus() {
+		return vendorStatus;
+	}
+
+	public void setVendorStatus(VendorStatusEnum vendorStatus) {
+		this.vendorStatus = vendorStatus;
+	}
+
+	public String getGstNumber() {
+		return gstNumber;
+	}
+
+	public void setGstNumber(String gstNumber) {
+		this.gstNumber = gstNumber;
 	}
 	
 	
