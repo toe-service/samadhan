@@ -1,6 +1,7 @@
 package com.samadhan.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.type.Date;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.samadhan.response.ResponseObject;
@@ -25,6 +26,9 @@ import com.samadhan.entity.WalletTransaction;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.enums.PaymentTypeEnum;
+import com.samadhan.enums.SubscriptionPeriodEnum;
+import com.samadhan.repository.PaymentRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VendorWalletRepository;
@@ -33,6 +37,8 @@ import com.samadhan.service.PaymentService;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +59,10 @@ import org.springframework.http.MediaType;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import org.json.JSONObject;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/pay")
@@ -75,6 +85,10 @@ public class PaymentController {
 	 
 	 @Autowired
 	 TransferVendorRepository transferVendorRepo;
+	 
+	 @Autowired
+	 PaymentRepository paymentRepo;
+	 
 
 
 //	@PostMapping("/generate-new-invoice")
@@ -276,9 +290,29 @@ public class PaymentController {
 //	                .badRequest()
 //	                .body("Invalid Signature");
 //	    }
+	    LocalDate localDate = LocalDate.now();
+	    LocalDate threeMonthsLater = localDate.plusMonths(3);
 
+//	    Date date = Date.from(
+//	        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+//	    );
+	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
+	    Subscription subscription=new Subscription();
+	    subscription.setVendor(vendor.get());
+	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
+	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
+	    subscription.setStartDate(localDate);
+	    subscription.setEndDate(threeMonthsLater);
+	    
+	    paymentRepo.save(subscription);
+	    
 	    transferVendorRepo.activateVendor(
 	            req.getVendorId());
+	    
+	    WalletTransaction walletTransaction=new WalletTransaction();
+	    walletTransaction.setAmount(999.0);
+	    walletTransaction.setVendor(vendor.get());
+	    walletTransaction.setTransactionType("Subscription Purchased");
 
 	    return ResponseEntity.ok(
 	            "Subscription Activated");
