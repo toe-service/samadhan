@@ -19,6 +19,7 @@ import com.samadhan.dto.WalletPaymentRequest;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
 import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
 import com.samadhan.enums.BikeModelEnum;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -314,16 +316,22 @@ public class PaymentController {
 	    VendorWallet wallet =
 	            VendorWalletRepo.findByVendor(
 	                    request.getVendorId());
+	    
+	    Optional<TransferVendor> vendor=transferVendorRepo.findById(request.getVendorId());
 
 	    if (wallet == null) {
-	        throw new RuntimeException(
-	                "Wallet not found");
-	    }
+	    	
+//	        throw new RuntimeException(
+//	                "Wallet not found");
+	    	 wallet = new VendorWallet();
+	    	 wallet.setBalance(request.getAmount());
+	    }else {
 
 	    wallet.setBalance(
 	            wallet.getBalance()
 	            + request.getAmount());
-
+	    }
+	    wallet.setVendor(vendor.get());
 	    VendorWalletRepo.save(wallet);
 
 	    WalletTransaction txn =
@@ -331,8 +339,8 @@ public class PaymentController {
 
 	    txn.setAmount(request.getAmount());
 	    txn.setTransactionType("CREDIT");
-	    txn.setReferenceId(
-	            Long.parseLong(request.getRazorpayPaymentId()));
+//	    txn.setReferenceId(
+//	            Long.parseLong(request.getRazorpayPaymentId()));
 	    txn.setDescription(
 	            "Wallet Recharge");
 
