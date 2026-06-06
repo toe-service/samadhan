@@ -67,7 +67,6 @@ public class TransferVendor {
 	 private String vendorContactNumber;
 	 
 	 @Column(name="vendor_status")
-	 @Enumerated(EnumType.STRING)
 	 private VendorStatusEnum vendorStatus;
 	
 	public Long getId() {
