@@ -48,8 +48,8 @@ public class ServiceCentre {
 	@JsonManagedReference
     private Location location;
 	
-	@OneToMany(mappedBy = "serviceCentre", cascade = CascadeType.ALL)
-	private List<Payment> payment;
+//	@OneToMany(mappedBy = "serviceCentre", cascade = CascadeType.ALL)
+//	private List<Payment> payment;
 	
 	@OneToMany(mappedBy = "serviceCentre", cascade = CascadeType.ALL)
 	private List<Driver> drivers;
@@ -134,13 +134,13 @@ public class ServiceCentre {
 		this.serviceType = serviceType;
 	}
 
-	public List<Payment> getPayment() {
-		return payment;
-	}
-
-	public void setPayment(List<Payment> payment) {
-		this.payment = payment;
-	}
+//	public List<Payment> getPayment() {
+//		return payment;
+//	}
+//
+//	public void setPayment(List<Payment> payment) {
+//		this.payment = payment;
+//	}
 
 	public serviceTypeEnum getServiceType() {
 		return serviceType;

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import com.samadhan.dto.RideCostSummary;
 import com.samadhan.dto.WalletPaymentRequest;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
-import com.samadhan.entity.Payment;
+import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
@@ -207,8 +207,8 @@ public class PaymentController {
 	}
 	
 	@GetMapping("/subscriptions/{vendorId}")
-	public ResponseEntity<Payment> getSubscriptionsByVendor(@PathVariable Long vendorId) {
-		Payment vendorSubscriptions = paymentService.getSubscriptionsByVendor(vendorId);
+	public ResponseEntity<Subscription> getSubscriptionsByVendor(@PathVariable Long vendorId) {
+		Subscription vendorSubscriptions = paymentService.getSubscriptionsByVendor(vendorId);
 		return ResponseEntity.ok(vendorSubscriptions);
 	}
 
@@ -220,8 +220,9 @@ public class PaymentController {
             @RequestParam ParcelTypeEnum parcelType,
             @RequestParam(required = false) CarModelEnum carModel,
             @RequestParam(required = false) BikeModelEnum bikeModel,
-            @RequestParam(required = false) Double parcelWeight) {
-		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight);
+            @RequestParam(required = false) Double parcelWeight,
+            @RequestParam(required = false) String cc) {
+		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
 	}
 	
