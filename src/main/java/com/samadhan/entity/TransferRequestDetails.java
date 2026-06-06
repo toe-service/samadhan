@@ -11,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -73,9 +74,10 @@ public class TransferRequestDetails {
 	// @JsonIgnore
 	 private Driver driver;
 	 
-	 @OneToOne(cascade = CascadeType.MERGE)
+	 @ManyToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "transfer_id", referencedColumnName = "id")
-	 @JsonIgnoreProperties({"drivers", "vehicles"})
+	 @JsonIgnoreProperties({ "transferRequests","drivers", "vehicles",
+		    "vendorPassword"})
 	 private TransferVendor transferVendor;
 	 
 	 @Column(name="vehicle_type")
