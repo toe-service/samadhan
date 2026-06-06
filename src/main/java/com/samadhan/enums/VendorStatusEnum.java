@@ -2,12 +2,12 @@ package com.samadhan.enums;
 
 public enum VendorStatusEnum {
 
-	VERIFICATION_PENDING(1, "Verification Pending"),
-    VERIFIED(2, "Verified"),
-    SUBSCRIPTION_PENDING(3, "Subscription Pending"),
-    ACTIVE(4, "Active"),
-    REJECTED(5, "Rejected"),
-    SUSPENDED(6, "Suspended");
+	VERIFICATION_PENDING(0, "Verification Pending"),
+    VERIFIED(1, "Verified"),
+    SUBSCRIPTION_PENDING(2, "Subscription Pending"),
+    ACTIVE(3, "Active"),
+    REJECTED(4, "Rejected"),
+    SUSPENDED(5, "Suspended");
 
     private final int id;
     private final String label;
