@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -277,13 +278,13 @@ public class PaymentServiceImpl {
 	        throw new RuntimeException(
 	                "Subscription not found");
 	    }
-
-	    payment.setStartDate(new Date());
+	    LocalDate localdate=LocalDate.now();
+	    payment.setStartDate(localdate);
 
 	    Calendar cal = Calendar.getInstance();
 	    cal.add(Calendar.MONTH, 1);
 
-	    payment.setEndDate(cal.getTime());
+	    payment.setEndDate(localdate);
 
 	    PaymentRepo.save(payment);
 	}
