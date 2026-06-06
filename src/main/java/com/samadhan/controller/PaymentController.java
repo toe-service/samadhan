@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.samadhan.dto.PaymentVerificationRequest;
 import com.samadhan.dto.RideCostSummary;
 import com.samadhan.dto.WalletPaymentRequest;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
@@ -24,6 +25,7 @@ import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.repository.TransferRequestRepository;
+import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VendorWalletRepository;
 import com.samadhan.repository.WalletTransactionRepo;
 import com.samadhan.service.PaymentService;
@@ -34,6 +36,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.transaction.Transactional;
 
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -66,6 +70,9 @@ public class PaymentController {
 	 
 	 @Autowired
 	 WalletTransactionRepo walletTransactionRepository;
+	 
+	 @Autowired
+	 TransferVendorRepository transferVendorRepo;
 
 
 //	@PostMapping("/generate-new-invoice")
@@ -224,6 +231,55 @@ public class PaymentController {
             @RequestParam(required = false) String cc) {
 		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
+	}
+	
+	@PostMapping("/subscription/createOrder")
+	public ResponseEntity<?> createOrder(
+	        @RequestParam Long vendorId) throws Exception {
+
+	    JSONObject options = new JSONObject();
+
+	    options.put("amount", 99900); // ₹999
+	    options.put("currency", "INR");
+	    options.put("receipt", "subscription_" + vendorId);
+
+	    RazorpayClient client =
+	            new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+
+	    Order order = client.orders.create(options);
+
+	    return ResponseEntity.ok(order.toString());
+	}
+	
+	@PostMapping("/subscription/verifyPayment")
+	@Transactional
+	public ResponseEntity<?> verifyPayment(
+	        @RequestBody PaymentVerificationRequest req)
+	        throws Exception {
+
+	    String payload =
+	        req.getRazorpayOrderId()
+	        + "|"
+	        + req.getRazorpayPaymentId();
+
+//	    String generatedSignature =
+//	            calculateHmacSHA256(
+//	                    payload,
+//	                    "ClYfhcDqxmBDr3ZftMyzuxu1");
+//
+//	    if(!generatedSignature.equals(
+//	            req.getRazorpaySignature())) {
+//
+//	        return ResponseEntity
+//	                .badRequest()
+//	                .body("Invalid Signature");
+//	    }
+
+	    transferVendorRepo.activateVendor(
+	            req.getVendorId());
+
+	    return ResponseEntity.ok(
+	            "Subscription Activated");
 	}
 	
 	
