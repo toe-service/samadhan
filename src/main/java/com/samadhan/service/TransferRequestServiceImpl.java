@@ -138,11 +138,19 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
 			TransferVendor vendor = null;
-			UserDetails userDetail=new UserDetails();
-			
-			userDetail.setUserName(userName);
-			userDetail.setUserContactNumber(userContact);
-			userRepo.save(userDetail);
+			Optional<UserDetails> userDetailopt =
+			        userRepo.findByUserContactNumber(userContact);
+			UserDetails userDetail =userDetailopt.get(); 
+			       
+
+			if(userDetail == null){
+			    userDetail = new UserDetails();
+			    userDetail.setUserName(userName);
+			    userDetail.setUserContactNumber(userContact);
+
+			    userDetail = userRepo.save(userDetail);
+			}
+
 			
 
 			if(vendorId != null){
@@ -150,7 +158,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			            .orElseThrow(() -> new ResourceNotFoundException(
 			                    "Vendor not found with id: " + vendorId));
 			}
-
+			transferRequest.setUserDetails(userDetail);
 			transferRequest.setTransferVendor(vendor);
 			transferRequest.setTransferStatus(rideStatusEnum.ACCEPTED);
 			transferRequest.setRequestApprovalDate(currentDateTime);
