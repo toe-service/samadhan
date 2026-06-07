@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.security.SecureRandom;
 
 import javax.transaction.Transactional;
@@ -391,32 +392,45 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId) {
 		List<TransferRequestDetails> showRidestoVendors = transferRepo.showRidestoVendors(transferId);
 		
+		List<TransferRequestDetails> request =
+			    showRidestoVendors.stream()
+			        .filter(req -> req.getTransferStatus() == rideStatusEnum.PENDING)
+			        .collect(Collectors.toList());
 		VendorWallet wallet=walletRepository.findByVendor(transferId);
-		
+		 double leadCost=0.0;
 	 	if (wallet == null) {
 	        throw new RuntimeException("Wallet not found");
 	    }
-
-	    // 3. Define lead cost
-	    double leadCost = 20; // ₹10 per lead (example)
-
-	    // 4. Check balance
-	    if (wallet.getBalance() < leadCost) {
-	        throw new RuntimeException("Insufficient wallet balance");
-	    }
-		Optional<TransferVendor> vendor=transferVendorRepo.findById(transferId);
+	 	for(TransferRequestDetails req : request) {
+	 	WalletTransaction walletTransaction=walletTransactionRepo.findByVendorANDRequest(req.getId(),transferId);
+	 	Optional<TransferVendor> vendor=transferVendorRepo.findById(transferId);
+	     leadCost = 20; 
+	     if (wallet.getBalance() < leadCost) {
+		        throw new RuntimeException("Insufficient wallet balance");
+		    }
 	    
-	    wallet.setBalance(wallet.getBalance() - leadCost);
-        walletRepository.save(wallet);
 
-        // Optional: log transaction
-        WalletTransaction transaction = new WalletTransaction();
+	   
+	    if (walletTransaction == null) {
+		    wallet.setBalance(wallet.getBalance() - leadCost);
+	        walletRepository.save(wallet);
+			
+	    
+	    WalletTransaction transaction = new WalletTransaction();
         transaction.setVendor(vendor.get());
         transaction.setAmount(20.0);
         transaction.setTransactionType("DEBIT");
         transaction.setDescription("LEAD_VIEW");
+        transaction.setTransferRequestDetail(req);
         walletTransactionRepo.save(transaction);
-		
+	    }
+	    
+	 	}
+	 	 
+	 	 if (wallet.getBalance() < 200) {
+		        throw new RuntimeException("Balance Less than 500");
+	    }
+	    
 		System.out.println("showRidestoVendors" + showRidestoVendors);
 		
 		return showRidestoVendors;
