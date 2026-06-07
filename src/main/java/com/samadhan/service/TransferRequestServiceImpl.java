@@ -142,6 +142,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 			userDetail.setUserName(userName);
 			userDetail.setUserContactNumber(userContact);
+			userRepo.save(userDetail);
 			
 
 			if(vendorId != null){
