@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.type.Date;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.samadhan.response.Error;
 import com.samadhan.response.ResponseObject;
 import com.samadhan.response.SubscriptionResponse;
 import com.samadhan.service.PaymentServiceImpl;
@@ -235,6 +236,29 @@ public class PaymentController {
 		return ResponseEntity.ok(vendorSubscriptions);
 	}
 
+//	@GetMapping("/rideCostCalculation")
+//	public ResponseEntity<ResponseObject<RideCostSummary>> getrideCostCalculation(@RequestParam String pickuplatitude,
+//            @RequestParam String pickuplongitude,
+//            @RequestParam String destinationlatitude,
+//            @RequestParam String destinationlongitude,
+//            @RequestParam ParcelTypeEnum parcelType,
+//            @RequestParam(required = false) CarModelEnum carModel,
+//            @RequestParam(required = false) BikeModelEnum bikeModel,
+//            @RequestParam(required = false) Double parcelWeight,
+//            @RequestParam(required = false) Double length,
+//            @RequestParam(required = false) Double width,
+//            @RequestParam(required = false) Double heigth,
+//            @RequestParam(required = false) String cc) {
+//		try {
+//		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc, length, width, heigth);
+//		
+//		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		
+//	}
+	
 	@GetMapping("/rideCostCalculation")
 	public ResponseEntity<ResponseObject<RideCostSummary>> getrideCostCalculation(@RequestParam String pickuplatitude,
             @RequestParam String pickuplongitude,
@@ -244,9 +268,34 @@ public class PaymentController {
             @RequestParam(required = false) CarModelEnum carModel,
             @RequestParam(required = false) BikeModelEnum bikeModel,
             @RequestParam(required = false) Double parcelWeight,
+            @RequestParam(required = false) Double length,
+            @RequestParam(required = false) Double width,
+            @RequestParam(required = false) Double heigth,
             @RequestParam(required = false) String cc) {
-		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc);
-		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
+
+	    try {
+
+			RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude,
+					destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc,
+					length, width, heigth);
+
+	        return ResponseEntity.ok(
+	                ResponseUtil.populateResponseObject(
+	                        rideCostCalculation,
+	                        "SUCCESS",
+	                        null));
+
+	    } catch (Exception e) {
+	    	  Error error=new Error("Server", e.getMessage());
+	    	    error.setIdentifier("Server");
+	    	    error.setMessage(e.getMessage());
+	    	
+	        return ResponseEntity.badRequest().body(
+	                ResponseUtil.populateResponseObject(
+	                        null,
+	                        "FAILED",
+	                        error));
+	    }
 	}
 	
 	@PostMapping("/subscription/createOrder")
