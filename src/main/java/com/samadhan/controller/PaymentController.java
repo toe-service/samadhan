@@ -1,6 +1,7 @@
 package com.samadhan.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.type.Date;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.samadhan.response.ResponseObject;
@@ -13,27 +14,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.samadhan.dto.PaymentVerificationRequest;
 import com.samadhan.dto.RideCostSummary;
 import com.samadhan.dto.WalletPaymentRequest;
 import com.samadhan.dto.payment.PaymentInvoiceRequest;
-import com.samadhan.entity.Payment;
+import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.enums.PaymentTypeEnum;
+import com.samadhan.enums.SubscriptionPeriodEnum;
+import com.samadhan.repository.PaymentRepository;
 import com.samadhan.repository.TransferRequestRepository;
+import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VendorWalletRepository;
 import com.samadhan.repository.WalletTransactionRepo;
 import com.samadhan.service.PaymentService;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import javax.transaction.Transactional;
 
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -47,6 +59,10 @@ import org.springframework.http.MediaType;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import org.json.JSONObject;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/pay")
@@ -66,6 +82,13 @@ public class PaymentController {
 	 
 	 @Autowired
 	 WalletTransactionRepo walletTransactionRepository;
+	 
+	 @Autowired
+	 TransferVendorRepository transferVendorRepo;
+	 
+	 @Autowired
+	 PaymentRepository paymentRepo;
+	 
 
 
 //	@PostMapping("/generate-new-invoice")
@@ -207,8 +230,8 @@ public class PaymentController {
 	}
 	
 	@GetMapping("/subscriptions/{vendorId}")
-	public ResponseEntity<Payment> getSubscriptionsByVendor(@PathVariable Long vendorId) {
-		Payment vendorSubscriptions = paymentService.getSubscriptionsByVendor(vendorId);
+	public ResponseEntity<Subscription> getSubscriptionsByVendor(@PathVariable Long vendorId) {
+		Subscription vendorSubscriptions = paymentService.getSubscriptionsByVendor(vendorId);
 		return ResponseEntity.ok(vendorSubscriptions);
 	}
 
@@ -220,9 +243,79 @@ public class PaymentController {
             @RequestParam ParcelTypeEnum parcelType,
             @RequestParam(required = false) CarModelEnum carModel,
             @RequestParam(required = false) BikeModelEnum bikeModel,
-            @RequestParam(required = false) Double parcelWeight) {
-		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight);
+            @RequestParam(required = false) Double parcelWeight,
+            @RequestParam(required = false) String cc) {
+		RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(rideCostCalculation, "SUCCESS", null));
+	}
+	
+	@PostMapping("/subscription/createOrder")
+	public ResponseEntity<?> createOrder(
+	        @RequestParam Long vendorId) throws Exception {
+
+	    JSONObject options = new JSONObject();
+
+	    options.put("amount", 99900); // ₹999
+	    options.put("currency", "INR");
+	    options.put("receipt", "subscription_" + vendorId);
+
+	    RazorpayClient client =
+	            new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+
+	    Order order = client.orders.create(options);
+
+	    return ResponseEntity.ok(order.toString());
+	}
+	
+	@PostMapping("/subscription/verifyPayment")
+	@Transactional
+	public ResponseEntity<?> verifyPayment(
+	        @RequestBody PaymentVerificationRequest req)
+	        throws Exception {
+
+	    String payload =
+	        req.getRazorpayOrderId()
+	        + "|"
+	        + req.getRazorpayPaymentId();
+
+//	    String generatedSignature =
+//	            calculateHmacSHA256(
+//	                    payload,
+//	                    "ClYfhcDqxmBDr3ZftMyzuxu1");
+//
+//	    if(!generatedSignature.equals(
+//	            req.getRazorpaySignature())) {
+//
+//	        return ResponseEntity
+//	                .badRequest()
+//	                .body("Invalid Signature");
+//	    }
+	    LocalDate localDate = LocalDate.now();
+	    LocalDate threeMonthsLater = localDate.plusMonths(3);
+
+//	    Date date = Date.from(
+//	        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+//	    );
+	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
+	    Subscription subscription=new Subscription();
+	    subscription.setVendor(vendor.get());
+	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
+	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
+	    subscription.setStartDate(localDate);
+	    subscription.setEndDate(threeMonthsLater);
+	    
+	    paymentRepo.save(subscription);
+	    
+	    transferVendorRepo.activateVendor(
+	            req.getVendorId());
+	    
+	    WalletTransaction walletTransaction=new WalletTransaction();
+	    walletTransaction.setAmount(999.0);
+	    walletTransaction.setVendor(vendor.get());
+	    walletTransaction.setTransactionType("Subscription Purchased");
+
+	    return ResponseEntity.ok(
+	            "Subscription Activated");
 	}
 	
 	
@@ -257,16 +350,22 @@ public class PaymentController {
 	    VendorWallet wallet =
 	            VendorWalletRepo.findByVendor(
 	                    request.getVendorId());
+	    
+	    Optional<TransferVendor> vendor=transferVendorRepo.findById(request.getVendorId());
 
 	    if (wallet == null) {
-	        throw new RuntimeException(
-	                "Wallet not found");
-	    }
+	    	
+//	        throw new RuntimeException(
+//	                "Wallet not found");
+	    	 wallet = new VendorWallet();
+	    	 wallet.setBalance(request.getAmount());
+	    }else {
 
 	    wallet.setBalance(
 	            wallet.getBalance()
 	            + request.getAmount());
-
+	    }
+	    wallet.setVendor(vendor.get());
 	    VendorWalletRepo.save(wallet);
 
 	    WalletTransaction txn =
@@ -274,8 +373,8 @@ public class PaymentController {
 
 	    txn.setAmount(request.getAmount());
 	    txn.setTransactionType("CREDIT");
-	    txn.setReferenceId(
-	            Long.parseLong(request.getRazorpayPaymentId()));
+//	    txn.setReferenceId(
+//	            Long.parseLong(request.getRazorpayPaymentId()));
 	    txn.setDescription(
 	            "Wallet Recharge");
 

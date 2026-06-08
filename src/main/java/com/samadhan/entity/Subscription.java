@@ -1,5 +1,6 @@
 package com.samadhan.entity;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -19,8 +20,8 @@ import com.samadhan.enums.PaymentTypeEnum;
 import com.samadhan.enums.SubscriptionPeriodEnum;
 
 @Entity
-@Table(name="payment")
-public class Payment {
+@Table(name="subscription")
+public class Subscription {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,10 +34,10 @@ public class Payment {
 	private SubscriptionPeriodEnum subscriptionPeriod;
 	
 	@Column(name="start_date")
-	private Date startDate;
+	private LocalDate startDate;
 	
 	@Column(name="end_date")
-	private Date endDate;
+	private LocalDate endDate;
 	
 //	@OneToOne(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //    private ServiceCentre serviceCentre;
@@ -73,19 +74,19 @@ public class Payment {
 		this.subscriptionPeriod = subscriptionPeriod;
 	}
 
-	public Date getStartDate() {
+	public LocalDate getStartDate() {
 		return startDate;
 	}
 
-	public void setStartDate(Date startDate) {
+	public void setStartDate(LocalDate startDate) {
 		this.startDate = startDate;
 	}
 
-	public Date getEndDate() {
+	public LocalDate getEndDate() {
 		return endDate;
 	}
 
-	public void setEndDate(Date endDate) {
+	public void setEndDate(LocalDate endDate) {
 		this.endDate = endDate;
 	}
 
@@ -95,6 +96,14 @@ public class Payment {
 
 	public void setServiceCentre(ServiceCentre serviceCentre) {
 		this.serviceCentre = serviceCentre;
+	}
+
+	public TransferVendor getVendor() {
+		return vendor;
+	}
+
+	public void setVendor(TransferVendor vendor) {
+		this.vendor = vendor;
 	}
 	
 	

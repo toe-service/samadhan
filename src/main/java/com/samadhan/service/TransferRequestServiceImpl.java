@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.security.SecureRandom;
 
 import javax.transaction.Transactional;
@@ -85,7 +86,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-				String packageDescription, Long vendorId, String userType) {	
+				String packageDescription, Long vendorId, String userType, String userName, String userContact) {	
 		
 		UserDetails user=null;
 		if (userId != null) {
@@ -138,13 +139,27 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
 			TransferVendor vendor = null;
+			Optional<UserDetails> userDetailopt =
+			        userRepo.findByUserContactNumber(userContact);
+			UserDetails userDetail =userDetailopt.get(); 
+			       
+
+			if(userDetail == null){
+			    userDetail = new UserDetails();
+			    userDetail.setUserName(userName);
+			    userDetail.setUserContactNumber(userContact);
+
+			    userDetail = userRepo.save(userDetail);
+			}
+
+			
 
 			if(vendorId != null){
 			    vendor = transferVendorRepo.findById(vendorId)
 			            .orElseThrow(() -> new ResourceNotFoundException(
 			                    "Vendor not found with id: " + vendorId));
 			}
-
+			transferRequest.setUserDetails(userDetail);
 			transferRequest.setTransferVendor(vendor);
 			transferRequest.setTransferStatus(rideStatusEnum.ACCEPTED);
 			transferRequest.setRequestApprovalDate(currentDateTime);
@@ -376,6 +391,46 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	@Override
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId) {
 		List<TransferRequestDetails> showRidestoVendors = transferRepo.showRidestoVendors(transferId);
+		
+		List<TransferRequestDetails> request =
+			    showRidestoVendors.stream()
+			        .filter(req -> req.getTransferStatus() == rideStatusEnum.PENDING)
+			        .collect(Collectors.toList());
+		VendorWallet wallet=walletRepository.findByVendor(transferId);
+		 double leadCost=0.0;
+	 	if (wallet == null) {
+	        throw new RuntimeException("Wallet not found");
+	    }
+	 	for(TransferRequestDetails req : request) {
+	 	WalletTransaction walletTransaction=walletTransactionRepo.findByVendorANDRequest(req.getId(),transferId);
+	 	Optional<TransferVendor> vendor=transferVendorRepo.findById(transferId);
+	     leadCost = 20; 
+	     if (wallet.getBalance() < leadCost) {
+		        throw new RuntimeException("Insufficient wallet balance");
+		    }
+	    
+
+	   
+	    if (walletTransaction == null) {
+		    wallet.setBalance(wallet.getBalance() - leadCost);
+	        walletRepository.save(wallet);
+			
+	    
+	    WalletTransaction transaction = new WalletTransaction();
+        transaction.setVendor(vendor.get());
+        transaction.setAmount(20.0);
+        transaction.setTransactionType("DEBIT");
+        transaction.setDescription("LEAD_VIEW");
+        transaction.setTransferRequestDetail(req);
+        walletTransactionRepo.save(transaction);
+	    }
+	    
+	 	}
+	 	 
+	 	 if (wallet.getBalance() < 200) {
+		        throw new RuntimeException("Balance Less than 500");
+	    }
+	    
 		System.out.println("showRidestoVendors" + showRidestoVendors);
 		
 		return showRidestoVendors;

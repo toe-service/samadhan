@@ -50,6 +50,8 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) Long vendorId,
 	                                               @RequestParam(required = false) String userType,
 	                                               @RequestParam(required = false) Long userId,
+	                                               @RequestParam(required = false) String userName,
+	                                               @RequestParam(required = false) String userContact,
 	                                               @RequestParam double rideCost,
 	                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
 	                                               @RequestParam String pickupSchedule,
@@ -61,7 +63,7 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam String destinationlongitude) throws JsonProcessingException {
 	        System.out.println("hi");
 	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(parcelType, carModel,
-	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber, packageWeight, packageDescription, vendorId, userType);
+	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber, packageWeight, packageDescription, vendorId, userType, userName, userContact);
 	        return rideTransfer;
 	  }
 	  
@@ -84,9 +86,7 @@ TransferRequestService transferRequestService;
 	  @GetMapping(value = "/showRidestoVendors/{transferId}")
 	    public ResponseEntity<List<TransferRequestDetails>> showRidestoVendors(@PathVariable Long transferId) {
 		  List<TransferRequestDetails> showRidestoVendors = transferRequestService.showRidestoVendors(transferId);
-		  if (showRidestoVendors.isEmpty()) {
-		        return ResponseEntity.noContent().build(); // 204
-		    }
+//		 
 		  return ResponseEntity.ok(showRidestoVendors);
 	    }
 	  

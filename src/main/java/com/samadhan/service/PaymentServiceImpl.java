@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.samadhan.dto.RideCostSummary;
-import com.samadhan.entity.Payment;
+import com.samadhan.entity.Subscription;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.ParcelTypeEnum;
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -62,7 +63,7 @@ public class PaymentServiceImpl {
 
 	public RideCostSummary getrideCostCalculation(String pickuplatitude, String pickuplongitude,
 			String destinationlatitude, String destinationlongitude, ParcelTypeEnum parcelType, CarModelEnum carModel,
-			BikeModelEnum bikeModel, Double parcelWeight) {
+			BikeModelEnum bikeModel, Double parcelWeight, String cc) {
 
 		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickuplatitude + ","
 				+ pickuplongitude + "&destination=" + destinationlatitude + "," + destinationlongitude
@@ -81,6 +82,80 @@ public class PaymentServiceImpl {
 					.asInt();
 
 			double distanceInKm = distanceInMeters / 1000.0;
+			
+			if (distanceInKm < 50) {
+			    throw new RuntimeException(
+			        "Service is available only for distances greater than or equal to 50 KM"
+			    );
+			}
+			
+			
+			double ccFactor = 1.0;
+
+			if (bikeModel != null && cc != null && !cc.isEmpty()) {
+
+				  int bikeCC = Integer.parseInt(cc);
+
+			    if (bikeCC <= 100) {
+			        ccFactor = 1.0;
+			    }else if (bikeCC <= 199) {
+			        ccFactor = 1.1;
+			    }
+			    else if (bikeCC <= 249) {
+			        ccFactor = 1.2;
+			    }
+			    else if (bikeCC <= 349) {
+			        ccFactor = 1.3;
+			    }
+			    else if (bikeCC <= 449) {
+			        ccFactor = 1.4;
+			    }
+			    else if (bikeCC <= 599) {
+			        ccFactor = 1.5;
+			    }else if (bikeCC <= 799) {
+			        ccFactor = 1.6;
+			    }else if (bikeCC <= 999) {
+			        ccFactor = 1.7;
+			    } else {
+			        ccFactor = 1.8;
+			    }
+			}
+			
+		
+
+			if (carModel != null && cc != null && !cc.isEmpty()) {
+
+			    int carCC = Integer.parseInt(cc);
+
+			    if (carCC <= 799) {
+			        ccFactor = 1.6;
+			    }
+			    else if (carCC <= 999) {
+			        ccFactor = 1.7;
+			    }
+			    else if (carCC <= 1199) {
+			        ccFactor = 1.8;
+			    }
+			    else if (carCC <= 1399) {
+			        ccFactor = 1.9;
+			    }
+			    else if (carCC <= 1599) {
+			        ccFactor = 2.0;
+			    }
+			    else if (carCC <= 1799) {
+			        ccFactor = 2.1;
+			    }
+			    else if (carCC <= 2199) {
+			        ccFactor = 2.2;
+			    }
+			    else if (carCC <= 2999) {
+			        ccFactor = 2.3;
+			    }
+			    else {
+			        ccFactor = 2.4;
+			    }
+			}
+			
 
 			// ✅ Step 1: Get weight
 			Double effectiveWeight = 0.0;
@@ -95,60 +170,60 @@ public class PaymentServiceImpl {
 
 			// ✅ Step 2: Weight factor
 			Double weightFactor = 1.0;
-			if (effectiveWeight <= 5) {
-				weightFactor = 1.0;
-			} else if (effectiveWeight <= 20) {
-				weightFactor = 1.1;
-			} else if (effectiveWeight <= 50) {
-				weightFactor = 1.2;
-			} else if (effectiveWeight <= 100) {
-				weightFactor = 1.3;
-			} else if (effectiveWeight <= 200) {
-				weightFactor = 1.4;
-			} else if (effectiveWeight <= 300) {
-				weightFactor = 1.5;
-			} else if (effectiveWeight <= 400) {
-				weightFactor = 1.6;
-			}
-			else if (effectiveWeight <= 500) {
-				weightFactor = 1.7;
-			}else if (effectiveWeight <= 600) {
-				weightFactor = 1.7;
-			}else if (effectiveWeight <= 800) {
-				weightFactor = 1.8;
-			}else if (effectiveWeight <= 1000) {
-				weightFactor = 1.9;
-			} else {
-
-			    // After 1000kg:
-			    // every extra 200kg adds +0.1
-
-			    double extraWeight = effectiveWeight - 1000.0;
-
-			    int slabs = (int) Math.ceil(extraWeight / 200.0);
-
-			    weightFactor = 2.1 + (slabs * 0.1);
-
-			    // Optional max limit till 3000kg
-			    if (effectiveWeight > 3000) {
-			        weightFactor = 3.1;
-			    }
-
-			    // Round to 1 decimal
-			    weightFactor = Math.round(weightFactor * 10.0) / 10.0;
-			}
+//			if (effectiveWeight <= 5) {
+//				weightFactor = 1.0;
+//			} else if (effectiveWeight <= 20) {
+//				weightFactor = 1.1;
+//			} else if (effectiveWeight <= 50) {
+//				weightFactor = 1.2;
+//			} else if (effectiveWeight <= 100) {
+//				weightFactor = 1.3;
+//			} else if (effectiveWeight <= 200) {
+//				weightFactor = 1.4;
+//			} else if (effectiveWeight <= 300) {
+//				weightFactor = 1.5;
+//			} else if (effectiveWeight <= 400) {
+//				weightFactor = 1.6;
+//			}
+//			else if (effectiveWeight <= 500) {
+//				weightFactor = 1.7;
+//			}else if (effectiveWeight <= 600) {
+//				weightFactor = 1.7;
+//			}else if (effectiveWeight <= 800) {
+//				weightFactor = 1.8;
+//			}else if (effectiveWeight <= 1000) {
+//				weightFactor = 1.9;
+//			} else {
+//
+//			    // After 1000kg:
+//			    // every extra 200kg adds +0.1
+//
+//			    double extraWeight = effectiveWeight - 1000.0;
+//
+//			    int slabs = (int) Math.ceil(extraWeight / 200.0);
+//
+//			    weightFactor = 2.1 + (slabs * 0.1);
+//
+//			    // Optional max limit till 3000kg
+//			    if (effectiveWeight > 3000) {
+//			        weightFactor = 3.1;
+//			    }
+//
+//			    // Round to 1 decimal
+//			    weightFactor = Math.round(weightFactor * 10.0) / 10.0;
+//			}
 			// ✅ Step 3: Distance pricing
 			double perKmRate = (distanceInKm <= 75) ? 10 : 7;
 
 			// ✅ Step 4: Final ride cost
-			double rideCalculation = distanceInKm * perKmRate * weightFactor;
+			double rideCalculation = distanceInKm * perKmRate * weightFactor * ccFactor;
 			double loadingUnloading =0.0;
 			double packaging =0.0;
 			
 			if(distanceInKm >=100 && effectiveWeight>100) {
 
-			 loadingUnloading = 500.0;
-			 packaging = 300.0;
+			 loadingUnloading = 500.0 * ccFactor;
+			 packaging = 500.0 * ccFactor;
 			
 			}
 
@@ -187,8 +262,8 @@ public class PaymentServiceImpl {
     }
 
 
-	public Payment getSubscriptionsByVendor(Long vendorId) {
-		Payment payment=PaymentRepo.findByVendorId(vendorId);
+	public Subscription getSubscriptionsByVendor(Long vendorId) {
+		Subscription payment=PaymentRepo.findByVendorId(vendorId);
 		return payment;
 	}
 
@@ -196,20 +271,20 @@ public class PaymentServiceImpl {
 	@Transactional
 	public void renewSubscription(Long vendorId) {
 
-	    Payment payment =
+		Subscription payment =
 	    		PaymentRepo.findByVendorId(vendorId);
 
 	    if (payment == null) {
 	        throw new RuntimeException(
 	                "Subscription not found");
 	    }
-
-	    payment.setStartDate(new Date());
+	    LocalDate localdate=LocalDate.now();
+	    payment.setStartDate(localdate);
 
 	    Calendar cal = Calendar.getInstance();
 	    cal.add(Calendar.MONTH, 1);
 
-	    payment.setEndDate(cal.getTime());
+	    payment.setEndDate(localdate);
 
 	    PaymentRepo.save(payment);
 	}
