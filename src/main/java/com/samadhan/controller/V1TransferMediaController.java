@@ -13,11 +13,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transfers")
-public class TransferMediaController {
+public class V1TransferMediaController {
 
     private final TransferMediaService transferMediaService;
 
-    public TransferMediaController(TransferMediaService transferMediaService) {
+    public V1TransferMediaController(TransferMediaService transferMediaService) {
         this.transferMediaService = transferMediaService;
     }
 
