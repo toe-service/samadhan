@@ -1,5 +1,7 @@
 package com.samadhan.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.RazorpayClient;
@@ -63,7 +65,7 @@ public class PaymentServiceImpl {
 
 	public RideCostSummary getrideCostCalculation(String pickuplatitude, String pickuplongitude,
 			String destinationlatitude, String destinationlongitude, ParcelTypeEnum parcelType, CarModelEnum carModel,
-			BikeModelEnum bikeModel, Double parcelWeight, String cc) {
+			BikeModelEnum bikeModel, Double parcelWeight, String cc, Double length, Double width, Double heigth) throws JsonMappingException, JsonProcessingException {
 
 		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickuplatitude + ","
 				+ pickuplongitude + "&destination=" + destinationlatitude + "," + destinationlongitude
@@ -74,7 +76,7 @@ public class PaymentServiceImpl {
 
 		RideCostSummary rideSummary = new RideCostSummary();
 
-		try {
+	//	try {
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response);
 
@@ -88,7 +90,13 @@ public class PaymentServiceImpl {
 			        "Service is available only for distances greater than or equal to 50 KM"
 			    );
 			}
-			
+//			double volumeCubicInches = length * width * heigth;
+//			
+//			if(volumeCubicInches < 3000.0) {
+//				throw new RuntimeException(
+//				        "Service is available only for package size greater than or equal to 22 × 18 × 12 Inch"
+//				    );
+//			}
 			
 			double ccFactor = 1.0;
 
@@ -167,56 +175,92 @@ public class PaymentServiceImpl {
 			} else if (bikeModel != null) {
 				effectiveWeight = bikeModel.getAverageWeightKg();
 			}
-
-			// ✅ Step 2: Weight factor
 			Double weightFactor = 1.0;
-//			if (effectiveWeight <= 5) {
-//				weightFactor = 1.0;
-//			} else if (effectiveWeight <= 20) {
-//				weightFactor = 1.1;
-//			} else if (effectiveWeight <= 50) {
-//				weightFactor = 1.2;
-//			} else if (effectiveWeight <= 100) {
-//				weightFactor = 1.3;
-//			} else if (effectiveWeight <= 200) {
-//				weightFactor = 1.4;
-//			} else if (effectiveWeight <= 300) {
-//				weightFactor = 1.5;
-//			} else if (effectiveWeight <= 400) {
-//				weightFactor = 1.6;
-//			}
-//			else if (effectiveWeight <= 500) {
-//				weightFactor = 1.7;
-//			}else if (effectiveWeight <= 600) {
-//				weightFactor = 1.7;
-//			}else if (effectiveWeight <= 800) {
-//				weightFactor = 1.8;
-//			}else if (effectiveWeight <= 1000) {
-//				weightFactor = 1.9;
-//			} else {
-//
-//			    // After 1000kg:
-//			    // every extra 200kg adds +0.1
-//
-//			    double extraWeight = effectiveWeight - 1000.0;
-//
-//			    int slabs = (int) Math.ceil(extraWeight / 200.0);
-//
-//			    weightFactor = 2.1 + (slabs * 0.1);
-//
-//			    // Optional max limit till 3000kg
-//			    if (effectiveWeight > 3000) {
-//			        weightFactor = 3.1;
-//			    }
-//
-//			    // Round to 1 decimal
-//			    weightFactor = Math.round(weightFactor * 10.0) / 10.0;
-//			}
+			double sizeFactor = 1.0;
+			if (parcelType != null && parcelType.getType().equalsIgnoreCase("Package")) {
+				double volumeCubicInches = length * width * heigth;
+				
+				if(volumeCubicInches < 3000.0) {
+					throw new RuntimeException(
+					        "Service is available only for package size greater than or equal to 22 × 18 × 12 Inch"
+					    );
+				}
+				
+
+				if (volumeCubicInches <= 3000) {
+				    sizeFactor = 1.0;
+				} else if (volumeCubicInches <= 6000) {
+				    sizeFactor = 1.2;
+				} else if (volumeCubicInches <= 12000) {
+				    sizeFactor = 1.40;
+				} else if (volumeCubicInches <= 20000) {
+				    sizeFactor = 1.50;
+				} else {
+				    sizeFactor = 1.75;
+				}
+				
+				
+			// ✅ Step 2: Weight factor
+			
+			if (effectiveWeight <= 5) {
+				weightFactor = 1.0;
+			} else if (effectiveWeight <= 20) {
+				weightFactor = 1.1;
+			} else if (effectiveWeight <= 50) {
+				weightFactor = 1.2;
+			} else if (effectiveWeight <= 100) {
+				weightFactor = 1.3;
+			} else if (effectiveWeight <= 200) {
+				weightFactor = 1.4;
+			} else if (effectiveWeight <= 300) {
+				weightFactor = 1.5;
+			} else if (effectiveWeight <= 400) {
+				weightFactor = 1.6;
+			}
+			else if (effectiveWeight <= 500) {
+				weightFactor = 1.7;
+			}else if (effectiveWeight <= 600) {
+				weightFactor = 1.7;
+			}else if (effectiveWeight <= 800) {
+				weightFactor = 1.8;
+			}else if (effectiveWeight <= 1000) {
+				weightFactor = 1.9;
+			} else {
+
+			    // After 1000kg:
+			    // every extra 200kg adds +0.1
+
+			    double extraWeight = effectiveWeight - 1000.0;
+
+			    int slabs = (int) Math.ceil(extraWeight / 200.0);
+
+			    weightFactor = 2.1 + (slabs * 0.1);
+
+			    // Optional max limit till 3000kg
+			    if (effectiveWeight > 3000) {
+			        weightFactor = 3.1;
+			    }
+
+			    // Round to 1 decimal
+			    weightFactor = Math.round(weightFactor * 10.0) / 10.0;
+			}
+			}
 			// ✅ Step 3: Distance pricing
-			double perKmRate = (distanceInKm <= 75) ? 10 : 7;
+//			double perKmRate = (distanceInKm <= 75) ? 10 : 7;
+			double perKmRate;
+
+			if (distanceInKm <= 50) {
+			    perKmRate = 10;
+			} else if (distanceInKm <= 300) {
+			    perKmRate = 4;
+			} else if (distanceInKm <= 700) {
+			    perKmRate = 2.5;
+			} else {
+			    perKmRate = 1.5;
+			}
 
 			// ✅ Step 4: Final ride cost
-			double rideCalculation = distanceInKm * perKmRate * weightFactor * ccFactor;
+			double rideCalculation = distanceInKm * perKmRate * weightFactor * ccFactor * sizeFactor;
 			double loadingUnloading =0.0;
 			double packaging =0.0;
 			
@@ -237,9 +281,9 @@ public class PaymentServiceImpl {
 			rideSummary.setPackaging(packaging);
 			rideSummary.setTotalCost(totalCost);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
 		return rideSummary;
 	}
