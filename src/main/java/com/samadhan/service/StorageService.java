@@ -21,42 +21,27 @@ import java.time.Duration;
 @Service
 public class StorageService {
 
-//    @Value("${storage.bucket-name}")
-//    private String bucketName;
-//
-//    @Value("${storage.endpoint}")
-//    private String endpoint;
-//
-//    @Value("${storage.region}")
-//    private String region;
-//
-//    @Value("${storage.access-key}")
-//    private String accessKey;
-//
-//    @Value("${storage.secret-key}")
-//    private String secretKey;
-//
-//    private S3Client s3Client;
-//    private S3Presigner s3Presigner;
+    @Value("${storage.bucket-name}")
+    private String bucketName;
+
+    @Value("${storage.endpoint}")
+    private String endpoint;
+
+    @Value("${storage.region}")
+    private String region;
+
+    @Value("${storage.access-key}")
+    private String accessKey;
+
+    @Value("${storage.secret-key}")
+    private String secretKey;
+
+    private S3Client s3Client;
+    private S3Presigner s3Presigner;
 	
-	   private String bucketName="";
 
-	   
-	    private String endpoint="";
 
-	  
-	    private String region="";
-
-	   
-	    private String accessKey="";
-
-	    
-	    private String secretKey="";
-
-	    private S3Client s3Client=null;
-	    private S3Presigner s3Presigner=null;
-
-  //  @PostConstruct
+    @PostConstruct
     public void init() {
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         
