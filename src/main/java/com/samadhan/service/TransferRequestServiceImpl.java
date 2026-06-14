@@ -252,7 +252,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setTransferVendor(null);
 			transferRepo.save(transferdetails);
 			return transferdetails;
-		}else {
+		}
+		else {
 
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
@@ -397,17 +398,24 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			        .filter(req -> req.getTransferStatus() == rideStatusEnum.PENDING)
 			        .collect(Collectors.toList());
 		VendorWallet wallet=walletRepository.findByVendor(transferId);
-		 double leadCost=0.0;
-	 	if (wallet == null) {
-	        throw new RuntimeException("Wallet not found");
-	    }
 	 	for(TransferRequestDetails req : request) {
+	 		
+	 		
+			 double leadCost=0.0;
+//		 	if (wallet == null) {
+//		        throw new RuntimeException("Wallet not found");
+//		    }
+		 	
+//		 	 if (wallet.getBalance() < -200) {
+//			        throw new RuntimeException("Balance Less than 500");
+//		    }
+	 		
 	 	WalletTransaction walletTransaction=walletTransactionRepo.findByVendorANDRequest(req.getId(),transferId);
 	 	Optional<TransferVendor> vendor=transferVendorRepo.findById(transferId);
 	     leadCost = 20; 
-	     if (wallet.getBalance() < leadCost) {
-		        throw new RuntimeException("Insufficient wallet balance");
-		    }
+//	     if (wallet.getBalance() < leadCost) {
+//		        throw new RuntimeException("Insufficient wallet balance");
+//		    }
 	    
 
 	   
@@ -427,9 +435,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	    
 	 	}
 	 	 
-	 	 if (wallet.getBalance() < 200) {
-		        throw new RuntimeException("Balance Less than 500");
-	    }
+	 	
 	    
 		System.out.println("showRidestoVendors" + showRidestoVendors);
 		
