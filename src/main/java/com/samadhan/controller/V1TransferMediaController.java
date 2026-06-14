@@ -1,7 +1,9 @@
 package com.samadhan.controller;
 
+import com.samadhan.dto.CachedTransferMedia;
 import com.samadhan.entity.TransferMedia;
 import com.samadhan.enums.MediaType;
+import com.samadhan.service.TransferMediaCache;
 import com.samadhan.service.TransferMediaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +18,11 @@ import java.util.Map;
 public class V1TransferMediaController {
 
     private final TransferMediaService transferMediaService;
+    private final TransferMediaCache transferMediaCache;
 
-    public V1TransferMediaController(TransferMediaService transferMediaService) {
+    public V1TransferMediaController(TransferMediaService transferMediaService, TransferMediaCache transferMediaCache) {
         this.transferMediaService = transferMediaService;
+        this.transferMediaCache = transferMediaCache;
     }
 
     @PostMapping("/{transferId}/media")
@@ -28,6 +32,8 @@ public class V1TransferMediaController {
             @RequestParam("mediaType") MediaType mediaType) {
         
         TransferMedia media = transferMediaService.uploadMedia(transferId, file, mediaType);
+
+        transferMediaCache.evict(transferId);
         
         Map<String, Object> response = new HashMap<>();
         response.put("mediaId", media.getId());
@@ -39,7 +45,18 @@ public class V1TransferMediaController {
     @GetMapping("/{transferId}/media")
     public ResponseEntity<Map<String, List<Map<String, Object>>>> getTransferMedia(
             @PathVariable Long transferId) {
-        
-        return ResponseEntity.ok(transferMediaService.getTransferMedia(transferId));
+
+        Map<String, List<Map<String, Object>>> cachedData = transferMediaCache.get(transferId);
+
+        if (cachedData != null) {
+            return ResponseEntity.ok(cachedData);
+        }
+
+        Map<String, List<Map<String, Object>>> transferMedia =
+                transferMediaService.getTransferMedia(transferId);
+
+        transferMediaCache.put(transferId, transferMedia);
+
+        return ResponseEntity.ok(transferMedia);
     }
 }
