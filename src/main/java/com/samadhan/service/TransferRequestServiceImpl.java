@@ -393,12 +393,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId) {
 		List<TransferRequestDetails> showRidestoVendors = transferRepo.showRidestoVendors(transferId);
 		
-		List<TransferRequestDetails> request =
-			    showRidestoVendors.stream()
-			        .filter(req -> req.getTransferStatus() == rideStatusEnum.PENDING)
-			        .collect(Collectors.toList());
+//		List<TransferRequestDetails> request =
+//			    showRidestoVendors.stream()
+//			        .filter(req -> req.getTransferStatus() == rideStatusEnum.PENDING)
+//			        .collect(Collectors.toList());
 		//VendorWallet wallet=walletRepository.findByVendor(transferId);
-	 	for(TransferRequestDetails req : request) {
+	 //	for(TransferRequestDetails req : request) {
 	 		
 	 		
 //			 double leadCost=0.0;
@@ -410,8 +410,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 //			        throw new RuntimeException("Balance Less than 500");
 //		    }
 	 		
-	 	WalletTransaction walletTransaction=walletTransactionRepo.findByVendorANDRequest(req.getId(),transferId);
-	 	Optional<TransferVendor> vendor=transferVendorRepo.findById(transferId);
+	 //	WalletTransaction walletTransaction=walletTransactionRepo.findByVendorANDRequest(req.getId(),transferId);
+	// 	Optional<TransferVendor> vendor=transferVendorRepo.findById(transferId);
 	    // leadCost = 20; 
 //	     if (wallet.getBalance() < leadCost) {
 //		        throw new RuntimeException("Insufficient wallet balance");
@@ -419,21 +419,21 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	    
 
 	   
-	    if (walletTransaction == null) {
-//		    wallet.setBalance(wallet.getBalance() - leadCost);
-//	        walletRepository.save(wallet);
-			
+//	    if (walletTransaction == null) {
+////		    wallet.setBalance(wallet.getBalance() - leadCost);
+////	        walletRepository.save(wallet);
+//			
+//	    
+//	    WalletTransaction transaction = new WalletTransaction();
+//        transaction.setVendor(vendor.get());
+//        transaction.setAmount(20.0);
+//        transaction.setTransactionType("DEBIT");
+//        transaction.setDescription("LEAD_VIEW");
+//        transaction.setTransferRequestDetail(req);
+//        walletTransactionRepo.save(transaction);
+//	    }
 	    
-	    WalletTransaction transaction = new WalletTransaction();
-        transaction.setVendor(vendor.get());
-        transaction.setAmount(20.0);
-        transaction.setTransactionType("DEBIT");
-        transaction.setDescription("LEAD_VIEW");
-        transaction.setTransferRequestDetail(req);
-        walletTransactionRepo.save(transaction);
-	    }
-	    
-	 	}
+	 	//}
 	 	 
 	 	
 	    
