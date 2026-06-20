@@ -277,7 +277,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		double rideCost=transferdetails.getRideCost();
 		
-		return Math.round(rideCost * 0.025 * 100.0) / 100.0;
+		return Math.round(rideCost * 0.020 * 100.0) / 100.0;
+	}
+	
+	private double calculateCompletioneFee(TransferRequestDetails transferdetails) {
+
+		double rideCost=transferdetails.getRideCost();
+		
+		return Math.round(rideCost * 0.060 * 100.0) / 100.0;
 	}
 
 	@Override
@@ -306,6 +313,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setDriverAssignDateTime(dateTime);
 			transfer.setOtp(otp);
 			transfer.setTransferStatus(rideStatusEnum.READYFORPICKUP);
+			transferRepo.save(transfer);
 		}
 
 		// 🔹 Vehicle Assignment
@@ -317,8 +325,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setVehicleId(vehicle);
 			transfer.setVehicleAssignDateTime(dateTime);
 			transfer.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
+			transferRepo.save(transfer);
 		}
-
+ 
 		if (rideStatus != null && rideStatus == 0) {
 			//long vehiId = (long) vehicleId;
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
@@ -331,6 +340,40 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setClosureotp(otp);
 			
 			transfer.setTransferStatus(rideStatusEnum.ONGOING);
+			transferRepo.save(transfer);
+			
+			long vendorId=transfer.getTransferVendor().getId();
+			
+			TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
+					.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
+		
+			
+			VendorWallet wallet = walletRepository.findByVendor(vendorId);
+			
+			double acceptanceFee = calculateAcceptanceFee(transfer);
+			
+			if(wallet.getBalance() < acceptanceFee){
+			    throw new RuntimeException(
+			        "Insufficient wallet balance. Please recharge."
+			    );
+			}
+
+			wallet.setBalance(
+				    wallet.getBalance() - acceptanceFee
+				);
+			
+			walletRepository.save(wallet);
+			
+			WalletTransaction walletTransaction=new WalletTransaction();
+			walletTransaction.setAmount(acceptanceFee);
+			walletTransaction.setTransactionType("Ride Start Fee");
+			walletTransaction.setVendor(transferVendor);
+			walletTransaction.setTransferRequestDetail(transfer);
+			
+			walletTransactionRepo.save(walletTransaction);
+
+			
+			
 		} else if (rideStatus != null && rideStatus == 1) {
 			Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
@@ -339,9 +382,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			vehicleRepo.save(vehicle);
 			transfer.setRideendTime(dateTime);
 			transfer.setTransferStatus(rideStatusEnum.COMPLETED);
+			transferRepo.save(transfer);
 		}
 
-		transferRepo.save(transfer);
+//		transferRepo.save(transfer);
 
 		return transfer;
 
@@ -364,6 +408,36 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setRideendTime(dateTime);
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
+			
+			long vendorId=transferdetails.getTransferVendor().getId();
+			
+			VendorWallet wallet = walletRepository.findByVendor(vendorId);
+			
+			TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
+					.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
+			
+			double acceptanceFee = calculateCompletioneFee(transferdetails);
+			
+			if(wallet.getBalance() < -100){
+			    throw new RuntimeException(
+			        "Insufficient wallet balance. Please recharge."
+			    );
+			}
+
+			wallet.setBalance(
+				    wallet.getBalance() - acceptanceFee
+				);
+			
+			walletRepository.save(wallet);
+			
+			WalletTransaction walletTransaction=new WalletTransaction();
+			walletTransaction.setAmount(acceptanceFee);
+			walletTransaction.setTransactionType("Ride Completion Fee");
+			walletTransaction.setVendor(transferVendor);
+			walletTransaction.setTransferRequestDetail(transferdetails);
+			
+			walletTransactionRepo.save(walletTransaction);
+
 			return true;
 				}
 			}else {
