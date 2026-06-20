@@ -15,4 +15,6 @@ public interface TransferVendorService {
 			String vendorAddress, String vendorLatitude, String vendorLongitude, MultipartFile aadhaarFile,
 			MultipartFile panFile, String gst);
 
+	void deductLeadCost(Long vendorId, Long requestId);
+
 }

@@ -401,7 +401,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	 	for(TransferRequestDetails req : request) {
 	 		
 	 		
-			 double leadCost=0.0;
+//			 double leadCost=0.0;
 //		 	if (wallet == null) {
 //		        throw new RuntimeException("Wallet not found");
 //		    }
@@ -412,7 +412,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	 		
 	 	WalletTransaction walletTransaction=walletTransactionRepo.findByVendorANDRequest(req.getId(),transferId);
 	 	Optional<TransferVendor> vendor=transferVendorRepo.findById(transferId);
-	     leadCost = 20; 
+	    // leadCost = 20; 
 //	     if (wallet.getBalance() < leadCost) {
 //		        throw new RuntimeException("Insufficient wallet balance");
 //		    }
