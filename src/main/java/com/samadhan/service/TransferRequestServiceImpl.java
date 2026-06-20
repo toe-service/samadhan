@@ -327,7 +327,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 			transferRepo.save(transfer);
 		}
-
+ 
 		if (rideStatus != null && rideStatus == 0) {
 			//long vehiId = (long) vehicleId;
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
