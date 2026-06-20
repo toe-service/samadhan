@@ -397,7 +397,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			    showRidestoVendors.stream()
 			        .filter(req -> req.getTransferStatus() == rideStatusEnum.PENDING)
 			        .collect(Collectors.toList());
-		VendorWallet wallet=walletRepository.findByVendor(transferId);
+		//VendorWallet wallet=walletRepository.findByVendor(transferId);
 	 	for(TransferRequestDetails req : request) {
 	 		
 	 		
@@ -420,8 +420,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 	   
 	    if (walletTransaction == null) {
-		    wallet.setBalance(wallet.getBalance() - leadCost);
-	        walletRepository.save(wallet);
+//		    wallet.setBalance(wallet.getBalance() - leadCost);
+//	        walletRepository.save(wallet);
 			
 	    
 	    WalletTransaction transaction = new WalletTransaction();
