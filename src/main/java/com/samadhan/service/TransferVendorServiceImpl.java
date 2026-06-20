@@ -94,7 +94,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	    		walletTransactionRepo
 	                    .findByVendorANDRequest(
 	                            requestId,
-	                            vendorId);
+	                            vendorId,"LEAD FEE");
 
 	    if (existing != null) {
 	        // Already paid for this lead
@@ -134,7 +134,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	    transaction.setVendor(vendor);
 	    transaction.setTransferRequestDetail(request);
 	    transaction.setAmount(leadCost);
-	    transaction.setTransactionType("DEBIT");
+	    transaction.setTransactionType("LEAD FEE");
 	    transaction.setDescription("LEAD_VIEW");
 
 	    walletTransactionRepo.save(transaction);
