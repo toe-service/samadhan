@@ -35,6 +35,7 @@ public class Driver {
 	@Column(name="driver_city")
 	private String driverCity;
 	
+	@JsonIgnore
 	@Column(name="password")
 	private String password;
 	
