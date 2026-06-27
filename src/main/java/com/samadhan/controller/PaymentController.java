@@ -89,7 +89,7 @@ public class PaymentController {
 	 
 	 @Autowired
 	 PaymentRepository paymentRepo;
-	 
+
 
 
 //	@PostMapping("/generate-new-invoice")
@@ -340,7 +340,7 @@ public class PaymentController {
 //	                .body("Invalid Signature");
 //	    }
 	    LocalDate localDate = LocalDate.now();
-	    LocalDate threeMonthsLater = localDate.plusMonths(1);
+	    LocalDate oneMonthsLater = localDate.plusMonths(1);
 
 //	    Date date = Date.from(
 //	        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -351,7 +351,7 @@ public class PaymentController {
 	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.Free);
 	    subscription.setPaymentType(PaymentTypeEnum.Free);
 	    subscription.setStartDate(localDate);
-	    subscription.setEndDate(threeMonthsLater);
+	    subscription.setEndDate(oneMonthsLater);
 	    
 	    paymentRepo.save(subscription);
 	    
@@ -362,6 +362,8 @@ public class PaymentController {
 	    walletTransaction.setAmount(1.0);
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Purchased");
+	    
+	    walletTransactionRepository.save(walletTransaction);
 
 	    return ResponseEntity.ok(
 	            "Subscription Activated");
