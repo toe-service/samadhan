@@ -34,6 +34,7 @@ public class Vehicle {
 	@Column(name="user_name")
 	private String userName;
 	
+	@JsonIgnore
 	@Column(name="password")
 	private String password;
 	
