@@ -298,6 +298,75 @@ public class PaymentController {
 	    }
 	}
 	
+	@PostMapping("/free-subscription/createOrder")
+	public ResponseEntity<?> createFreeSubscriptionOrder(
+	        @RequestParam Long vendorId) throws Exception {
+
+	    JSONObject options = new JSONObject();
+
+	    options.put("amount", 100); // ₹999
+	    options.put("currency", "INR");
+	    options.put("receipt", "subscription_" + vendorId);
+
+	    RazorpayClient client =
+	            new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+
+	    Order order = client.orders.create(options);
+
+	    return ResponseEntity.ok(order.toString());
+	}
+	
+	@PostMapping("/free-subscription/verifyPayment")
+	@Transactional
+	public ResponseEntity<?> verifyFreeSubscriptionPayment(
+	        @RequestBody PaymentVerificationRequest req)
+	        throws Exception {
+
+	    String payload =
+	        req.getRazorpayOrderId()
+	        + "|"
+	        + req.getRazorpayPaymentId();
+
+//	    String generatedSignature =
+//	            calculateHmacSHA256(
+//	                    payload,
+//	                    "ClYfhcDqxmBDr3ZftMyzuxu1");
+//
+//	    if(!generatedSignature.equals(
+//	            req.getRazorpaySignature())) {
+//
+//	        return ResponseEntity
+//	                .badRequest()
+//	                .body("Invalid Signature");
+//	    }
+	    LocalDate localDate = LocalDate.now();
+	    LocalDate threeMonthsLater = localDate.plusMonths(1);
+
+//	    Date date = Date.from(
+//	        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+//	    );
+	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
+	    Subscription subscription=new Subscription();
+	    subscription.setVendor(vendor.get());
+	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.Free);
+	    subscription.setPaymentType(PaymentTypeEnum.Free);
+	    subscription.setStartDate(localDate);
+	    subscription.setEndDate(threeMonthsLater);
+	    
+	    paymentRepo.save(subscription);
+	    
+	    transferVendorRepo.activateVendor(
+	            req.getVendorId());
+	    
+	    WalletTransaction walletTransaction=new WalletTransaction();
+	    walletTransaction.setAmount(1.0);
+	    walletTransaction.setVendor(vendor.get());
+	    walletTransaction.setTransactionType("Subscription Purchased");
+
+	    return ResponseEntity.ok(
+	            "Subscription Activated");
+	}
+	
 	@PostMapping("/subscription/createOrder")
 	public ResponseEntity<?> createOrder(
 	        @RequestParam Long vendorId) throws Exception {

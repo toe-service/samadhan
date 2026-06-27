@@ -75,6 +75,14 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    vendor.setGstNumber(gst);
 		    
 		    transferVendorRepo.save(vendor);
+		    
+		    VendorWallet wallet = new VendorWallet();
+			
+			
+
+			wallet.setBalance(0.0);
+			
+			VendorWalletRepo.save(wallet);
 
 		    return vendor;
 	}
