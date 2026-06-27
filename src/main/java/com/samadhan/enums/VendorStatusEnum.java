@@ -3,7 +3,7 @@ package com.samadhan.enums;
 public enum VendorStatusEnum {
 
 	VERIFICATION_PENDING(0, "Verification Pending"),
-    VERIFIED(1, "Verified"),
+    Free_SUBSCRIPTION(1, "Free Subscription"),
     SUBSCRIPTION_PENDING(2, "Subscription Pending"),
     ACTIVE(3, "Active"),
     REJECTED(4, "Rejected"),

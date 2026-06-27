@@ -284,7 +284,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		double rideCost=transferdetails.getRideCost();
 		
-		return Math.round(rideCost * 0.060 * 100.0) / 100.0;
+		return Math.round(rideCost * 0.040 * 100.0) / 100.0;
 	}
 
 	@Override

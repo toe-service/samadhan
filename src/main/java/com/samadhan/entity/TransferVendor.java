@@ -49,6 +49,7 @@ public class TransferVendor {
 	 @Column(name="vendor_email")
 	 private String vendorEmail;
 	 
+	 @JsonIgnore
 	 @Column(name="vendor_password")
 	 private String vendorPassword;
 	 
