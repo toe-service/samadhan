@@ -2,6 +2,7 @@ package com.samadhan.entity;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.*;
@@ -25,6 +26,9 @@ public class WalletTransaction {
     private String description;
 
     private Long referenceId;
+    
+    @Column(name="createdDate")
+    private LocalDate createdDate;
 
     @ManyToOne
     @JoinColumn(name = "vendor_id")
@@ -89,5 +93,15 @@ public class WalletTransaction {
 	public void setTransferRequestDetail(TransferRequestDetails transferRequestDetail) {
 		this.transferRequestDetail = transferRequestDetail;
 	}
+
+	public LocalDate getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(LocalDate createdDate) {
+		this.createdDate = createdDate;
+	}
+	
+	
     
 }

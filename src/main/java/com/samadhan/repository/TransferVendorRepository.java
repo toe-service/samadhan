@@ -20,10 +20,10 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 	@Query(
 	 value =
 	 "UPDATE transfer_vendor " +
-	 "SET vendor_status = 1 " +
+	 "SET vendor_status =: vendorStatus " +
 	 "WHERE id = :vendorId",
 	 nativeQuery = true)
-	void activateVendor(Long vendorId);
+	void activateVendor(Long vendorId, int vendorStatus);
 	
 }
 

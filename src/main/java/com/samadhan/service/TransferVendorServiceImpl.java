@@ -81,6 +81,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 			
 
 			wallet.setBalance(0.0);
+			wallet.setVendor(vendor);
 			
 			VendorWalletRepo.save(wallet);
 
