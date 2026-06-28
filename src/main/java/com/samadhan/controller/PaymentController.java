@@ -356,7 +356,7 @@ public class PaymentController {
 	    paymentRepo.save(subscription);
 	    
 	    transferVendorRepo.activateVendor(
-	            req.getVendorId());
+	            req.getVendorId(),1);
 	    
 	    WalletTransaction walletTransaction=new WalletTransaction();
 	    walletTransaction.setAmount(1.0);
@@ -416,9 +416,11 @@ public class PaymentController {
 //	    Date date = Date.from(
 //	        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
 //	    );
+	    
+	    
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
-	    Subscription subscription=new Subscription();
-	    subscription.setVendor(vendor.get());
+	    Subscription subscription=paymentRepo.findByVendorId(req.getVendorId());
+	    //subscription.setVendor(vendor.get());
 	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
 	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
 	    subscription.setStartDate(localDate);
@@ -427,7 +429,7 @@ public class PaymentController {
 	    paymentRepo.save(subscription);
 	    
 	    transferVendorRepo.activateVendor(
-	            req.getVendorId());
+	            req.getVendorId(),3);
 	    
 	    WalletTransaction walletTransaction=new WalletTransaction();
 	    walletTransaction.setAmount(999.0);
@@ -507,11 +509,66 @@ public class PaymentController {
 	
 	@PostMapping("/subscription/renew")
 	public ResponseEntity<String> renewSubscription(
-	        @RequestParam Long vendorId) {
+	        @RequestParam Long vendorId) throws RazorpayException {
+		
+		  JSONObject options = new JSONObject();
 
-	    paymentService.renewSubscription(vendorId);
+		    options.put("amount", 99900); // ₹999
+		    options.put("currency", "INR");
+		    options.put("receipt", "subscription_" + vendorId);
 
-	    return ResponseEntity.ok("Subscription renewed successfully");
+		    RazorpayClient client =
+		            new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+
+		    Order order = client.orders.create(options);
+
+		    return ResponseEntity.ok(order.toString());
+
+	   // paymentService.renewSubscription(vendorId);
+
+	   // return ResponseEntity.ok("Subscription renewed successfully");
+	}
+	
+	
+	@PostMapping("/renew-subscription/verifyPayment")
+	@Transactional
+	public ResponseEntity<?> verifyRenewSubscriptionPayment(
+	        @RequestBody PaymentVerificationRequest req)
+	        throws Exception {
+
+	    String payload =
+	        req.getRazorpayOrderId()
+	        + "|"
+	        + req.getRazorpayPaymentId();
+	    
+	    LocalDate localDate = LocalDate.now();
+	    
+	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
+	    Subscription subscription=paymentRepo.findByVendorId(req.getVendorId());
+	    
+	    LocalDate startDate=subscription.getEndDate().plusDays(1);
+	    LocalDate threeMonthsLater = startDate.plusMonths(3);
+	    
+	    //subscription.setVendor(vendor.get());
+	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
+	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
+	    subscription.setStartDate(startDate);
+	    subscription.setEndDate(threeMonthsLater);
+	    
+	    paymentRepo.save(subscription);
+	    
+	    transferVendorRepo.activateVendor(
+	            req.getVendorId(),3);
+	    
+	    WalletTransaction walletTransaction=new WalletTransaction();
+	    walletTransaction.setAmount(999.0);
+	    walletTransaction.setVendor(vendor.get());
+	    walletTransaction.setTransactionType("Subscription Renewed Purchased");
+	    walletTransaction.setCreatedDate(localDate);
+	    
+
+	    return ResponseEntity.ok(
+	            "Subscription Renewed");
 	}
 	
 	
