@@ -85,11 +85,11 @@ public class PaymentServiceImpl {
 
 			double distanceInKm = distanceInMeters / 1000.0;
 			
-			if (distanceInKm < 50) {
-			    throw new RuntimeException(
-			        "Service is available only for distances greater than or equal to 50 KM"
-			    );
-			}
+//			if (distanceInKm < 50) {
+//			    throw new RuntimeException(
+//			        "Service is available only for distances greater than or equal to 50 KM"
+//			    );
+//			}
 //			double volumeCubicInches = length * width * heigth;
 //			
 //			if(volumeCubicInches < 3000.0) {
