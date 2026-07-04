@@ -132,16 +132,16 @@ public class TransferRequestDetails {
 	 @Column(name = "distance_km", insertable = false, updatable = false)
 	 private Double distanceKm;
 	 
-	 @Column(name = "ride_without_tax", insertable = false, updatable = false)
+	 @Column(name = "ride_without_tax")
 	 private Double rideWithoutTaxCalculation;
 	 
-	 @Column(name = "gst_cost", insertable = false, updatable = false)
+	 @Column(name = "gst_cost")
 	 private Double gstCost;
 	 
-	 @Column(name = "loading_Unloading_cost", insertable = false, updatable = false)
+	 @Column(name = "loading_Unloading_cost")
 	 private Double loadingUnloading;
 	 
-	 @Column(name = "packaging_cost", insertable = false, updatable = false)
+	 @Column(name = "packaging_cost")
 	 private Double packagingCost;
 	 
 	public Long getId() {
