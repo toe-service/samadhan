@@ -48,11 +48,18 @@ import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -64,6 +71,8 @@ import org.json.JSONObject;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+
+
 
 @RestController
 @RequestMapping(value = "/pay")
@@ -103,76 +112,233 @@ public class PaymentController {
 //		return ""+invoice.toJson();
 //	}
 	
-	  @GetMapping("/generateInvoice")
-	    public ResponseEntity<byte[]> generateInvoice(
-	            @RequestParam Long transferId) throws Exception {
+//	  @GetMapping("/generateInvoice")
+//	    public ResponseEntity<byte[]> generateInvoice(
+//	            @RequestParam Long transferId) throws Exception {
+//
+//	        TransferRequestDetails transfer =
+//	                transferRepository.findById(transferId)
+//	                        .orElseThrow(() ->
+//	                                new RuntimeException("Transfer not found"));
+//
+//	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//
+//	        PdfWriter writer = new PdfWriter(baos);
+//	        PdfDocument pdfDocument = new PdfDocument(writer);
+//	        Document document = new Document(pdfDocument);
+//
+//	        document.add(new Paragraph("TransferEaze Invoice")
+//	                .setBold()
+//	                .setFontSize(20));
+//
+//	        document.add(new Paragraph("Invoice No: INV-" + transfer.getId()));
+//	        document.add(new Paragraph("Date: " + LocalDate.now()));
+//
+//	        document.add(new Paragraph(" "));
+//
+//	        Table table = new Table(2);
+//
+//	        table.addCell("Transfer ID");
+//	        table.addCell(String.valueOf(transfer.getId()));
+//
+//	        table.addCell("Customer");
+//	        table.addCell(
+//	                transfer.getUserDetails().getUserName()
+//	        );
+//
+//	        table.addCell("Source");
+//	        table.addCell(transfer.getSource());
+//
+//	        table.addCell("Destination");
+//	        table.addCell(transfer.getDestination());
+//
+//	        table.addCell("Status");
+//	        table.addCell(transfer.getTransferStatus().name());
+//
+//	        table.addCell("Amount");
+//	        table.addCell("₹" + transfer.getRideCost());
+//
+//	        document.add(table);
+//
+//	        document.add(new Paragraph(" "));
+//	        document.add(new Paragraph(
+//	                "Thank you for choosing TransferEaze."
+//	        ));
+//
+//	        document.close();
+//
+//	        HttpHeaders headers = new HttpHeaders();
+//	        headers.setContentType(MediaType.APPLICATION_PDF);
+//
+//	        headers.setContentDisposition(
+//	                ContentDisposition.builder("attachment")
+//	                        .filename(
+//	                                "Invoice_" + transferId + ".pdf"
+//	                        )
+//	                        .build()
+//	        );
+//
+//	        return ResponseEntity.ok()
+//	                .headers(headers)
+//	                .body(baos.toByteArray());
+//	    }
+	 
+	 
+	 @GetMapping("/generateInvoice")
+	 public ResponseEntity<byte[]> generateInvoice(
+	         @RequestParam Long transferId) throws Exception {
 
-	        TransferRequestDetails transfer =
-	                transferRepository.findById(transferId)
-	                        .orElseThrow(() ->
-	                                new RuntimeException("Transfer not found"));
+	     TransferRequestDetails transfer = transferRepository.findById(transferId)
+	             .orElseThrow(() -> new RuntimeException("Transfer not found"));
 
-	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	     ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-	        PdfWriter writer = new PdfWriter(baos);
-	        PdfDocument pdfDocument = new PdfDocument(writer);
-	        Document document = new Document(pdfDocument);
+	     PdfWriter writer = new PdfWriter(baos);
+	     PdfDocument pdf = new PdfDocument(writer);
+	     Document document = new Document(pdf);
 
-	        document.add(new Paragraph("TransferEaze Invoice")
-	                .setBold()
-	                .setFontSize(20));
+	     PdfFont bold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+	     PdfFont normal = PdfFontFactory.createFont(StandardFonts.HELVETICA);
 
-	        document.add(new Paragraph("Invoice No: INV-" + transfer.getId()));
-	        document.add(new Paragraph("Date: " + LocalDate.now()));
+	     //================ HEADER ===================
 
-	        document.add(new Paragraph(" "));
+	     Paragraph title = new Paragraph("TransferEaze")
+	             .setFont(bold)
+	             .setFontSize(24)
+	             .setTextAlignment(TextAlignment.CENTER);
 
-	        Table table = new Table(2);
+	     Paragraph invoiceTitle = new Paragraph("TAX INVOICE")
+	             .setFont(bold)
+	             .setFontSize(16)
+	             .setTextAlignment(TextAlignment.CENTER);
 
-	        table.addCell("Transfer ID");
-	        table.addCell(String.valueOf(transfer.getId()));
+	     document.add(title);
+	     document.add(invoiceTitle);
 
-	        table.addCell("Customer");
-	        table.addCell(
-	                transfer.getUserDetails().getUserName()
-	        );
+	     document.add(new Paragraph("\n"));
 
-	        table.addCell("Source");
-	        table.addCell(transfer.getSource());
+	     //================ COMPANY & CUSTOMER =================
 
-	        table.addCell("Destination");
-	        table.addCell(transfer.getDestination());
+	     Table top = new Table(UnitValue.createPercentArray(new float[]{50,50}));
+	     top.setWidth(UnitValue.createPercentValue(100));
 
-	        table.addCell("Status");
-	        table.addCell(transfer.getTransferStatus().name());
+	     Cell seller = new Cell();
 
-	        table.addCell("Amount");
-	        table.addCell("₹" + transfer.getRideCost());
+	     seller.add(new Paragraph("Sold By").setFont(bold));
+	     seller.add(new Paragraph("TransferEaze Technologies Pvt Ltd"));
+	     seller.add(new Paragraph("Lucknow, Uttar Pradesh"));
+	     seller.add(new Paragraph("GSTIN : 09XXXXXXXXXXXX"));
+	     seller.add(new Paragraph("PAN : ABCDE1234F"));
 
-	        document.add(table);
+	     Cell buyer = new Cell();
 
-	        document.add(new Paragraph(" "));
-	        document.add(new Paragraph(
-	                "Thank you for choosing TransferEaze."
-	        ));
+	     buyer.add(new Paragraph("Billing Address").setFont(bold));
+	     buyer.add(new Paragraph("Customer : " + transfer.getUserDetails().getUserName()));
+	     buyer.add(new Paragraph("Mobile : " + transfer.getUserDetails().getUserContactNumber()));
+	     buyer.add(new Paragraph("Pickup : " + transfer.getSource()));
+	     buyer.add(new Paragraph("Destination : " + transfer.getDestination()));
 
-	        document.close();
+	     top.addCell(seller);
+	     top.addCell(buyer);
 
-	        HttpHeaders headers = new HttpHeaders();
-	        headers.setContentType(MediaType.APPLICATION_PDF);
+	     document.add(top);
 
-	        headers.setContentDisposition(
-	                ContentDisposition.builder("attachment")
-	                        .filename(
-	                                "Invoice_" + transferId + ".pdf"
-	                        )
-	                        .build()
-	        );
+	     document.add(new Paragraph("\n"));
 
-	        return ResponseEntity.ok()
-	                .headers(headers)
-	                .body(baos.toByteArray());
-	    }
+	     //================ INVOICE DETAILS =================
+
+	     Table invoiceInfo = new Table(UnitValue.createPercentArray(new float[]{50,50}));
+	     invoiceInfo.setWidth(UnitValue.createPercentValue(100));
+
+	     invoiceInfo.addCell(new Cell().add(new Paragraph("Invoice No : INV-" + transfer.getId())));
+	     invoiceInfo.addCell(new Cell().add(new Paragraph("Invoice Date : " + LocalDate.now())));
+
+	     invoiceInfo.addCell(new Cell().add(new Paragraph("Pickup Date : " + transfer.getPickupDate())));
+	     invoiceInfo.addCell(new Cell().add(new Paragraph("Pickup Slot : " + transfer.getPickupSchedule())));
+
+	     document.add(invoiceInfo);
+
+	     document.add(new Paragraph("\n"));
+
+	     //================ ITEM TABLE =================
+
+	     Table table = new Table(UnitValue.createPercentArray(new float[]{1,5,2}));
+	     table.setWidth(UnitValue.createPercentValue(100));
+
+	     table.addHeaderCell(new Cell().add(new Paragraph("S.No").setFont(bold)));
+	     table.addHeaderCell(new Cell().add(new Paragraph("Description").setFont(bold)));
+	     table.addHeaderCell(new Cell().add(new Paragraph("Amount").setFont(bold)));
+
+	     table.addCell("1");
+	     table.addCell("Ride Charges");
+	     table.addCell("₹" + transfer.getRideWithoutTaxCalculation());
+
+	     table.addCell("2");
+	     table.addCell("Packaging Charges");
+	     table.addCell("₹" + transfer.getPackagingCost());
+
+	     table.addCell("3");
+	     table.addCell("Loading / Unloading");
+	     table.addCell("₹" + transfer.getLoadingUnloading());
+
+	     table.addCell("4");
+	     table.addCell("GST (18%)");
+	     table.addCell("₹" + transfer.getGstCost());
+
+	     document.add(table);
+
+	     document.add(new Paragraph("\n"));
+
+	     //================ TOTAL =================
+
+	     Table total = new Table(UnitValue.createPercentArray(new float[]{70,30}));
+	     total.setWidth(UnitValue.createPercentValue(100));
+
+	     total.addCell(new Cell().add(new Paragraph("Grand Total").setFont(bold)));
+	     total.addCell(new Cell().add(new Paragraph("₹" + transfer.getRideCost()).setFont(bold)));
+
+	     document.add(total);
+
+	     document.add(new Paragraph("\n"));
+
+	     //================ AMOUNT IN WORDS =================
+
+	     document.add(new Paragraph("Amount In Words")
+	             .setFont(bold));
+
+	//     document.add(new Paragraph(convertAmountToWords(transfer.getRideCost()) + " Only"));
+
+	     document.add(new Paragraph("\n\n"));
+
+	     //================ FOOTER =================
+
+	     Paragraph sign = new Paragraph("For TransferEaze")
+	             .setFont(bold)
+	             .setTextAlignment(TextAlignment.RIGHT);
+
+	     document.add(sign);
+
+	     document.add(new Paragraph("\n\n"));
+
+	     document.add(new Paragraph("Authorized Signatory")
+	             .setTextAlignment(TextAlignment.RIGHT));
+
+	     document.close();
+
+	     HttpHeaders headers = new HttpHeaders();
+	     headers.setContentType(MediaType.APPLICATION_PDF);
+
+	     headers.setContentDisposition(
+	             ContentDisposition.builder("attachment")
+	                     .filename("Invoice_" + transferId + ".pdf")
+	                     .build());
+
+	     return ResponseEntity.ok()
+	             .headers(headers)
+	             .body(baos.toByteArray());
+	 }
+	 
+
 
 //	private JSONObject getRequest(PaymentInvoiceRequest request) {
 //		JSONObject invoiceRequest = new JSONObject();
