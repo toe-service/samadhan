@@ -199,10 +199,14 @@ public class PaymentController {
 
 	     PdfFont bold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
 	     PdfFont normal = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+	     
+	     String vendorName=transfer.getTransferVendor().getVendorName();
+	     String vendorAddress=transfer.getTransferVendor().getVendorAddress();
+	     String vendorGst=transfer.getTransferVendor().getGstNumber();
 
 	     //================ HEADER ===================
 
-	     Paragraph title = new Paragraph("TransferEaze")
+	     Paragraph title = new Paragraph(vendorName)
 	             .setFont(bold)
 	             .setFontSize(24)
 	             .setTextAlignment(TextAlignment.CENTER);
@@ -224,15 +228,15 @@ public class PaymentController {
 
 	     Cell seller = new Cell();
 
-	     seller.add(new Paragraph("Sold By").setFont(bold));
-	     seller.add(new Paragraph("TransferEaze Technologies Pvt Ltd"));
-	     seller.add(new Paragraph("Lucknow, Uttar Pradesh"));
-	     seller.add(new Paragraph("GSTIN : 09XXXXXXXXXXXX"));
-	     seller.add(new Paragraph("PAN : ABCDE1234F"));
+	     seller.add(new Paragraph("Service Provider").setFont(bold));
+	     seller.add(new Paragraph(vendorName));
+	     seller.add(new Paragraph(vendorAddress));
+	     seller.add(new Paragraph(vendorGst));
+	  //   seller.add(new Paragraph("PAN : ABCDE1234F"));
 
 	     Cell buyer = new Cell();
 
-	     buyer.add(new Paragraph("Billing Address").setFont(bold));
+	     buyer.add(new Paragraph("Customer Details").setFont(bold));
 	     buyer.add(new Paragraph("Customer : " + transfer.getUserDetails().getUserName()));
 	     buyer.add(new Paragraph("Mobile : " + transfer.getUserDetails().getUserContactNumber()));
 	     buyer.add(new Paragraph("Pickup : " + transfer.getSource()));
@@ -301,10 +305,7 @@ public class PaymentController {
 
 	     document.add(new Paragraph("\n"));
 
-	     //================ AMOUNT IN WORDS =================
-
-	     document.add(new Paragraph("Amount In Words")
-	             .setFont(bold));
+	  
 
 	//     document.add(new Paragraph(convertAmountToWords(transfer.getRideCost()) + " Only"));
 
@@ -312,7 +313,7 @@ public class PaymentController {
 
 	     //================ FOOTER =================
 
-	     Paragraph sign = new Paragraph("For TransferEaze")
+	     Paragraph sign = new Paragraph("For "+vendorName)
 	             .setFont(bold)
 	             .setTextAlignment(TextAlignment.RIGHT);
 
