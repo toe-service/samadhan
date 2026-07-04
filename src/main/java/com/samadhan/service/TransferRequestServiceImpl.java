@@ -208,7 +208,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 	
-		if(transferApproval==1 && (userType !=null || userType.equalsIgnoreCase("Vendor"))) {
+		if(transferApproval==1 && (userType !=null && userType.equalsIgnoreCase("Vendor"))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
 		
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
