@@ -89,9 +89,12 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	}
 
 	@Transactional
-	public void deductLeadCost(Long vendorId, Long requestId) {
+	public void deductLeadCost(Long vendorId, Long requestId, String userType) {
 
-	    VendorWallet wallet = VendorWalletRepo
+	  if(userType!=null || userType.equalsIgnoreCase("Vendor")) {
+		
+		
+		VendorWallet wallet = VendorWalletRepo
 	            .findByVendor(vendorId);
 
 	    if (wallet == null) {
@@ -147,6 +150,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	    transaction.setDescription("LEAD_VIEW");
 
 	    walletTransactionRepo.save(transaction);
+	}
 	}
 
 }

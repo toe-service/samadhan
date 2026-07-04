@@ -131,7 +131,19 @@ public class TransferRequestDetails {
 	 
 	 @Column(name = "distance_km", insertable = false, updatable = false)
 	 private Double distanceKm;
-
+	 
+	 @Column(name = "ride_without_tax", insertable = false, updatable = false)
+	 private Double rideWithoutTaxCalculation;
+	 
+	 @Column(name = "gst_cost", insertable = false, updatable = false)
+	 private Double gstCost;
+	 
+	 @Column(name = "loading_Unloading_cost", insertable = false, updatable = false)
+	 private Double loadingUnloading;
+	 
+	 @Column(name = "packaging_cost", insertable = false, updatable = false)
+	 private Double packagingCost;
+	 
 	public Long getId() {
 		return id;
 	}
@@ -389,6 +401,37 @@ public class TransferRequestDetails {
 		this.userType = userType;
 	}
 
+	public Double getRideWithoutTaxCalculation() {
+		return rideWithoutTaxCalculation;
+	}
+
+	public void setRideWithoutTaxCalculation(Double rideWithoutTaxCalculation) {
+		this.rideWithoutTaxCalculation = rideWithoutTaxCalculation;
+	}
+
+	public Double getGstCost() {
+		return gstCost;
+	}
+
+	public void setGstCost(Double gstCost) {
+		this.gstCost = gstCost;
+	}
+
+	public Double getLoadingUnloading() {
+		return loadingUnloading;
+	}
+
+	public void setLoadingUnloading(Double loadingUnloading) {
+		this.loadingUnloading = loadingUnloading;
+	}
+
+	public Double getPackagingCost() {
+		return packagingCost;
+	}
+
+	public void setPackagingCost(Double packagingCost) {
+		this.packagingCost = packagingCost;
+	}
 
 	 
 }

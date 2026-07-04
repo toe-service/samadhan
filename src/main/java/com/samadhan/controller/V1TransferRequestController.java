@@ -60,10 +60,15 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam String source,
 	                                               @RequestParam String destination,
 	                                               @RequestParam String destinationlatitude,
-	                                               @RequestParam String destinationlongitude) throws JsonProcessingException {
+	                                               @RequestParam String destinationlongitude,
+	                                               @RequestParam Double gstCost,
+	                                               @RequestParam Double rideWithoutTaxCalculation,
+	                                               @RequestParam Double loadingUnloading,
+	                                               @RequestParam Double packagingCost) throws JsonProcessingException {
 	        System.out.println("hi");
 	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(parcelType, carModel,
-	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber, packageWeight, packageDescription, vendorId, userType, userName, userContact);
+	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber
+	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, rideWithoutTaxCalculation, loadingUnloading, packagingCost);
 	        return rideTransfer;
 	  }
 	  
@@ -114,18 +119,18 @@ TransferRequestService transferRequestService;
 	  public TransferRequestDetails requestTransferApproval(@RequestParam Long transferId,
 	                                               @RequestParam Long vendorId,
 	                                               @RequestParam int transferApproval
-	                                               ,@RequestParam(required = false) String cancellationReason) throws JsonProcessingException {
+	                                               ,@RequestParam(required = false) String cancellationReason,@RequestParam(required = false) String userType) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId, cancellationReason);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId, cancellationReason, userType);
 	        return rideTransfer;
 	  }
 	  
 	  @PutMapping(value = "/requestTransferUpdate")
 	  public TransferRequestDetails requestTransferUpdate(@RequestParam Long transferId,
 			  							@RequestParam(required = false) Long driverId,@RequestParam(required = false) Integer vehicleId,
-			  							@RequestParam(required = false) Integer rideStatusflag) throws JsonProcessingException {
+			  							@RequestParam(required = false) Integer rideStatusflag, @RequestParam(required = false) String userType) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId,vehicleId,rideStatusflag);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId,vehicleId,rideStatusflag, userType);
 	        return rideTransfer;
 	  }
 	  
@@ -138,9 +143,9 @@ TransferRequestService transferRequestService;
 	  @GetMapping("/otpvalidate")
 	  public ResponseEntity<Map<String, Object>> otpValidate(
 	          @RequestParam Long transferId,
-	          @RequestParam int otp,@RequestParam boolean flag) {
+	          @RequestParam int otp,@RequestParam boolean flag,@RequestParam(required = false) String userType) {
 
-	      boolean verified = transferRequestService.otpVerify(transferId, otp, flag);
+	      boolean verified = transferRequestService.otpVerify(transferId, otp, flag, userType);
 
 	      Map<String, Object> response = new HashMap<>();
 	      response.put("success", verified); // always boolean

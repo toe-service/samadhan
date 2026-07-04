@@ -21,13 +21,13 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 
-	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason);
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason, String userType);
 
 	public TransferRequestDetails getRidesByTransferId(Long transferId);
 
-	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId, Integer rideStatusflag);
+	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId, Integer rideStatusflag, String userType);
 
-	public boolean otpVerify(Long transferId, int otp, boolean flag);
+	public boolean otpVerify(Long transferId, int otp, boolean flag, String userType);
 
 	public List<TransferRequestDetails> getRidesByDriverId(Long driverId);
 
@@ -41,6 +41,6 @@ public interface TransferRequestService{
 			String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 			Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 			String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-			String packageDescription, Long vendorId, String userType, String userName, String userContact);
+			String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost);
 
 }
