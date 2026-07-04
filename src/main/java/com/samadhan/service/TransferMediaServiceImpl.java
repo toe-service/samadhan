@@ -3,6 +3,7 @@ package com.samadhan.service;
 import com.samadhan.entity.TransferMedia;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.enums.MediaType;
+import com.samadhan.enums.MediaUploadBy;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.repository.TransferMediaRepository;
 import com.samadhan.repository.TransferRequestRepository;
@@ -35,7 +36,7 @@ public class TransferMediaServiceImpl implements TransferMediaService {
 
     @Override
     @Transactional
-    public TransferMedia uploadMedia(Long transferId, MultipartFile file, MediaType mediaType) {
+    public TransferMedia uploadMedia(Long transferId, MultipartFile file, MediaType mediaType, MediaUploadBy mediaUploadBy) {
         TransferRequestDetails transferRequest = transferRequestRepository.findById(transferId)
                 .orElseThrow(() -> new ResourceNotFoundException("TransferRequestDetails not found with id: " + transferId));
 
@@ -58,6 +59,7 @@ public class TransferMediaServiceImpl implements TransferMediaService {
         TransferMedia transferMedia = new TransferMedia();
         transferMedia.setTransferRequest(transferRequest);
         transferMedia.setMediaType(mediaType);
+        transferMedia.setMediaUploadBy(mediaUploadBy);
         transferMedia.setOriginalFileName(originalFilename);
         transferMedia.setStorageKey(storageKey);
         transferMedia.setContentType(file.getContentType());
@@ -67,8 +69,8 @@ public class TransferMediaServiceImpl implements TransferMediaService {
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> getTransferMedia(Long transferId) {
-        List<TransferMedia> mediaList = transferMediaRepository.findByTransferRequestId(transferId);
+    public Map<String, List<Map<String, Object>>> getTransferMedia(Long transferId, MediaUploadBy mediaUploadBy) {
+        List<TransferMedia> mediaList = transferMediaRepository.findByTransferRequestIdAndMediaUploadBy(transferId, mediaUploadBy);
 
         List<Map<String, Object>> photos = new ArrayList<>();
         List<Map<String, Object>> videos = new ArrayList<>();

@@ -1,6 +1,7 @@
 package com.samadhan.entity;
 
 import com.samadhan.enums.MediaType;
+import com.samadhan.enums.MediaUploadBy;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -22,6 +23,10 @@ public class TransferMedia {
     @Column(name = "media_type", length = 20, nullable = false)
     private MediaType mediaType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "media_upload_by", length = 20, nullable = false)
+    private MediaUploadBy mediaUploadBy;
+
     @Column(name = "original_file_name")
     private String originalFileName;
 
@@ -40,10 +45,11 @@ public class TransferMedia {
 
     public TransferMedia() {}
 
-    public TransferMedia(Long id, TransferRequestDetails transferRequest, MediaType mediaType, String originalFileName, String storageKey, String contentType, Long fileSize, LocalDateTime createdAt) {
+    public TransferMedia(Long id, TransferRequestDetails transferRequest, MediaType mediaType, MediaUploadBy mediaUploadBy, String originalFileName, String storageKey, String contentType, Long fileSize, LocalDateTime createdAt) {
         this.id = id;
         this.transferRequest = transferRequest;
         this.mediaType = mediaType;
+        this.mediaUploadBy = mediaUploadBy;
         this.originalFileName = originalFileName;
         this.storageKey = storageKey;
         this.contentType = contentType;
@@ -73,6 +79,14 @@ public class TransferMedia {
 
     public void setMediaType(MediaType mediaType) {
         this.mediaType = mediaType;
+    }
+
+    public MediaUploadBy getMediaUploadBy() {
+        return mediaUploadBy;
+    }
+
+    public void setMediaUploadBy(MediaUploadBy mediaUploadBy) {
+        this.mediaUploadBy = mediaUploadBy;
     }
 
     public String getOriginalFileName() {

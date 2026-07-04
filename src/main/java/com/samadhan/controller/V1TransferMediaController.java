@@ -3,6 +3,7 @@ package com.samadhan.controller;
 import com.samadhan.dto.CachedTransferMedia;
 import com.samadhan.entity.TransferMedia;
 import com.samadhan.enums.MediaType;
+import com.samadhan.enums.MediaUploadBy;
 import com.samadhan.service.TransferMediaCache;
 import com.samadhan.service.TransferMediaService;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +30,12 @@ public class V1TransferMediaController {
     public ResponseEntity<?> uploadMedia(
             @PathVariable Long transferId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam("mediaType") MediaType mediaType) {
+            @RequestParam("mediaType") MediaType mediaType,
+            @RequestParam("mediaUploadBy") MediaUploadBy mediaUploadBy) {
         
-        TransferMedia media = transferMediaService.uploadMedia(transferId, file, mediaType);
+        TransferMedia media = transferMediaService.uploadMedia(transferId, file, mediaType, mediaUploadBy);
 
-        transferMediaCache.evict(transferId);
+        transferMediaCache.evict(transferId, mediaUploadBy);
         
         Map<String, Object> response = new HashMap<>();
         response.put("mediaId", media.getId());
@@ -44,18 +46,19 @@ public class V1TransferMediaController {
 
     @GetMapping("/{transferId}/media")
     public ResponseEntity<Map<String, List<Map<String, Object>>>> getTransferMedia(
-            @PathVariable Long transferId) {
+            @PathVariable Long transferId,
+            @RequestParam("mediaUploadBy") MediaUploadBy mediaUploadBy) {
 
-        Map<String, List<Map<String, Object>>> cachedData = transferMediaCache.get(transferId);
+        Map<String, List<Map<String, Object>>> cachedData = transferMediaCache.get(transferId, mediaUploadBy);
 
         if (cachedData != null) {
             return ResponseEntity.ok(cachedData);
         }
 
         Map<String, List<Map<String, Object>>> transferMedia =
-                transferMediaService.getTransferMedia(transferId);
+                transferMediaService.getTransferMedia(transferId, mediaUploadBy);
 
-        transferMediaCache.put(transferId, transferMedia);
+        transferMediaCache.put(transferId, mediaUploadBy, transferMedia);
 
         return ResponseEntity.ok(transferMedia);
     }
