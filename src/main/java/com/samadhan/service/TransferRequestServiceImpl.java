@@ -86,7 +86,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-				String packageDescription, Long vendorId, String userType, String userName, String userContact) {	
+				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost) {	
 		
 		UserDetails user=null;
 		if (userId != null) {
@@ -136,6 +136,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setSourceLongitude(pickuplongitude);
 		transferRequest.setSource(source);
 		transferRequest.setDestination(destination);
+		transferRequest.setGstCost(gstCost);
+		transferRequest.setLoadingUnloading(loadingUnloading);
+		transferRequest.setRideWithoutTaxCalculation(rideWithoutTaxCalculation);
+		transferRequest.setPackagingCost(packagingCost);
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
 			TransferVendor vendor = null;
@@ -186,7 +190,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason) {
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason,String userType) {
 
 		LocalDateTime dateTime = LocalDateTime.now();
 		
@@ -204,7 +208,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 	
-		if(transferApproval==1) {
+		if(transferApproval==1 && (userType !=null || userType.equalsIgnoreCase("Vendor"))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
 		
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
@@ -297,7 +301,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	@Override
 	@Transactional
 	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId,
-			Integer rideStatus) {
+			Integer rideStatus, String userType) {
 
 		TransferRequestDetails transfer = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
@@ -333,7 +337,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			
-			vehicle.setOngoingStatus(true);
+		//	vehicle.setOngoingStatus(true);
 			vehicleRepo.save(vehicle);
 			
 			transfer.setRidestartTime(dateTime);
@@ -341,6 +345,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 			transfer.setTransferStatus(rideStatusEnum.ONGOING);
 			transferRepo.save(transfer);
+			
+			if(userType!=null && userType.equalsIgnoreCase("Vendor")) {
 			
 			long vendorId=transfer.getTransferVendor().getId();
 			
@@ -371,6 +377,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			walletTransaction.setTransferRequestDetail(transfer);
 			
 			walletTransactionRepo.save(walletTransaction);
+			
+			}
 
 			
 			
@@ -392,7 +400,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public boolean otpVerify(Long transferId, int otp, boolean flag) {
+	public boolean otpVerify(Long transferId, int otp, boolean flag, String userType) {
 
 		  TransferRequestDetails transferdetails = transferRepo.findById(transferId)
 		            .orElseThrow(() -> new ResourceNotFoundException(
@@ -408,6 +416,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setRideendTime(dateTime);
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
+			
+			if(userType!=null && userType.equalsIgnoreCase("Vendor")) {
 			
 			long vendorId=transferdetails.getTransferVendor().getId();
 			
@@ -437,6 +447,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			walletTransaction.setTransferRequestDetail(transferdetails);
 			
 			walletTransactionRepo.save(walletTransaction);
+			
+			}
 
 			return true;
 				}

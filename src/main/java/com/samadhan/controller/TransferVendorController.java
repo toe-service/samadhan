@@ -52,9 +52,9 @@ public class TransferVendorController {
 	@PostMapping("/wallet/deduct-lead-cost/{vendorId}/{requestId}")
 	public ResponseEntity<?> deductLeadCost(
 	        @PathVariable Long vendorId,
-	        @PathVariable Long requestId) {
+	        @PathVariable Long requestId,@PathVariable(required = false) String userType) {
 		
-		transferVendorService.deductLeadCost(vendorId, requestId);
+		transferVendorService.deductLeadCost(vendorId, requestId, userType);
 
 	  //  walletService.deductLeadCost(vendorId, requestId);
 
