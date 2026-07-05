@@ -208,7 +208,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 	
-		if(transferApproval==1 && (userType !=null && userType.equalsIgnoreCase("Vendor"))) {
+		if(transferApproval==1 && (userType !=null && userType.equalsIgnoreCase("User"))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
 		
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
@@ -346,7 +346,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setTransferStatus(rideStatusEnum.ONGOING);
 			transferRepo.save(transfer);
 			
-			if(userType!=null && userType.equalsIgnoreCase("Vendor")) {
+			if(userType!=null && userType.equalsIgnoreCase("User")) {
 			
 			long vendorId=transfer.getTransferVendor().getId();
 			
@@ -417,7 +417,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
 			
-			if(userType!=null && userType.equalsIgnoreCase("Vendor")) {
+			if(userType!=null && userType.equalsIgnoreCase("User")) {
 			
 			long vendorId=transferdetails.getTransferVendor().getId();
 			

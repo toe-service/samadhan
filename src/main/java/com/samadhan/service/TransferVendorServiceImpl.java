@@ -91,7 +91,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	@Transactional
 	public void deductLeadCost(Long vendorId, Long requestId, String userType) {
 
-	  if(userType!=null && userType.equalsIgnoreCase("Vendor")) {
+	  if(userType!=null && userType.equalsIgnoreCase("User")) {
 		
 		
 		VendorWallet wallet = VendorWalletRepo
