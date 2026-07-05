@@ -390,12 +390,12 @@ public class PaymentServiceImpl {
 
 		        double volume = length * width * heigth;
 
-		        if (volume < 3000) {
-
-		            throw new RuntimeException(
-		                    "Minimum package size should be 22 × 18 × 12 Inch");
-
-		        }
+//		        if (volume < 3000) {
+//
+//		            throw new RuntimeException(
+//		                    "Minimum package size should be 22 × 18 × 12 Inch");
+//
+//		        }
 
 		        //-------------------------------------------------
 		        // Small Package
@@ -403,12 +403,17 @@ public class PaymentServiceImpl {
 
 		        if (parcelWeight <= 5 && volume <= 3000) {
 
-		            fixedCharge = 20;
+		            fixedCharge = 80;
 
 		            packaging = 0;
 
 		            loadingUnloading = 0;
 
+		        }
+		        
+		        else if (parcelWeight <= 5 && volume <= 5000) {
+		        	 fixedCharge = 100;
+		            packaging = 50;
 		        }
 
 		        //-------------------------------------------------
@@ -417,12 +422,20 @@ public class PaymentServiceImpl {
 
 		        else if (parcelWeight <= 20 && volume <= 8000) {
 
-		            fixedCharge = 120;
+		            fixedCharge = 150;
 
-		            packaging = 50;
+		            packaging = 100;
 
 		            loadingUnloading = 50;
 
+		        }
+		        
+		        else if (parcelWeight <= 20 && volume <= 12000) {
+		        	  fixedCharge = 200;
+
+			          packaging = 120;
+
+			          loadingUnloading = 50;
 		        }
 
 		        //-------------------------------------------------
