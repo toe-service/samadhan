@@ -351,24 +351,29 @@ public class PaymentServiceImpl {
 
 		    } else if (distanceInKm <= 200) {
 
+		        perKmRate = 9;
+
+		    } else if (distanceInKm <= 350) {
+
 		        perKmRate = 8;
 
-		    } else if (distanceInKm <= 600) {
+		    }
+		    else if (distanceInKm <= 600) {
 
-		        perKmRate = 6;
+		        perKmRate = 7;
 
 		    } else if (distanceInKm <= 1000) {
 
-		        perKmRate = 5;
+		        perKmRate = 6;
 
 		    } else if (distanceInKm <= 5000) {
 
-		        perKmRate = 4.5;
+		        perKmRate = 5;
 
 		    } 
 		    else {
 
-		        perKmRate = 4;
+		        perKmRate = 4.5;
 
 		    }
 		    
