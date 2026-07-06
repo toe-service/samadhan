@@ -340,10 +340,10 @@ public class PaymentServiceImpl {
 
 		    double perKmRate = 0;
 		    
-		    if (parcelType == ParcelTypeEnum.Package) {
+		    if (parcelType == ParcelTypeEnum.Bike || parcelType == ParcelTypeEnum.Car) {
 		    	
 		    	
-		    }else {
+		   
 
 		    if (distanceInKm <= 50) {
 
@@ -390,139 +390,241 @@ public class PaymentServiceImpl {
 		    double packaging = 0;
 
 		    double loadingUnloading = 0;
+		    
+		    double weightCharge=0;
 
 		    //---------------------------------------------------------
 		    // PACKAGE PRICING
 		    //---------------------------------------------------------
+		    
+		    
+		  //---------------------------------------------------------
+		 // PACKAGE PRICING
+		 //---------------------------------------------------------
 
-		    if (parcelType == ParcelTypeEnum.Package) {
+		 if (parcelType == ParcelTypeEnum.Package) {
 
-		        double volume = length * width * heigth;
+		     double volume = length * width * heigth;
 
-//		        if (volume < 3000) {
+		     //-------------------------------------------------
+		     // Distance Rate (Bulk Transportation)
+		     //-------------------------------------------------
+
+		     if (distanceInKm <= 50) {
+		         perKmRate = 2.8;
+		     } else if (distanceInKm <= 200) {
+		         perKmRate = 1.6;
+		     } else if (distanceInKm <= 500) {
+		         perKmRate = 1.1;
+		     } else if (distanceInKm <= 1000) {
+		         perKmRate = 0.75;
+		     } else {
+		         perKmRate = 0.55;
+		     }
+
+		     distanceCharge = distanceInKm * perKmRate;
+
+		     //-------------------------------------------------
+		     // Volumetric Weight
+		     //-------------------------------------------------
+
+		     double volumetricWeight = volume / 250.0;
+
+		     double chargeableWeight =
+		             Math.max(parcelWeight, volumetricWeight);
+
+		     //-------------------------------------------------
+		     // Base Handling Charge
+		     //-------------------------------------------------
+
+		     fixedCharge = 150;
+
+		     //-------------------------------------------------
+		     // Weight Charge
+		     //-------------------------------------------------
+
+		      weightCharge = chargeableWeight * 15;
+
+		     //-------------------------------------------------
+		     // Packaging Charge
+		     //-------------------------------------------------
+
+		     packaging = 0;
+
+		     if (!(parcelWeight <= 5 && volume <= 1500)) {
+
+		         if (volume <= 4000) {
+		             packaging = 60;
+		         }
+		         else if (volume <= 8000) {
+		             packaging = 120;
+		         }
+		         else if (volume <= 15000) {
+		             packaging = 220;
+		         }
+		         else if (volume <= 25000) {
+		             packaging = 350;
+		         }
+		         else {
+		             packaging = 500;
+		         }
+		     }
+
+		     //-------------------------------------------------
+		     // Loading / Unloading
+		     //-------------------------------------------------
+
+		     loadingUnloading = 0;
+
+		     if (chargeableWeight > 20) {
+
+		         loadingUnloading = chargeableWeight * 8;
+
+		         if (loadingUnloading > 500) {
+		             loadingUnloading = 500;
+		         }
+		     }
+
+		     //-------------------------------------------------
+		     // Final Ride Charge
+		     //-------------------------------------------------
+
+//		     rideCalculation =
+//		             fixedCharge
+//		             + distanceCharge
+//		             + weightCharge;
+		 }
+		    
+		    
+
+//		    if (parcelType == ParcelTypeEnum.Package) {
 //
-//		            throw new RuntimeException(
-//		                    "Minimum package size should be 22 × 18 × 12 Inch");
+//		        double volume = length * width * heigth;
+//
+////		        if (volume < 3000) {
+////
+////		            throw new RuntimeException(
+////		                    "Minimum package size should be 22 × 18 × 12 Inch");
+////
+////		        }
+//
+//		        //-------------------------------------------------
+//		        // Small Package
+//		        //-------------------------------------------------
+//
+//		        if (parcelWeight <= 5 && volume <= 1000) {
+//
+//		            fixedCharge = 80;
+//
+//		            packaging = 0;
+//
+//		            loadingUnloading = 0;
 //
 //		        }
-
-		        //-------------------------------------------------
-		        // Small Package
-		        //-------------------------------------------------
-
-		        if (parcelWeight <= 5 && volume <= 1000) {
-
-		            fixedCharge = 80;
-
-		            packaging = 0;
-
-		            loadingUnloading = 0;
-
-		        }
-		        
-		        else if (parcelWeight <= 5 && volume <= 5000) {
-		        	 fixedCharge = 100;
-		            packaging = 50;
-		        }
-
-		        //-------------------------------------------------
-		        // Medium Package
-		        //-------------------------------------------------
-
-		        else if (parcelWeight <= 20 && volume <= 8000) {
-
-		            fixedCharge = 150;
-
-		            packaging = 100;
-
-		            loadingUnloading = 50;
-
-		        }
-		        
-		        else if (parcelWeight <= 20 && volume <= 12000) {
-		        	  fixedCharge = 200;
-
-			          packaging = 120;
-
-			          loadingUnloading = 50;
-		        }
-
-		        //-------------------------------------------------
-		        // Large Package
-		        //-------------------------------------------------
-
-		        else if (parcelWeight <= 50 && volume <= 15000) {
-
-		            fixedCharge = 250;
-
-		            packaging = 150;
-
-		            loadingUnloading = 100;
-
-		        }
-
-		        //-------------------------------------------------
-		        // Heavy Package
-		        //-------------------------------------------------
-
-		        else if (parcelWeight <= 100) {
-
-		            fixedCharge = 500;
-
-		            packaging = 250;
-
-		            loadingUnloading = 150;
-
-		        }
-
-		        //-------------------------------------------------
-		        // Commercial Package
-		        //-------------------------------------------------
-
-		        else if (parcelWeight <= 250) {
-
-		            fixedCharge = 900;
-
-		            packaging = 400;
-
-		            loadingUnloading = 250;
-
-		        }
-
-		        //-------------------------------------------------
-		        // Industrial Package
-		        //-------------------------------------------------
-
-		        else if (parcelWeight <= 500) {
-
-		            fixedCharge = 1500;
-
-		            packaging = 700;
-
-		            loadingUnloading = 400;
-
-		        }
-
-		        //-------------------------------------------------
-		        // Above 500 KG
-		        //-------------------------------------------------
-
-		        else {
-
-		            fixedCharge = 2000;
-
-		            packaging = 900;
-
-		            loadingUnloading = 500;
-
-		            double extraWeight = parcelWeight - 500;
-
-		            int slabs = (int) Math.ceil(extraWeight / 100);
-
-		            fixedCharge += slabs * 200;
-
-		        }
-		    }
+//		        
+//		        else if (parcelWeight <= 5 && volume <= 5000) {
+//		        	 fixedCharge = 100;
+//		            packaging = 50;
+//		        }
+//
+//		        //-------------------------------------------------
+//		        // Medium Package
+//		        //-------------------------------------------------
+//
+//		        else if (parcelWeight <= 20 && volume <= 8000) {
+//
+//		            fixedCharge = 150;
+//
+//		            packaging = 100;
+//
+//		            loadingUnloading = 50;
+//
+//		        }
+//		        
+//		        else if (parcelWeight <= 20 && volume <= 12000) {
+//		        	  fixedCharge = 200;
+//
+//			          packaging = 120;
+//
+//			          loadingUnloading = 50;
+//		        }
+//
+//		        //-------------------------------------------------
+//		        // Large Package
+//		        //-------------------------------------------------
+//
+//		        else if (parcelWeight <= 50 && volume <= 15000) {
+//
+//		            fixedCharge = 250;
+//
+//		            packaging = 150;
+//
+//		            loadingUnloading = 100;
+//
+//		        }
+//
+//		        //-------------------------------------------------
+//		        // Heavy Package
+//		        //-------------------------------------------------
+//
+//		        else if (parcelWeight <= 100) {
+//
+//		            fixedCharge = 500;
+//
+//		            packaging = 250;
+//
+//		            loadingUnloading = 150;
+//
+//		        }
+//
+//		        //-------------------------------------------------
+//		        // Commercial Package
+//		        //-------------------------------------------------
+//
+//		        else if (parcelWeight <= 250) {
+//
+//		            fixedCharge = 900;
+//
+//		            packaging = 400;
+//
+//		            loadingUnloading = 250;
+//
+//		        }
+//
+//		        //-------------------------------------------------
+//		        // Industrial Package
+//		        //-------------------------------------------------
+//
+//		        else if (parcelWeight <= 500) {
+//
+//		            fixedCharge = 1500;
+//
+//		            packaging = 700;
+//
+//		            loadingUnloading = 400;
+//
+//		        }
+//
+//		        //-------------------------------------------------
+//		        // Above 500 KG
+//		        //-------------------------------------------------
+//
+//		        else {
+//
+//		            fixedCharge = 2000;
+//
+//		            packaging = 900;
+//
+//		            loadingUnloading = 500;
+//
+//		            double extraWeight = parcelWeight - 500;
+//
+//		            int slabs = (int) Math.ceil(extraWeight / 100);
+//
+//		            fixedCharge += slabs * 200;
+//
+//		        }
+//		    }
 			
 			
 		    //---------------------------------------------------------
@@ -729,12 +831,14 @@ public class PaymentServiceImpl {
 		      }
 
 		    }
-
+		 
+		  double rideCalculation=0.0;
+		 if(parcelType == ParcelTypeEnum.Car || parcelType == ParcelTypeEnum.Bike) {
 		    //---------------------------------------------------------
 		    // FINAL PRICE CALCULATION
 		    //---------------------------------------------------------
 
-		    double rideCalculation = fixedCharge + distanceCharge;
+		     rideCalculation = fixedCharge + distanceCharge;
 
 		    //---------------------------------------------------------
 		    // LONG DISTANCE SURCHARGE
@@ -753,6 +857,14 @@ public class PaymentServiceImpl {
 		        rideCalculation += 1500;
 
 		    }
+		    
+		 }else if(parcelType == ParcelTypeEnum.Package) {
+			 
+			  rideCalculation =
+			             fixedCharge
+			             + distanceCharge
+			             + weightCharge;
+		 }
 
 		    //---------------------------------------------------------
 		    // GST
