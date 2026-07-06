@@ -530,51 +530,58 @@ public class PaymentServiceImpl {
 
 		        if (bikeCC <= 100) {
 
-		            fixedCharge = 600;
-		            packaging = 450;
+		            fixedCharge = 500;
+		            packaging = 400;
 		            loadingUnloading = 300;
 
 		        }
 		        else if (bikeCC <= 125) {
 
-		            fixedCharge = 800;
-		            packaging = 500;
-		            loadingUnloading = 350;
+		            fixedCharge = 600;
+		            packaging = 450;
+		            loadingUnloading = 300;
 
 		        }
 		        else if (bikeCC <= 150) {
 
-		            fixedCharge = 1200;
-		            packaging = 550;
-		            loadingUnloading = 400;
+		            fixedCharge = 800;
+		            packaging = 500;
+		            loadingUnloading = 300;
 
 		        }
 		        else if (bikeCC <= 200) {
 
-		            fixedCharge = 2000;
-		            packaging = 650;
-		            loadingUnloading = 450;
+		            fixedCharge = 1200;
+		            packaging = 600;
+		            loadingUnloading = 400;
 
 		        }
 		        else if (bikeCC <= 350) {
 
 		            // Royal Enfield / KTM
 
-		            fixedCharge = 2700;
-		            packaging = 850;
-		            loadingUnloading = 550;
+		            fixedCharge = 1500;
+		            packaging = 750;
+		            loadingUnloading = 500;
 
 		        }
 		        else if (bikeCC <= 500) {
 
-		            fixedCharge = 3500;
+		            fixedCharge = 2000;
 		            packaging = 1000;
-		            loadingUnloading = 650;
+		            loadingUnloading = 600;
 
 		        }
 		        else if (bikeCC <= 800) {
 
-		            fixedCharge = 4000;
+		            fixedCharge = 2200;
+		            packaging = 1200;
+		            loadingUnloading = 600;
+
+		        }
+		        else if (bikeCC <= 1200) {
+
+		            fixedCharge = 2500;
 		            packaging = 1200;
 		            loadingUnloading = 700;
 
@@ -583,23 +590,23 @@ public class PaymentServiceImpl {
 
 		            // Hayabusa / BMW / ZX10R etc.
 
-		            fixedCharge = 5000;
-		            packaging = 1500;
+		            fixedCharge = 2800;
+		            packaging = 1200;
 		            loadingUnloading = 900;
 
 		        }
 
 		        // Extra long-distance handling
 
-		        if (distanceInKm > 700) {
-
-		            fixedCharge += 700;
-
-		        }
+//		        if (distanceInKm > 700) {
+//
+//		            fixedCharge += 00;
+//
+//		        }
 
 		        if (distanceInKm > 1200) {
 
-		            fixedCharge += 1200;
+		            fixedCharge += 1000;
 
 		        }
 		        
