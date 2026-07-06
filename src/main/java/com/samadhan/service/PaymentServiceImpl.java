@@ -338,36 +338,45 @@ public class PaymentServiceImpl {
 		    // PER KM RATE
 		    //---------------------------------------------------------
 
-		    double perKmRate;
+		    double perKmRate = 0;
+		    
+		    if (parcelType == ParcelTypeEnum.Package) {
+		    	
+		    	
+		    }else {
 
 		    if (distanceInKm <= 50) {
 
 		        perKmRate = 10;
 
-		    } else if (distanceInKm <= 120) {
-
-		        perKmRate = 7;
-
 		    } else if (distanceInKm <= 200) {
+
+		        perKmRate = 8;
+
+		    } else if (distanceInKm <= 600) {
 
 		        perKmRate = 6;
 
-		    } else if (distanceInKm <= 300) {
+		    } else if (distanceInKm <= 1000) {
 
 		        perKmRate = 5;
 
-		    } else if (distanceInKm <= 700) {
+		    } else if (distanceInKm <= 5000) {
+
+		        perKmRate = 4.5;
+
+		    } 
+//		    else if (distanceInKm <= 4000) {
+//
+//		        perKmRate = 3;
+//
+//		    }
+		    else {
 
 		        perKmRate = 4;
 
-		    } else if (distanceInKm <= 1000) {
-
-		        perKmRate = 3;
-
-		    } else {
-
-		        perKmRate = 2.5;
-
+		    }
+		    
 		    }
 
 		    //---------------------------------------------------------
@@ -401,7 +410,7 @@ public class PaymentServiceImpl {
 		        // Small Package
 		        //-------------------------------------------------
 
-		        if (parcelWeight <= 5 && volume <= 3000) {
+		        if (parcelWeight <= 5 && volume <= 1000) {
 
 		            fixedCharge = 80;
 
