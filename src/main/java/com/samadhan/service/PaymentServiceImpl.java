@@ -366,11 +366,6 @@ public class PaymentServiceImpl {
 		        perKmRate = 4.5;
 
 		    } 
-//		    else if (distanceInKm <= 4000) {
-//
-//		        perKmRate = 3;
-//
-//		    }
 		    else {
 
 		        perKmRate = 4;
@@ -594,14 +589,20 @@ public class PaymentServiceImpl {
 		            packaging = 1200;
 		            loadingUnloading = 700;
 
+		        }  else if (bikeCC <= 2000) {
+
+		            fixedCharge = 3000;
+		            packaging = 1200;
+		            loadingUnloading = 900;
+
 		        }
 		        else {
 
 		            // Hayabusa / BMW / ZX10R etc.
 
-		            fixedCharge = 2800;
+		            fixedCharge = 3200;
 		            packaging = 1200;
-		            loadingUnloading = 900;
+		            loadingUnloading = 1000;
 
 		        }
 
@@ -613,11 +614,11 @@ public class PaymentServiceImpl {
 //
 //		        }
 
-		        if (distanceInKm > 1200) {
-
-		            fixedCharge += 1000;
-
-		        }
+//		        if (distanceInKm > 1200) {
+//
+//		            fixedCharge += 1000;
+//
+//		        }
 		        
 		      }else {
 		    	  fixedCharge = 600;
@@ -642,61 +643,61 @@ public class PaymentServiceImpl {
 
 		            // Alto / Kwid
 
-		            fixedCharge = 6000;
+		            fixedCharge = 2500;
 		            packaging = 0;
 		            loadingUnloading = 900;
 
 		        }
-		        else if (carCC <= 1200) {
+		        else if (carCC <= 1500) {
 
 		            // Punch / Tiago / Baleno
 
-		            fixedCharge = 7200;
+		            fixedCharge = 3500;
 		            packaging = 0;
 		            loadingUnloading = 1000;
 
 		        }
-		        else if (carCC <= 1500) {
+		        else if (carCC <= 2000) {
 
 		            // Nexon / Brezza / Creta / City
 
-		            fixedCharge = 8500;
+		            fixedCharge = 5000;
 		            packaging = 0;
 		            loadingUnloading = 1200;
 
 		        }
-		        else if (carCC <= 1800) {
+		        else if (carCC <= 3000) {
 
-		            fixedCharge = 9800;
+		            fixedCharge = 8000;
 		            packaging = 0;
-		            loadingUnloading = 1300;
+		            loadingUnloading = 1400;
 
 		        }
-		        else if (carCC <= 2200) {
+		        else if (carCC <= 4000) {
 
 		            // Harrier / XUV700
 
-		            fixedCharge = 11500;
+		            fixedCharge = 12000;
 		            packaging = 0;
-		            loadingUnloading = 1500;
+		            loadingUnloading = 2000;
 
 		        }
-		        else if (carCC <= 3000) {
+		        else if (carCC <= 5000) {
 
 		            // Fortuner
 
-		            fixedCharge = 14500;
+		            fixedCharge = 15000;
 		            packaging = 0;
-		            loadingUnloading = 1700;
+		            loadingUnloading = 2000;
 
 		        }
 		        else {
 
 		            // BMW / Mercedes / Audi / Land Rover
 
-		            fixedCharge = 19000;
+		            fixedCharge = 18000;
 		            packaging = 0;
-		            loadingUnloading = 2200;
+		            loadingUnloading = 2500;
 
 		        }
 
