@@ -160,9 +160,9 @@ public class LocationService {
 		String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
 		        + input
 		        + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM"
-		        + "&components=country:in"   // India only
-		        + "&location=28.6139,77.2090" // Delhi center
-		        + "&radius=50000";           // 50 km (NCR range)
+		        + "&components=country:in";   // India only
+//		        + "&location=28.6139,77.2090" // Delhi center
+//		        + "&radius=50000";           // 50 km (NCR range)
 		
 		
 		  RestTemplate restTemplate = new RestTemplate();
@@ -173,7 +173,7 @@ public class LocationService {
 	        JsonNode predictions = root.path("predictions");
 
 		List<String> allowedCities = Arrays.asList(
-		        "Delhi", "Noida", "Greater Noida", "Ghaziabad", "Gurgaon", "Gurugram", "Faridabad"
+		        "Delhi", "Noida", "Greater Noida", "Ghaziabad", "Gurgaon", "Gurugram", "Faridabad","Amethi","Lucknow"
 		);
 
 		for (int i = 0; i < Math.min(10, predictions.size()); i++) {
