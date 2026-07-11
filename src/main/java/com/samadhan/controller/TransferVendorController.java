@@ -49,7 +49,7 @@ public class TransferVendorController {
 		return walletByVendor;
 	}
 	
-	@PostMapping("/wallet/deduct-lead-cost/{vendorId}/{requestId}")
+	@PostMapping("/wallet/deduct-lead-cost/{vendorId}/{requestId}/{userType}")
 	public ResponseEntity<?> deductLeadCost(
 	        @PathVariable Long vendorId,
 	        @PathVariable Long requestId,@PathVariable(required = false) String userType) {
