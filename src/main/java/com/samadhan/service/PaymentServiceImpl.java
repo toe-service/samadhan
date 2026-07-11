@@ -10,6 +10,7 @@ import com.samadhan.dto.RideCostSummary;
 import com.samadhan.entity.Subscription;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.SubscriptionPrice;
 import com.samadhan.repository.PaymentRepository;
@@ -300,7 +301,7 @@ public class PaymentServiceImpl {
     
 	public RideCostSummary getrideCostCalculation(String pickuplatitude, String pickuplongitude,
 			String destinationlatitude, String destinationlongitude, ParcelTypeEnum parcelType, CarModelEnum carModel,
-			BikeModelEnum bikeModel, Double parcelWeight, String cc, Double length, Double width, Double heigth) 
+			BikeModelEnum bikeModel, Double parcelWeight, String cc, Double length, Double width, Double heigth, DimensionUnit dimensionUnit) 
 					throws JsonMappingException, JsonProcessingException {
 
 		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickuplatitude + ","
@@ -404,7 +405,7 @@ public class PaymentServiceImpl {
 
 		 if (parcelType == ParcelTypeEnum.Package) {
 
-		     double volume = length * width * heigth;
+//		     double volume = length * width * heigth;
 
 		     //-------------------------------------------------
 		     // Distance Rate (Bulk Transportation)
@@ -427,6 +428,24 @@ public class PaymentServiceImpl {
 		     //-------------------------------------------------
 		     // Volumetric Weight
 		     //-------------------------------------------------
+		     
+		     double lengthInch = length;
+		     double widthInch = width;
+		     double heightInch = heigth;
+
+		     if (dimensionUnit == DimensionUnit.CM) {
+		         lengthInch /= 2.54;
+		         widthInch /= 2.54;
+		         heightInch /= 2.54;
+		     } else if (dimensionUnit == DimensionUnit.FT) {
+		         lengthInch *= 12;
+		         widthInch *= 12;
+		         heightInch *= 12;
+		     }
+
+		     double volume = lengthInch * widthInch * heightInch;
+
+		     
 
 		     double volumetricWeight = volume / 250.0;
 

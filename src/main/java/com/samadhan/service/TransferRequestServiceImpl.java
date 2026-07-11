@@ -13,6 +13,7 @@ import javax.transaction.Transactional;
 
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
@@ -86,7 +87,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost) {	
+				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit) {	
 		
 		UserDetails user=null;
 		if (userId != null) {
@@ -140,6 +141,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setLoadingUnloading(loadingUnloading);
 		transferRequest.setRideWithoutTaxCalculation(rideWithoutTaxCalculation);
 		transferRequest.setPackagingCost(packagingCost);
+		transferRequest.setDimensionUnit(dimensionUnit);
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
 			TransferVendor vendor = null;

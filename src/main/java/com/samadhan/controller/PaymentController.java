@@ -26,6 +26,7 @@ import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.PaymentTypeEnum;
 import com.samadhan.enums.SubscriptionPeriodEnum;
@@ -438,13 +439,14 @@ public class PaymentController {
             @RequestParam(required = false) Double length,
             @RequestParam(required = false) Double width,
             @RequestParam(required = false) Double heigth,
-            @RequestParam(required = false) String cc) {
+            @RequestParam(required = false) String cc,
+            @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit) {
 
 	    try {
 
 			RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude,
 					destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc,
-					length, width, heigth);
+					length, width, heigth, dimensionUnit);
 
 	        return ResponseEntity.ok(
 	                ResponseUtil.populateResponseObject(

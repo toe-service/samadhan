@@ -18,6 +18,7 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
@@ -26,6 +27,14 @@ import com.samadhan.enums.rideStatusEnum;
 @Table(name="transfer_request_details")
 public class TransferRequestDetails {
 	
+
+	public DimensionUnit getDimensionUnit() {
+		return dimensionUnit;
+	}
+
+	public void setDimensionUnit(DimensionUnit dimensionUnit) {
+		this.dimensionUnit = dimensionUnit;
+	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,6 +68,9 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="source")
 	 private String source;
+	 
+	 @Column(name="source")
+	 private DimensionUnit dimensionUnit;
 
 	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
