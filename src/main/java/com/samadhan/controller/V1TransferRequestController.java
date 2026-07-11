@@ -26,6 +26,7 @@ import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.VehicleTransfer;
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.service.TransferRequestService;
@@ -64,11 +65,12 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam Double gstCost,
 	                                               @RequestParam Double rideWithoutTaxCalculation,
 	                                               @RequestParam Double loadingUnloading,
-	                                               @RequestParam Double packagingCost) throws JsonProcessingException {
+	                                               @RequestParam Double packagingCost,
+	                                               @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit) throws JsonProcessingException {
 	        System.out.println("hi");
 	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(parcelType, carModel,
 	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber
-	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, rideWithoutTaxCalculation, loadingUnloading, packagingCost);
+	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit);
 	        return rideTransfer;
 	  }
 	  
