@@ -71,7 +71,29 @@ public class TransferVendor {
 	 
 	 @Column(name="vendor_status")
 	 private VendorStatusEnum vendorStatus;
+	 
+	 @Column(name = "aadhaar_storage_key")
+	 private String aadhaarStorageKey;
+
+	 @Column(name = "pan_storage_key")
+	 private String panStorageKey;
 	
+	public String getAadhaarStorageKey() {
+		return aadhaarStorageKey;
+	}
+
+	public void setAadhaarStorageKey(String aadhaarStorageKey) {
+		this.aadhaarStorageKey = aadhaarStorageKey;
+	}
+
+	public String getPanStorageKey() {
+		return panStorageKey;
+	}
+
+	public void setPanStorageKey(String panStorageKey) {
+		this.panStorageKey = panStorageKey;
+	}
+
 	public Long getId() {
 		return id;
 	}
