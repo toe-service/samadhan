@@ -169,6 +169,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferRequest.setRequestApprovalDate(currentDateTime);
 			transferRequest.setUserType(userType);
 		}else {
+			transferRequest.setUserType(userType);
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		}
 		
