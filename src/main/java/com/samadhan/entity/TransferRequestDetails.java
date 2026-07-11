@@ -69,7 +69,7 @@ public class TransferRequestDetails {
 	 @Column(name="source")
 	 private String source;
 	 
-	 @Column(name="source")
+	 @Column(name="dimension_unit")
 	 private DimensionUnit dimensionUnit;
 
 	 @OneToOne(cascade = CascadeType.MERGE)
