@@ -66,11 +66,14 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam Double rideWithoutTaxCalculation,
 	                                               @RequestParam Double loadingUnloading,
 	                                               @RequestParam Double packagingCost,
+	                                               @RequestParam(required = false) Double length,
+	                                               @RequestParam(required = false) Double width,
+	                                               @RequestParam(required = false) Double heigth,
 	                                               @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit) throws JsonProcessingException {
 	        System.out.println("hi");
 	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(parcelType, carModel,
 	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber
-	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit);
+	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, heigth);
 	        return rideTransfer;
 	  }
 	  
