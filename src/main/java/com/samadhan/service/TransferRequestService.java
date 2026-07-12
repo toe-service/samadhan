@@ -42,6 +42,7 @@ public interface TransferRequestService{
 			String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 			Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 			String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-			String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit);
+			String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth);
+	
 
 }

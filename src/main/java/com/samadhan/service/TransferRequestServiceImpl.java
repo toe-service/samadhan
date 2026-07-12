@@ -87,7 +87,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit) {	
+				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation,
+				Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth) {	
 		
 		UserDetails user=null;
 		if (userId != null) {
@@ -117,6 +118,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if(parcelType.getType().equalsIgnoreCase("Package")) {
 		parcelDetails.setParcelWeight(packageWeight);
 		parcelDetails.setPackageDescription(packageDescription);
+		parcelDetails.setLength(length);
+		parcelDetails.setWidth(width);
+		parcelDetails.setHeight(heigth);
+		parcelDetails.setDimensionUnit(dimensionUnit);
 		}
 		
 		TransferRequestDetails transferRequest=new TransferRequestDetails();
@@ -141,7 +146,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setLoadingUnloading(loadingUnloading);
 		transferRequest.setRideWithoutTaxCalculation(rideWithoutTaxCalculation);
 		transferRequest.setPackagingCost(packagingCost);
-		transferRequest.setDimensionUnit(dimensionUnit);
+		//transferRequest.setDimensionUnit(dimensionUnit);
+		
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
 			TransferVendor vendor = null;
