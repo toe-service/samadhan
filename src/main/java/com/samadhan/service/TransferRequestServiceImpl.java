@@ -344,12 +344,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if (vehicleId != null && vehicleId != 0) {
 //			long vehiId =(long) transfer.getVehicleId();
 //			Optional<Vehicle> vehicleopt=vehicleRepo.findById(vehicleId);
-			long vendorId=transfer.getTransferVendor().getId();
-			
-			VendorWallet wallet = walletRepository.findByVendor(vendorId);
-			
-			if(wallet.getBalance() < -200){
-				  throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
+			if (userType != null && userType.equalsIgnoreCase("User")) {
+				long vendorId = transfer.getTransferVendor().getId();
+
+				VendorWallet wallet = walletRepository.findByVendor(vendorId);
+
+				if (wallet.getBalance() < -200) {
+					throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
+				}
 			}
 			
 			
