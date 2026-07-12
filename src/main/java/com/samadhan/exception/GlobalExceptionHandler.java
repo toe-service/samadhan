@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +47,19 @@ public class GlobalExceptionHandler {
                         new Error("RideStartEnd", ex.getMessage())
                 )
         );
+    }
+    
+    @ExceptionHandler(SubscriptionSuspendedException.class)
+    public ResponseEntity<Object> handleSubscriptionSuspended(
+            SubscriptionSuspendedException ex) {
+
+    	 return ResponseEntity.status(403).body(
+                 ResponseUtil.populateResponseObject(
+                         null,
+                         "403",
+                         new Error("Subscription", ex.getMessage())
+                 )
+         );
     }
 
     @ExceptionHandler(NotFoundException.class)

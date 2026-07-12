@@ -18,6 +18,7 @@ import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.ResourceNotFoundException;
+import com.samadhan.exception.SubscriptionSuspendedException;
 
 import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import com.samadhan.entity.CancelledRequest;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.ParcelDetails;
 import com.samadhan.entity.Ride;
+import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
@@ -36,14 +38,6 @@ import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VehicleTransfer;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
-import com.samadhan.repository.CancelledRequestRepository;
-import com.samadhan.repository.DriverRepository;
-import com.samadhan.repository.TransferRequestRepository;
-import com.samadhan.repository.TransferVendorRepository;
-import com.samadhan.repository.UserRepository;
-import com.samadhan.repository.VehicleRepository;
-import com.samadhan.repository.VendorWalletRepository;
-import com.samadhan.repository.WalletTransactionRepo;
 import com.samadhan.repository.*;
 
 
@@ -75,6 +69,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	@Autowired
 	WalletTransactionRepo walletTransactionRepo;
 	
+	 @Autowired
+	 PaymentRepository paymentRepo;
+	
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
 	//private static final Logger logger = LoggerFactory.logger(TransferRequestService.class);
@@ -89,6 +86,19 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
 				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation,
 				Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth) {	
+		
+		
+		TransferVendor vendor = null;
+		
+		if(vendorId != null){
+		    vendor = transferVendorRepo.findById(vendorId)
+		            .orElseThrow(() -> new ResourceNotFoundException(
+		                    "Vendor not found with id: " + vendorId));
+		    
+		  if(vendor.getVendorStatus().name().equals("SUSPENDED")) {
+			  throw new SubscriptionSuspendedException("Your subscription is suspended. Please contact support or renew your subscription.");
+		  }
+		}
 		
 		UserDetails user=null;
 		if (userId != null) {
@@ -150,7 +160,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
-			TransferVendor vendor = null;
+//			TransferVendor vendor = null;
 			Optional<UserDetails> userDetailopt =
 			        userRepo.findByUserContactNumber(userContact);
 			UserDetails userDetail =userDetailopt.get(); 
@@ -166,11 +176,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			
 
-			if(vendorId != null){
-			    vendor = transferVendorRepo.findById(vendorId)
-			            .orElseThrow(() -> new ResourceNotFoundException(
-			                    "Vendor not found with id: " + vendorId));
-			}
+//			if(vendorId != null){
+//			    vendor = transferVendorRepo.findById(vendorId)
+//			            .orElseThrow(() -> new ResourceNotFoundException(
+//			                    "Vendor not found with id: " + vendorId));
+//			}
 			transferRequest.setUserDetails(userDetail);
 			transferRequest.setTransferVendor(vendor);
 			transferRequest.setTransferStatus(rideStatusEnum.ACCEPTED);
@@ -222,7 +232,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
 		
-		if(wallet.getBalance() < acceptanceFee){
+		if(wallet.getBalance() < -200){
 		    throw new RuntimeException(
 		        "Insufficient wallet balance. Please recharge."
 		    );
@@ -333,6 +343,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if (vehicleId != null && vehicleId != 0) {
 //			long vehiId =(long) transfer.getVehicleId();
 //			Optional<Vehicle> vehicleopt=vehicleRepo.findById(vehicleId);
+			long vendorId=transfer.getTransferVendor().getId();
+			
+			VendorWallet wallet = walletRepository.findByVendor(vendorId);
+			
+			if(wallet.getBalance() < -200){
+			    throw new RuntimeException(
+			        "Insufficient wallet balance. Please recharge."
+			    );
+			}
+			
+			
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			transfer.setVehicleId(vehicle);
@@ -367,11 +388,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 			double acceptanceFee = calculateAcceptanceFee(transfer);
 			
-			if(wallet.getBalance() < acceptanceFee){
-			    throw new RuntimeException(
-			        "Insufficient wallet balance. Please recharge."
-			    );
-			}
+//			if(wallet.getBalance() < -200){
+//			    throw new RuntimeException(
+//			        "Insufficient wallet balance. Please recharge."
+//			    );
+//			}
 
 			wallet.setBalance(
 				    wallet.getBalance() - acceptanceFee
