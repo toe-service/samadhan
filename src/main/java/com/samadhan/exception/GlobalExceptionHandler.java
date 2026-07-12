@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
                  ResponseUtil.populateResponseObject(
                          null,
                          "403",
-                         new Error("Wallet", ex.getMessage())
+                         new Error("Wallet", ex.getMessage()) 
                  )
          );
     }
