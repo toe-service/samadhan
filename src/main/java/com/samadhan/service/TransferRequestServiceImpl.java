@@ -19,6 +19,7 @@ import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
+import com.samadhan.exception.WalletLowBalanceException;
 
 import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -235,7 +236,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
 		
 		if(wallet.getBalance() < -200){
-		     throw new SubscriptionSuspendedException("Insufficient wallet balance. Please recharge.");
+		     throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
 		}
 
 		wallet.setBalance(
@@ -348,9 +349,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
 			
 			if(wallet.getBalance() < -200){
-			    throw new RuntimeException(
-			        "Insufficient wallet balance. Please recharge."
-			    );
+				  throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
 			}
 			
 			
