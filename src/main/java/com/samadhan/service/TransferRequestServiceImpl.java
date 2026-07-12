@@ -97,6 +97,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		    
 		  if(vendor.getVendorStatus().name().equals("SUSPENDED")) {
 			  throw new SubscriptionSuspendedException("Your subscription is suspended. Please contact support or renew your subscription.");
+		  }else if(vendor.getVendorStatus().name().equals("SUBSCRIPTION_PENDING")) {
+			  throw new SubscriptionSuspendedException("Your free subscription Period is over. Buy your subscription.");
 		  }
 		}
 		

@@ -87,7 +87,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        ") / 1000 AS distance_km " +
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
-	        "WHERE tv.vendor_status IN (3,1) " +
+	        "WHERE tv.vendor_status IN (3,2,5,1) " +
 	        "AND ( " +
 
 	        // Assigned rides of current vendor
