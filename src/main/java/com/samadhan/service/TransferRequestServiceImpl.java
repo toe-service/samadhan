@@ -235,9 +235,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
 		
 		if(wallet.getBalance() < -200){
-		    throw new RuntimeException(
-		        "Insufficient wallet balance. Please recharge."
-		    );
+		     throw new SubscriptionSuspendedException("Insufficient wallet balance. Please recharge.");
 		}
 
 		wallet.setBalance(

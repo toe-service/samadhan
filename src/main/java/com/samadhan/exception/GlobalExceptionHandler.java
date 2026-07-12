@@ -61,6 +61,19 @@ public class GlobalExceptionHandler {
                  )
          );
     }
+    
+    @ExceptionHandler(WalletLowBalanceException.class)
+    public ResponseEntity<Object> handleSubscriptionSuspended(
+    		WalletLowBalanceException ex) {
+
+    	 return ResponseEntity.status(403).body(
+                 ResponseUtil.populateResponseObject(
+                         null,
+                         "403",
+                         new Error("Wallet", ex.getMessage())
+                 )
+         );
+    }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Object> notFoundException(NotFoundException ex) {
