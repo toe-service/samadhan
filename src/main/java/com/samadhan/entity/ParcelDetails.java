@@ -9,6 +9,7 @@ import javax.persistence.Table;
 
 import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 
 @Entity
@@ -39,6 +40,50 @@ public class ParcelDetails {
 	
 	@Column(name="package_description")
 	private String packageDescription;
+	
+	@Column(name="length")
+	private Double length;
+	
+	@Column(name="width")
+	private Double width;
+	
+	@Column(name="height")
+	private Double height;
+	
+	 @Column(name="dimension_unit")
+	 private DimensionUnit dimensionUnit;
+
+	public Double getLength() {
+		return length;
+	}
+
+	public void setLength(Double length) {
+		this.length = length;
+	}
+
+	public Double getWidth() {
+		return width;
+	}
+
+	public void setWidth(Double width) {
+		this.width = width;
+	}
+
+	public Double getHeight() {
+		return height;
+	}
+
+	public void setHeight(Double height) {
+		this.height = height;
+	}
+
+	public DimensionUnit getDimensionUnit() {
+		return dimensionUnit;
+	}
+
+	public void setDimensionUnit(DimensionUnit dimensionUnit) {
+		this.dimensionUnit = dimensionUnit;
+	}
 
 	public Long getId() {
 		return id;
