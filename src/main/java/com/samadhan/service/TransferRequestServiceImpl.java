@@ -568,10 +568,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
+	@Transactional
 	public TransferRequestDetails requestTransferDelete(Long transferId) {
 		TransferRequestDetails transfer = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
 		CancelledRequestRepo.deleteByTransferRequest(transferId);
+		walletTransactionRepo.deleteBydeleteByTransferRequest(transferId);
 		transferRepo.delete(transfer);
 		return transfer;
 	}
