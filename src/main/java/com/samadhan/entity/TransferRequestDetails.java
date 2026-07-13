@@ -3,6 +3,7 @@ package com.samadhan.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -12,6 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -86,7 +88,23 @@ public class TransferRequestDetails {
 	// @JsonIgnore
 	 private Driver driver;
 	 
-	 @ManyToOne(cascade = CascadeType.MERGE)
+	 @OneToMany(
+		        mappedBy = "transferRequestDetail",
+		        cascade = CascadeType.ALL,
+		        orphanRemoval = true
+		)
+		@JsonIgnore
+		private List<WalletTransaction> walletTransactions;
+	 
+	 public List<WalletTransaction> getWalletTransactions() {
+		return walletTransactions;
+	}
+
+	public void setWalletTransactions(List<WalletTransaction> walletTransactions) {
+		this.walletTransactions = walletTransactions;
+	}
+
+	@ManyToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "transfer_id", referencedColumnName = "id")
 	 @JsonIgnoreProperties({ "transferRequests","drivers", "vehicles",
 		    "vendorPassword"})
