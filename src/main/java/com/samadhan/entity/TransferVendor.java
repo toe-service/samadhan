@@ -8,10 +8,12 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -77,6 +79,10 @@ public class TransferVendor {
 
 	 @Column(name = "pan_storage_key")
 	 private String panStorageKey;
+	 
+	 @OneToOne(mappedBy = "vendor", fetch = FetchType.LAZY)
+	 @JsonManagedReference
+	 private Subscription subscription;
 	
 	public String getAadhaarStorageKey() {
 		return aadhaarStorageKey;

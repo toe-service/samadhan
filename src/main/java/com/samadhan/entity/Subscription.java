@@ -16,6 +16,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.samadhan.enums.PaymentTypeEnum;
 import com.samadhan.enums.SubscriptionPeriodEnum;
 
@@ -46,8 +47,9 @@ public class Subscription {
 	@JoinColumn(name = "service_centre_id")
 	private ServiceCentre serviceCentre;
 	
-	@ManyToOne
+	@OneToOne
 	@JoinColumn(name = "vendor_id")
+	@JsonBackReference
 	private TransferVendor vendor;
 
 	public Long getId() {
