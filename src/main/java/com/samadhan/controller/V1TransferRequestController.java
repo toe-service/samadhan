@@ -95,8 +95,7 @@ TransferRequestService transferRequestService;
 	  
 	  @GetMapping(value = "/showRidestoVendors/{transferId}")
 	    public ResponseEntity<List<TransferRequestDetails>> showRidestoVendors(@PathVariable Long transferId) {
-		  List<TransferRequestDetails> showRidestoVendors = transferRequestService.showRidestoVendors(transferId);
-//		 
+		  List<TransferRequestDetails> showRidestoVendors = transferRequestService.showRidestoVendors(transferId);		 
 		  return ResponseEntity.ok(showRidestoVendors);
 	    }
 	  
