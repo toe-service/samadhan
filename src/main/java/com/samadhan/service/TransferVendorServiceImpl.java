@@ -177,10 +177,10 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 	    double leadCost = 20.0;
 
-	    if (wallet.getBalance() < leadCost) {
-	        throw new RuntimeException(
-	                "Insufficient wallet balance");
-	    }
+//	    if (wallet.getBalance() < leadCost) {
+//	        throw new RuntimeException(
+//	                "Insufficient wallet balance");
+//	    }
 
 	    wallet.setBalance(
 	            wallet.getBalance() - leadCost

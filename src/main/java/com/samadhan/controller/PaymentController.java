@@ -678,11 +678,24 @@ public class PaymentController {
 	
 	@PostMapping("/subscription/renew")
 	public ResponseEntity<String> renewSubscription(
-	        @RequestParam Long vendorId) throws RazorpayException {
+	        @RequestParam Long vendorId,
+	        @RequestParam String plan) throws RazorpayException {
 		
 		  JSONObject options = new JSONObject();
+		  
+		  if(plan.equalsIgnoreCase("MONTHLY")) {
+			  options.put("amount", 149900); 
+		  }else if(plan.equalsIgnoreCase("THREE_MONTH")) {
+			  options.put("amount", 439900);
+		  }else if(plan.equalsIgnoreCase("SIX_MONTH")) {
+			  options.put("amount", 859900);
+		  }else {
+			  options.put("amount", 1649900);
+		  }
+		  
+		  
 
-		    options.put("amount", 99900); // ₹999
+//		    options.put("amount", 99900); // ₹999
 		    options.put("currency", "INR");
 		    options.put("receipt", "subscription_" + vendorId);
 
