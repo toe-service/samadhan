@@ -23,7 +23,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleTypeEnum;
+import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
+import com.samadhan.enums.serviceTypeEnum;
 
 @Entity
 @Table(name="transfer_request_details")
@@ -73,6 +75,13 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="dimension_unit")
 	 private DimensionUnit dimensionUnit;
+	 
+	 @Column(name="service_type")
+	 private serviceTypeEnum serviceType;
+	 
+	 @Column(name="vendor_pickup_vehicle")
+	 private VendorPickupVehicleEnum VendorPickupVehicle;
+	 
 
 	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
@@ -87,6 +96,8 @@ public class TransferRequestDetails {
 	 @JoinColumn(name = "driver_id", referencedColumnName = "id")
 	// @JsonIgnore
 	 private Driver driver;
+	 
+	 
 	 
 	 @OneToMany(
 		        mappedBy = "transferRequestDetail",
@@ -462,6 +473,24 @@ public class TransferRequestDetails {
 	public void setPackagingCost(Double packagingCost) {
 		this.packagingCost = packagingCost;
 	}
+
+	public serviceTypeEnum getServiceType() {
+		return serviceType;
+	}
+
+	public void setServiceType(serviceTypeEnum serviceType) {
+		this.serviceType = serviceType;
+	}
+
+	public VendorPickupVehicleEnum getVendorPickupVehicle() {
+		return VendorPickupVehicle;
+	}
+
+	public void setVendorPickupVehicle(VendorPickupVehicleEnum vendorPickupVehicle) {
+		VendorPickupVehicle = vendorPickupVehicle;
+	}
+
+
 
 	 
 }

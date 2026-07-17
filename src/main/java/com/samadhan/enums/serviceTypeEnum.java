@@ -1,10 +1,8 @@
 package com.samadhan.enums;
 
 public enum serviceTypeEnum {
-	ServiceCentre(1,"vehicleCentre"),
-	TOWSERVICE(2,"TowService"),
-	TRANSFERSERVICE(3,"TransferService"),
-	BOTH(4,"Both");
+	TRANSFERSERVICE(0,"TRANSFER_SERVICE"),
+	BOOKVEHICLE(1,"BOOK_VEHICLE");
 	
 	
 	int id;
