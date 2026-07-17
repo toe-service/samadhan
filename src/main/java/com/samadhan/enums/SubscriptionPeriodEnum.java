@@ -5,7 +5,8 @@ public enum SubscriptionPeriodEnum {
     Free(0,"Free"),
 	QUARTER(1,"3"),
 	HALFYEAR(2,"6"),
-	YEARLY(3,"12");
+	YEARLY(3,"12"),
+	MONTHLY(4,"1");
 	
 	
 	int id;

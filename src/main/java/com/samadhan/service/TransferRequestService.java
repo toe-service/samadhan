@@ -13,6 +13,8 @@ import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.enums.VendorPickupVehicleEnum;
+import com.samadhan.enums.serviceTypeEnum;
 
 
 public interface TransferRequestService{
@@ -42,7 +44,10 @@ public interface TransferRequestService{
 			String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 			Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 			String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
-			String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth);
+			String packageDescription, Long vendorId, String userType, String userName, String userContact,
+			Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost,
+			DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
+			VendorPickupVehicleEnum vendorPickupVehicle);
 	
 
 }

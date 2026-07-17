@@ -1,5 +1,7 @@
 package com.samadhan.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.type.Date;
 import com.razorpay.RazorpayClient;
@@ -30,6 +32,8 @@ import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.PaymentTypeEnum;
 import com.samadhan.enums.SubscriptionPeriodEnum;
+import com.samadhan.enums.VendorPickupVehicleEnum;
+import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.PaymentRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
@@ -467,6 +471,22 @@ public class PaymentController {
 	    }
 	}
 	
+	
+	@GetMapping("/bookVehicleCostList")
+	public ResponseEntity<?> bookVehicleCostList(
+	        @RequestParam Double pickuplatitude,
+	        @RequestParam Double pickuplongitude,
+	        @RequestParam Double destinationlatitude,
+	        @RequestParam Double destinationlongitude) throws JsonMappingException, JsonProcessingException {
+
+	    return ResponseEntity.ok(
+	            paymentService.getVehicleCostList(
+	                    pickuplatitude,
+	                    pickuplongitude,
+	                    destinationlatitude,
+	                    destinationlongitude));
+	}
+	
 	@PostMapping("/free-subscription/createOrder")
 	public ResponseEntity<?> createFreeSubscriptionOrder(
 	        @RequestParam Long vendorId) throws Exception {
@@ -725,17 +745,40 @@ public class PaymentController {
 	    
 	    LocalDate localDate = LocalDate.now();
 	    
+	    String plan = req.getPlan();
+	    
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
 	    Subscription subscription=paymentRepo.findByVendorId(req.getVendorId());
 	    
 	    LocalDate startDate=subscription.getEndDate().plusDays(1);
-	    LocalDate threeMonthsLater = startDate.plusMonths(3);
+	 //   LocalDate threeMonthsLater = startDate.plusMonths(3);
+	    
+	    if ("MONTHLY".equalsIgnoreCase(plan)) {
+	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.MONTHLY);
+	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
+	        subscription.setEndDate(startDate.plusMonths(1));
+
+	    } else if ("THREE_MONTH".equalsIgnoreCase(plan)) {
+	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
+	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
+	        subscription.setEndDate(startDate.plusMonths(3));
+
+	    } else if ("SIX_MONTH".equalsIgnoreCase(plan)) {
+	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.HALFYEAR);
+	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
+	        subscription.setEndDate(startDate.plusMonths(6));
+
+	    } else if ("TWELVE_MONTH".equalsIgnoreCase(plan)) {
+	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.YEARLY);
+	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
+	        subscription.setEndDate(startDate.plusMonths(12));
+	    }
 	    
 	    //subscription.setVendor(vendor.get());
-	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
-	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
+//	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
+//	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
 	    subscription.setStartDate(startDate);
-	    subscription.setEndDate(threeMonthsLater);
+	 //   subscription.setEndDate(threeMonthsLater);
 	    
 	    paymentRepo.save(subscription);
 	    

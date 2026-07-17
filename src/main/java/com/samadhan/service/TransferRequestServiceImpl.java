@@ -16,7 +16,9 @@ import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleTypeEnum;
+import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
+import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
 import com.samadhan.exception.WalletLowBalanceException;
@@ -86,10 +88,18 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
 				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation,
-				Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth) {	
+				Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
+				VendorPickupVehicleEnum vendorPickupVehicle) {	
 		
 		
 		TransferVendor vendor = null;
+		TransferRequestDetails transferRequest=new TransferRequestDetails();
+		
+		if(serviceType == serviceTypeEnum.BOOKVEHICLE &&
+				"Vendor".equalsIgnoreCase(userType)) {
+
+			throw new ResourceNotFoundException("Vendor cannot create Book Vehicle request.");
+		}
 		
 		if(vendorId != null){
 		    vendor = transferVendorRepo.findById(vendorId)
@@ -109,9 +119,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 		
 		}
-
-		ParcelDetails parcelDetails=new ParcelDetails();
+		ParcelDetails parcelDetails=null;
+		if(serviceType.getType().equalsIgnoreCase("TRANSFER_SERVICE")){
+		parcelDetails=new ParcelDetails();
 		parcelDetails.setParcelType(parcelType);
+		
 		
 		if(parcelType.getType().equalsIgnoreCase("Car")) {
 			
@@ -136,11 +148,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		parcelDetails.setHeight(heigth);
 		parcelDetails.setDimensionUnit(dimensionUnit);
 		}
+		transferRequest.setParcelDetails(parcelDetails);
+		transferRequest.setPackagingCost(packagingCost);
+	} else if (serviceType.getType().equalsIgnoreCase("BOOK_VEHICLE")) {
+		transferRequest.setVendorPickupVehicle(vendorPickupVehicle);
 		
-		TransferRequestDetails transferRequest=new TransferRequestDetails();
+	}
+		
+	
 //		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleType]);
 	//	transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleModel]);
-		transferRequest.setParcelDetails(parcelDetails);
+	
 		LocalDate currentDate=LocalDate.now();
 		LocalTime cuurentTime=LocalTime.now();
 		LocalDateTime currentDateTime=LocalDateTime.now();
@@ -158,15 +176,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setGstCost(gstCost);
 		transferRequest.setLoadingUnloading(loadingUnloading);
 		transferRequest.setRideWithoutTaxCalculation(rideWithoutTaxCalculation);
-		transferRequest.setPackagingCost(packagingCost);
+		
 		//transferRequest.setDimensionUnit(dimensionUnit);
 		
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
 //			TransferVendor vendor = null;
-			Optional<UserDetails> userDetailopt =
-			        userRepo.findByUserContactNumber(userContact);
-			UserDetails userDetail =userDetailopt.get(); 
+			UserDetails userDetail = userRepo
+			        .findByUserContactNumber(userContact)
+			        .orElse(null);
 			       
 
 			if(userDetail == null){
@@ -189,8 +207,26 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferRequest.setTransferStatus(rideStatusEnum.ACCEPTED);
 			transferRequest.setRequestApprovalDate(currentDateTime);
 			transferRequest.setUserType(userType);
-		}else {
+		}else if(userType!=null && userType.equalsIgnoreCase("WebUser")) {
+			UserDetails userDetail = userRepo
+			        .findByUserContactNumber(userContact)
+			        .orElse(null);
+			       
+
+			if(userDetail == null){
+			    userDetail = new UserDetails();
+			    userDetail.setUserName(userName);
+			    userDetail.setUserContactNumber(userContact);
+
+			    userDetail = userRepo.save(userDetail);
+			}
+			
+			transferRequest.setUserDetails(userDetail);
+			transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 			transferRequest.setUserType(userType);
+			
+		}else {
+		transferRequest.setUserType(userType);
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		}
 		

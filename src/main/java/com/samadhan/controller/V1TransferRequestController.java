@@ -28,7 +28,9 @@ import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
+import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.service.TransferRequestService;
 
 @RestController
@@ -41,7 +43,7 @@ TransferRequestService transferRequestService;
 	
 	
 	  @PostMapping(value = "/requestRideTransfer")
-	  public TransferRequestDetails requestRideTransfer(@RequestParam ParcelTypeEnum parcelType,
+	  public TransferRequestDetails requestRideTransfer(@RequestParam(required = false) ParcelTypeEnum parcelType,
 	                                               @RequestParam(required = false) CarModelEnum carModel,
 	                                               @RequestParam(required = false) String carNumber,
 	                                               @RequestParam(required = false) BikeModelEnum bikeModel,
@@ -54,8 +56,8 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) String userName,
 	                                               @RequestParam(required = false) String userContact,
 	                                               @RequestParam double rideCost,
-	                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
-	                                               @RequestParam String pickupSchedule,
+	                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
+	                                               @RequestParam(required = false) String pickupSchedule,
 	                                               @RequestParam String pickuplatitude,
 	                                               @RequestParam String pickuplongitude,
 	                                               @RequestParam String source,
@@ -63,17 +65,33 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam String destinationlatitude,
 	                                               @RequestParam String destinationlongitude,
 	                                               @RequestParam Double gstCost,
-	                                               @RequestParam Double rideWithoutTaxCalculation,
-	                                               @RequestParam Double loadingUnloading,
-	                                               @RequestParam Double packagingCost,
+	                                               @RequestParam(required = false) Double rideWithoutTaxCalculation,
+	                                               @RequestParam(required = false) Double loadingUnloading,
+	                                               @RequestParam(required = false) Double packagingCost,
 	                                               @RequestParam(required = false) Double length,
 	                                               @RequestParam(required = false) Double width,
 	                                               @RequestParam(required = false) Double height,
-	                                               @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit) throws JsonProcessingException {
+	                                               @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit,
+	                                               @RequestParam(required = false, defaultValue = "TRANSFERSERVICE") serviceTypeEnum serviceType,
+	                                               @RequestParam(required = false) VendorPickupVehicleEnum vendorPickupVehicle) throws JsonProcessingException {
 	        System.out.println("hi");
+	        
+	        if (serviceType == serviceTypeEnum.TRANSFERSERVICE) {
+
+	            if (parcelType == null) {
+	                throw new IllegalArgumentException("Parcel Type is required.");
+	            }
+
+	        }
+
+	      
+	        
+	        
 	        TransferRequestDetails rideTransfer = transferRequestService.requestRideTransfer(parcelType, carModel,
-	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber
-	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, height);
+	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, 
+	                pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber
+	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, 
+	                rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, height, serviceType, vendorPickupVehicle);
 	        return rideTransfer;
 	  }
 	  

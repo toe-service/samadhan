@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.samadhan.dto.BookVehicleCostResponse;
 import com.samadhan.dto.RideCostSummary;
 import com.samadhan.entity.Subscription;
 import com.samadhan.enums.BikeModelEnum;
@@ -13,6 +14,8 @@ import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.SubscriptionPrice;
+import com.samadhan.enums.VendorPickupVehicleEnum;
+import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.PaymentRepository;
 import com.samadhan.response.SubscriptionResponse;
 
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -976,5 +980,112 @@ public class PaymentServiceImpl {
 	    payment.setEndDate(localdate);
 
 	    PaymentRepo.save(payment);
+	}
+
+
+	public List<BookVehicleCostResponse> getVehicleCostList(Double pickupLat, Double pickupLng, Double destinationLat,
+			Double destinationLng) throws JsonMappingException, JsonProcessingException {
+
+		List<BookVehicleCostResponse> list = new ArrayList<>();
+		
+		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickupLat + ","
+				+ pickupLng + "&destination=" + destinationLat + "," + destinationLng
+				+ "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
+
+		RestTemplate restTemplate = new RestTemplate();
+		String response = restTemplate.getForObject(url, String.class);
+
+		RideCostSummary rideSummary = new RideCostSummary();
+
+	//	try {
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode root = mapper.readTree(response);
+
+			int distanceInMeters = root.path("routes").get(0).path("legs").get(0).path("distance").path("value")
+					.asInt();
+
+			double distanceInKm = distanceInMeters / 1000.0;
+
+		for (VendorPickupVehicleEnum vehicle : VendorPickupVehicleEnum.values()) {
+
+			BookVehicleCostResponse cost = calculateVehicleFare(distanceInKm, vehicle);
+
+			list.add(new BookVehicleCostResponse(
+				    vehicle.getDisplayName(),
+				    cost.getRideCost(),
+				    cost.getGst(),
+				    cost.getLoadingUnloading(),
+				    cost.getPackaging(),
+				    cost.getTotalCost()
+				));
+		}
+
+		return list;
+	}
+
+
+	private BookVehicleCostResponse calculateVehicleFare(double distance, VendorPickupVehicleEnum vehicle) {
+
+		BookVehicleCostResponse response=new BookVehicleCostResponse();
+		double perKm;
+
+		switch (vehicle) {
+
+		case TWO_WHEELER:
+			perKm = 12;
+			break;
+
+		case SCOOTER:
+			perKm = 13;
+			break;
+
+		case E_LOADER:
+			perKm = 18;
+			break;
+
+		case THREE_WHEELER:
+			perKm = 22;
+			break;
+
+		case EECO:
+			perKm = 28;
+			break;
+
+		case TATA_ACE:
+			perKm = 30;
+			break;
+
+		case PICKUP_8FT:
+			perKm = 35;
+			break;
+
+		case TRUCK_10FT:
+			perKm = 42;
+			break;
+
+		case TRUCK_14FT:
+		case TRUCK_14FT_CLOSED:
+		case TRUCK_14FT_OPEN:
+			perKm = 50;
+			break;
+
+		case TRUCK_17FT:
+		case TRUCK_17FT_CLOSED:
+		case TRUCK_17FT_OPEN:
+			perKm = 60;
+			break;
+
+		case TRUCK_19FT:
+			perKm = 72;
+			break;
+
+		default:
+			throw new IllegalArgumentException("Invalid vehicle type");
+		}
+		double rideCost=distance * perKm;
+		response.setRideCost(rideCost);
+		response.setVehicle(vehicle.getDisplayName());
+
+		return response;
 	}
 }
