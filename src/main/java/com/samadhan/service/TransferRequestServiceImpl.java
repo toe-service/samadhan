@@ -152,6 +152,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setPackagingCost(packagingCost);
 	} else if (serviceType.getType().equalsIgnoreCase("BOOK_VEHICLE")) {
 		transferRequest.setVendorPickupVehicle(vendorPickupVehicle);
+	
 		
 	}
 		
@@ -176,6 +177,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setGstCost(gstCost);
 		transferRequest.setLoadingUnloading(loadingUnloading);
 		transferRequest.setRideWithoutTaxCalculation(rideWithoutTaxCalculation);
+		transferRequest.setServiceType(serviceType);
 		
 		//transferRequest.setDimensionUnit(dimensionUnit);
 		
@@ -248,7 +250,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason,String userType) {
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason,String userType, serviceTypeEnum serviceType, Integer vehicleId) {
 
 		LocalDateTime dateTime = LocalDateTime.now();
 		
@@ -266,7 +268,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 	
-		if(transferApproval==1 && (userType !=null && userType.equalsIgnoreCase("User"))) {
+		if(transferApproval==1 && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
 		
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
@@ -314,10 +316,22 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			return transferdetails;
 		}
 		else {
+			
+		if (serviceType.getType().equalsIgnoreCase("BOOK_VEHICLE")) {
+			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
+		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+			 transferdetails.setVehicleId(vehicle);
+			 transferdetails.setVehicleAssignDateTime(dateTime);
+			 transferdetails.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
+		
+			
+		}else if (serviceType.getType().equalsIgnoreCase("TRANSFER_SERVICE")) {
 
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
 		transferdetails.setTransferVendor(transferVendor);
+		
+		}
 
 		transferRepo.save(transferdetails);
 

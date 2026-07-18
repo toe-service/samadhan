@@ -141,9 +141,11 @@ TransferRequestService transferRequestService;
 	  public TransferRequestDetails requestTransferApproval(@RequestParam Long transferId,
 	                                               @RequestParam Long vendorId,
 	                                               @RequestParam int transferApproval
-	                                               ,@RequestParam(required = false) String cancellationReason,@RequestParam(required = false) String userType) throws JsonProcessingException {
+	                                               ,@RequestParam(required = false) String cancellationReason,@RequestParam(required = false) String userType
+	                                               , @RequestParam(required = false, defaultValue = "TRANSFERSERVICE") serviceTypeEnum serviceType
+	                                               , @RequestParam(required = false) Integer vehicleId) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId, cancellationReason, userType);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId, cancellationReason, userType, serviceType, vehicleId);
 	        return rideTransfer;
 	  }
 	  
