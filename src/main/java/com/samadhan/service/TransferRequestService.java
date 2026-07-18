@@ -24,7 +24,7 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 
-	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason, String userType);
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason, String userType, serviceTypeEnum serviceType, Integer vehicleId);
 
 	public TransferRequestDetails getRidesByTransferId(Long transferId);
 
