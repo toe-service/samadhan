@@ -317,7 +317,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 		else {
 			
-		if (serviceType.getType().equalsIgnoreCase("BOOK_VEHICLE")) {
+		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE")) {
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			 transferdetails.setVehicleId(vehicle);
@@ -325,7 +325,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			 transferdetails.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 		
 			
-		}else if (serviceType.getType().equalsIgnoreCase("TRANSFER_SERVICE")) {
+		}else if (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE")) {
 
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
