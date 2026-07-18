@@ -323,6 +323,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			 transferdetails.setVehicleId(vehicle);
 			 transferdetails.setVehicleAssignDateTime(dateTime);
 			 transferdetails.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
+			 transferdetails.setTransferVendor(transferVendor);
 		
 			
 		}else if (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE")) {
