@@ -1007,17 +1007,16 @@ public class PaymentServiceImpl {
 
 			double distanceInKm = distanceInMeters / 1000.0;
 
-		for (VendorPickupVehicleEnum vehicle : VendorPickupVehicleEnum.values()) {
+			  for (VendorPickupVehicleEnum vehicle : VendorPickupVehicleEnum.values()) {
 
-			 BookVehicleCostResponse cost = calculateVehicleFare(
-		                distanceInKm,
-		                vehicle,
-		                helperRequired,
-		                helperCount,
-		                vehicleCategory);
+			        BookVehicleCostResponse cost = calculateVehicleFare(
+			                distanceInKm,
+			                vehicle,
+			                helperRequired,
+			                helperCount);
 
-		        list.add(cost);
-		}
+			        list.add(cost);
+			    }
 
 		return list;
 	}
@@ -1027,104 +1026,193 @@ public class PaymentServiceImpl {
 	        double distance,
 	        VendorPickupVehicleEnum vehicle,
 	        Boolean helperRequired,
-	        Integer helperCount,
-	        VehicleCategoryEnum vehicleCategory) {
+	        Integer helperCount) {
 
 	    BookVehicleCostResponse response = new BookVehicleCostResponse();
 
-	    double perKm;
-
-	    switch (vehicle) {
-
-	        case TWO_WHEELER:
-	            perKm = 12;
-	            break;
-
-	        case SCOOTER:
-	            perKm = 13;
-	            break;
-
-	        case E_LOADER:
-	            perKm = 18;
-	            break;
-
-	        case THREE_WHEELER:
-	            perKm = 22;
-	            break;
-
-	        case EECO:
-	            perKm = 28;
-	            break;
-
-	        case TATA_ACE:
-	            perKm = 30;
-	            break;
-
-	        case PICKUP_8FT:
-	            perKm = 35;
-	            break;
-
-	        case TRUCK_10FT:
-	            perKm = 42;
-	            break;
-
-	        case TRUCK_14FT:
-	        case TRUCK_14FT_OPEN:
-	        case TRUCK_14FT_CLOSED:
-	            perKm = 50;
-	            break;
-
-	        case TRUCK_17FT:
-	        case TRUCK_17FT_OPEN:
-	        case TRUCK_17FT_CLOSED:
-	            perKm = 60;
-	            break;
-
-	        case TRUCK_19FT:
-	            perKm = 72;
-	            break;
-
-	        default:
-	            throw new IllegalArgumentException("Invalid vehicle type");
-	    }
+	    double perKm = getPerKm(vehicle);
 
 	    double rideCost = distance * perKm;
 
-	    // Helper Charges
-	    double helperCharge = 0;
-	    if (Boolean.TRUE.equals(helperRequired)) {
-	        helperCharge = (helperCount == null ? 1 : helperCount) * 300;
-	    }
+	    double helperCharge = Boolean.TRUE.equals(helperRequired)
+	            ? (helperCount == null ? 1 : helperCount) * 300
+	            : 0;
 
-	    // Loading / Unloading
-	    double loadingUnloading = 0;
-//	    if (vehicleCategory == VehicleCategoryEnum.HOUSE_SHIFTING) {
-//	        loadingUnloading = 500;
-//	    } else if (vehicleCategory == VehicleCategoryEnum.COMMERCIAL) {
-//	        loadingUnloading = 300;
-//	    }
-
-	    // Packaging
+	    double loading = 0;
 	    double packaging = 0;
-//	    if (vehicleCategory == VehicleCategoryEnum.HOUSE_SHIFTING) {
-//	        packaging = 700;
-//	    }
 
-	    double subtotal = rideCost + helperCharge + loadingUnloading + packaging;
-
+	    double subtotal = rideCost + helperCharge + loading + packaging;
 	    double gst = subtotal * 0.18;
 
-	    double total = subtotal + gst;
-
 	    response.setVehicle(vehicle.getDisplayName());
-	    response.setRideCost(rideCost);
-	    response.setLoadingUnloading(loadingUnloading);
-	    response.setPackaging(packaging);
+	   response.setRideCost(rideCost);
 	    response.setHelperCharge(helperCharge);
+	    response.setLoadingUnloading(loading);
+	    response.setPackaging(packaging);
 	    response.setGst(gst);
-	    response.setTotalCost(total);
+	    response.setTotalCost(subtotal + gst);
 
 	    return response;
+	}
+
+
+	private double getPerKm(VendorPickupVehicleEnum vehicle) {
+
+	    switch (vehicle) {
+
+	        // ---------- Small Vehicle ----------
+	        case SCOOTER:
+	            return 13;
+
+	        case TWO_WHEELER:
+	            return 12;
+
+	        case E_LOADER:
+	            return 18;
+
+	        case THREE_WHEELER:
+	            return 22;
+
+	        case EECO:
+	            return 28;
+
+	        case TATA_ACE:
+	            return 30;
+
+	        // ---------- Open Body Truck ----------
+	        case PICKUP_8FT:
+	            return 35;
+
+	        case TRUCK_10FT:
+	            return 42;
+
+	        case TRUCK_14FT_OPEN:
+	            return 50;
+
+	        case TRUCK_15FT_OPEN:
+	            return 55;
+
+	        case TRUCK_17FT_OPEN:
+	            return 60;
+
+	        case TRUCK_19FT_OPEN:
+	            return 72;
+
+	        case TRUCK_20FT_OPEN:
+	            return 75;
+
+	        case TRUCK_22FT_OPEN:
+	            return 80;
+
+	        case TRUCK_22FT_10TYRE:
+	            return 90;
+
+	        case TRUCK_24FT_12TYRE:
+	            return 100;
+
+	        case TRUCK_28FT_14TYRE:
+	            return 115;
+
+	        case TRUCK_30FT_14TYRE:
+	            return 125;
+
+	        case HALF_BODY_TRUCK_32FT:
+	            return 130;
+
+	        // ---------- Closed Container Truck ----------
+	        case TRUCK_14FT:
+	        case TRUCK_14FT_CLOSED:
+	            return 52;
+
+	        case TRUCK_17FT:
+	        case TRUCK_17FT_CLOSED:
+	            return 62;
+
+	        case TRUCK_19FT:
+	            return 72;
+
+	        case CONTAINER_7FT:
+	            return 28;
+
+	        case CONTAINER_8FT:
+	            return 30;
+
+	        case CONTAINER_10FT:
+	            return 40;
+
+	        case CONTAINER_20FT:
+	            return 85;
+
+	        case CONTAINER_22FT:
+	            return 90;
+
+	        case CONTAINER_32FT_9TON:
+	            return 120;
+
+	        case CONTAINER_32FT_18TON:
+	            return 150;
+
+	        // ---------- Trailer ----------
+	        case FLATBED_TRAILER_20FT:
+	            return 110;
+
+	        case FLATBED_TRAILER_22FT:
+	            return 115;
+
+	        case FLATBED_TRAILER_24FT:
+	            return 120;
+
+	        case FLATBED_TRAILER_28FT_9TON:
+	            return 130;
+
+	        case FLATBED_TRAILER_28FT_14TON:
+	            return 140;
+
+	        case FLATBED_TRAILER_32FT_9TON:
+	            return 145;
+
+	        case FLATBED_TRAILER_32FT_14TON:
+	            return 155;
+
+	        case FLATBED_TRAILER_40FT_30TON:
+	            return 180;
+
+	        case FLATBED_TRAILER_40FT_32TON:
+	            return 190;
+
+	        case FLATBED_TRAILER_40FT_35TON:
+	            return 200;
+
+	        case FLATBED_TRAILER_40FT_42TON:
+	            return 220;
+
+	        case LOWBED_TRAILER_40FT_30TON:
+	            return 185;
+
+	        case LOWBED_TRAILER_40FT_32TON:
+	            return 195;
+
+	        case LOWBED_TRAILER_40FT_35TON:
+	            return 205;
+
+	        case LOWBED_TRAILER_40FT_42TON:
+	            return 225;
+
+	        case SEMIBED_TRAILER_40FT_30TON:
+	            return 185;
+
+	        case SEMIBED_TRAILER_40FT_32TON:
+	            return 195;
+
+	        case SEMIBED_TRAILER_40FT_35TON:
+	            return 205;
+
+	        case SEMIBED_TRAILER_40FT_42TON:
+	            return 225;
+
+	        default:
+	            throw new IllegalArgumentException("Rate not configured for vehicle: " + vehicle);
+	    }
 	}
 	
 }
