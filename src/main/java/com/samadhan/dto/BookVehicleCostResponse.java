@@ -14,6 +14,8 @@ public class BookVehicleCostResponse {
     private Double packaging;
 
     private Double totalCost;
+    
+    private Double helperCharge;
 
 	public BookVehicleCostResponse(String vehicle, Double rideCost, Double gst, Double loadingUnloading,
 			Double packaging, Double totalCost) {
@@ -75,5 +77,13 @@ public class BookVehicleCostResponse {
 
 	public void setTotalCost(Double totalCost) {
 		this.totalCost = totalCost;
+	}
+
+	public Double getHelperCharge() {
+		return helperCharge;
+	}
+
+	public void setHelperCharge(Double helperCharge) {
+		this.helperCharge = helperCharge;
 	}
 }
