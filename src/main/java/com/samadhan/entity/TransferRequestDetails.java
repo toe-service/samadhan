@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
@@ -185,6 +186,50 @@ public class TransferRequestDetails {
 	 @Column(name = "packaging_cost")
 	 private Double packagingCost;
 	 
+	 @Column(name = "helper_required")
+	 private Boolean helperRequired = false;
+
+	 @Column(name = "helper_count")
+	 private Integer helperCount = 0;
+
+	 @Column(name = "vehicle_category")
+	 private VehicleCategoryEnum vehicleCategory;
+
+	 @Column(name = "instant_booking")
+	 private Boolean instantBooking = false;
+	 
+	public Boolean getHelperRequired() {
+		return helperRequired;
+	}
+
+	public void setHelperRequired(Boolean helperRequired) {
+		this.helperRequired = helperRequired;
+	}
+
+	public Integer getHelperCount() {
+		return helperCount;
+	}
+
+	public void setHelperCount(Integer helperCount) {
+		this.helperCount = helperCount;
+	}
+
+	public VehicleCategoryEnum getVehicleCategory() {
+		return vehicleCategory;
+	}
+
+	public void setVehicleCategory(VehicleCategoryEnum vehicleCategory) {
+		this.vehicleCategory = vehicleCategory;
+	}
+
+	public Boolean getInstantBooking() {
+		return instantBooking;
+	}
+
+	public void setInstantBooking(Boolean instantBooking) {
+		this.instantBooking = instantBooking;
+	}
+
 	public Long getId() {
 		return id;
 	}

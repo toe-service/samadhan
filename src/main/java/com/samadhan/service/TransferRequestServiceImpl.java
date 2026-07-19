@@ -15,6 +15,7 @@ import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
@@ -89,7 +90,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
 				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation,
 				Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
-				VendorPickupVehicleEnum vendorPickupVehicle) {	
+				VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory,  Boolean instantBooking) {	
 		
 		
 		TransferVendor vendor = null;
@@ -153,7 +154,18 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	} else if (serviceType.getType().equalsIgnoreCase("BOOK_VEHICLE")) {
 		transferRequest.setVendorPickupVehicle(vendorPickupVehicle);
 	
-		
+		transferRequest.setHelperRequired(
+	            helperRequired != null ? helperRequired : false);
+
+	    transferRequest.setHelperCount(
+	            Boolean.TRUE.equals(helperRequired)
+	                    ? helperCount
+	                    : 0);
+
+	    transferRequest.setVehicleCategory(vehicleCategory);
+	    
+	    transferRequest.setInstantBooking(
+	            instantBooking != null ? instantBooking : false);
 	}
 		
 	
@@ -322,6 +334,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			 transferdetails.setVehicleId(vehicle);
 			 transferdetails.setVehicleAssignDateTime(dateTime);
+			 transferdetails.setRequestApprovalDate(dateTime);
 			 transferdetails.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 			 transferdetails.setTransferVendor(transferVendor);
 		
