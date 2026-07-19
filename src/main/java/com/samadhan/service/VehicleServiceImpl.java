@@ -47,6 +47,9 @@ public class VehicleServiceImpl implements VehicleService{
 			vehicle.setVehicleContactNumber(vehicle.getVehicleContactNumber());
 		}
 		
+		vehicle.setVendorVehicle(vehicle.getVendorVehicle());
+		vehicle.setVehicleCategory(vehicle.getVehicleCategory());
+		
 		Vehicle vehicleregister=vehicleRepo.save(vehicle);
 		return vehicleregister;
 	}

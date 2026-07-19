@@ -11,6 +11,8 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.samadhan.enums.VehicleCategoryEnum;
+import com.samadhan.enums.VendorPickupVehicleEnum;
 
 @Entity
 @Table(name="vehicle")
@@ -43,6 +45,20 @@ public class Vehicle {
 	
 	@Column(name="Ongoing_status", columnDefinition = "BOOLEAN DEFAULT FALSE")
 	private boolean ongoingStatus;
+	
+	@Column(name="vendor_vehicle_type", columnDefinition = "BOOLEAN DEFAULT FALSE")
+	private VendorPickupVehicleEnum vendorVehicle;
+	
+	@Column(name="vehicle_category", columnDefinition = "BOOLEAN DEFAULT FALSE")
+	private VehicleCategoryEnum VehicleCategory;
+
+	public VehicleCategoryEnum getVehicleCategory() {
+		return VehicleCategory;
+	}
+
+	public void setVehicleCategory(VehicleCategoryEnum vehicleCategory) {
+		VehicleCategory = vehicleCategory;
+	}
 
 	public Long getId() {
 		return id;
@@ -106,6 +122,14 @@ public class Vehicle {
 
 	public void setVehicleContactNumber(String vehicleContactNumber) {
 		this.vehicleContactNumber = vehicleContactNumber;
+	}
+
+	public VendorPickupVehicleEnum getVendorVehicle() {
+		return vendorVehicle;
+	}
+
+	public void setVendorVehicle(VendorPickupVehicleEnum vendorVehicle) {
+		this.vendorVehicle = vendorVehicle;
 	}
 	
 	
