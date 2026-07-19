@@ -14,6 +14,7 @@ import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.SubscriptionPrice;
+import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.PaymentRepository;
@@ -984,7 +985,7 @@ public class PaymentServiceImpl {
 
 
 	public List<BookVehicleCostResponse> getVehicleCostList(Double pickupLat, Double pickupLng, Double destinationLat,
-			Double destinationLng) throws JsonMappingException, JsonProcessingException {
+			Double destinationLng, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory) throws JsonMappingException, JsonProcessingException {
 
 		List<BookVehicleCostResponse> list = new ArrayList<>();
 		
@@ -1008,84 +1009,122 @@ public class PaymentServiceImpl {
 
 		for (VendorPickupVehicleEnum vehicle : VendorPickupVehicleEnum.values()) {
 
-			BookVehicleCostResponse cost = calculateVehicleFare(distanceInKm, vehicle);
+			 BookVehicleCostResponse cost = calculateVehicleFare(
+		                distanceInKm,
+		                vehicle,
+		                helperRequired,
+		                helperCount,
+		                vehicleCategory);
 
-			list.add(new BookVehicleCostResponse(
-				    vehicle.getDisplayName(),
-				    cost.getRideCost(),
-				    cost.getGst(),
-				    cost.getLoadingUnloading(),
-				    cost.getPackaging(),
-				    cost.getTotalCost()
-				));
+		        list.add(cost);
 		}
 
 		return list;
 	}
 
 
-	private BookVehicleCostResponse calculateVehicleFare(double distance, VendorPickupVehicleEnum vehicle) {
+	private BookVehicleCostResponse calculateVehicleFare(
+	        double distance,
+	        VendorPickupVehicleEnum vehicle,
+	        Boolean helperRequired,
+	        Integer helperCount,
+	        VehicleCategoryEnum vehicleCategory) {
 
-		BookVehicleCostResponse response=new BookVehicleCostResponse();
-		double perKm;
+	    BookVehicleCostResponse response = new BookVehicleCostResponse();
 
-		switch (vehicle) {
+	    double perKm;
 
-		case TWO_WHEELER:
-			perKm = 12;
-			break;
+	    switch (vehicle) {
 
-		case SCOOTER:
-			perKm = 13;
-			break;
+	        case TWO_WHEELER:
+	            perKm = 12;
+	            break;
 
-		case E_LOADER:
-			perKm = 18;
-			break;
+	        case SCOOTER:
+	            perKm = 13;
+	            break;
 
-		case THREE_WHEELER:
-			perKm = 22;
-			break;
+	        case E_LOADER:
+	            perKm = 18;
+	            break;
 
-		case EECO:
-			perKm = 28;
-			break;
+	        case THREE_WHEELER:
+	            perKm = 22;
+	            break;
 
-		case TATA_ACE:
-			perKm = 30;
-			break;
+	        case EECO:
+	            perKm = 28;
+	            break;
 
-		case PICKUP_8FT:
-			perKm = 35;
-			break;
+	        case TATA_ACE:
+	            perKm = 30;
+	            break;
 
-		case TRUCK_10FT:
-			perKm = 42;
-			break;
+	        case PICKUP_8FT:
+	            perKm = 35;
+	            break;
 
-		case TRUCK_14FT:
-		case TRUCK_14FT_CLOSED:
-		case TRUCK_14FT_OPEN:
-			perKm = 50;
-			break;
+	        case TRUCK_10FT:
+	            perKm = 42;
+	            break;
 
-		case TRUCK_17FT:
-		case TRUCK_17FT_CLOSED:
-		case TRUCK_17FT_OPEN:
-			perKm = 60;
-			break;
+	        case TRUCK_14FT:
+	        case TRUCK_14FT_OPEN:
+	        case TRUCK_14FT_CLOSED:
+	            perKm = 50;
+	            break;
 
-		case TRUCK_19FT:
-			perKm = 72;
-			break;
+	        case TRUCK_17FT:
+	        case TRUCK_17FT_OPEN:
+	        case TRUCK_17FT_CLOSED:
+	            perKm = 60;
+	            break;
 
-		default:
-			throw new IllegalArgumentException("Invalid vehicle type");
-		}
-		double rideCost=distance * perKm;
-		response.setRideCost(rideCost);
-		response.setVehicle(vehicle.getDisplayName());
+	        case TRUCK_19FT:
+	            perKm = 72;
+	            break;
 
-		return response;
+	        default:
+	            throw new IllegalArgumentException("Invalid vehicle type");
+	    }
+
+	    double rideCost = distance * perKm;
+
+	    // Helper Charges
+	    double helperCharge = 0;
+	    if (Boolean.TRUE.equals(helperRequired)) {
+	        helperCharge = (helperCount == null ? 1 : helperCount) * 300;
+	    }
+
+	    // Loading / Unloading
+	    double loadingUnloading = 0;
+//	    if (vehicleCategory == VehicleCategoryEnum.HOUSE_SHIFTING) {
+//	        loadingUnloading = 500;
+//	    } else if (vehicleCategory == VehicleCategoryEnum.COMMERCIAL) {
+//	        loadingUnloading = 300;
+//	    }
+
+	    // Packaging
+	    double packaging = 0;
+//	    if (vehicleCategory == VehicleCategoryEnum.HOUSE_SHIFTING) {
+//	        packaging = 700;
+//	    }
+
+	    double subtotal = rideCost + helperCharge + loadingUnloading + packaging;
+
+	    double gst = subtotal * 0.18;
+
+	    double total = subtotal + gst;
+
+	    response.setVehicle(vehicle.getDisplayName());
+	    response.setRideCost(rideCost);
+	    response.setLoadingUnloading(loadingUnloading);
+	    response.setPackaging(packaging);
+	    response.setHelperCharge(helperCharge);
+	    response.setGst(gst);
+	    response.setTotalCost(total);
+
+	    return response;
 	}
+	
 }
