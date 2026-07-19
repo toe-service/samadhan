@@ -28,6 +28,7 @@ import com.samadhan.enums.BikeModelEnum;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
+import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
@@ -73,7 +74,11 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) Double height,
 	                                               @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit,
 	                                               @RequestParam(required = false, defaultValue = "TRANSFERSERVICE") serviceTypeEnum serviceType,
-	                                               @RequestParam(required = false) VendorPickupVehicleEnum vendorPickupVehicle) throws JsonProcessingException {
+	                                               @RequestParam(required = false) VendorPickupVehicleEnum vendorPickupVehicle,
+	                                               @RequestParam(required = false, defaultValue = "false") Boolean helperRequired,
+	                                               @RequestParam(required = false, defaultValue = "false") Boolean instantBooking,
+	                                               @RequestParam(required = false, defaultValue = "0") Integer helperCount,
+	                                               @RequestParam(required = false) VehicleCategoryEnum vehicleCategory) throws JsonProcessingException {
 	        System.out.println("hi");
 	        
 	        if (serviceType == serviceTypeEnum.TRANSFERSERVICE) {
@@ -91,7 +96,8 @@ TransferRequestService transferRequestService;
 	                pickuplatitude, pickuplongitude, destinationlatitude, destinationlongitude,userId, rideCost, 
 	                pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber
 	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, 
-	                rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, height, serviceType, vendorPickupVehicle);
+	                rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, 
+	                height, serviceType, vendorPickupVehicle, helperRequired, helperCount, vehicleCategory, instantBooking);
 	        return rideTransfer;
 	  }
 	  
