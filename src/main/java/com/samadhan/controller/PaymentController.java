@@ -32,6 +32,7 @@ import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.PaymentTypeEnum;
 import com.samadhan.enums.SubscriptionPeriodEnum;
+import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.PaymentRepository;
@@ -477,14 +478,20 @@ public class PaymentController {
 	        @RequestParam Double pickuplatitude,
 	        @RequestParam Double pickuplongitude,
 	        @RequestParam Double destinationlatitude,
-	        @RequestParam Double destinationlongitude) throws JsonMappingException, JsonProcessingException {
+	        @RequestParam Double destinationlongitude,
+	        @RequestParam(required = false, defaultValue = "false") Boolean helperRequired,
+	        @RequestParam(required = false, defaultValue = "0") Integer helperCount,
+	        @RequestParam(required = false) VehicleCategoryEnum vehicleCategory) throws JsonMappingException, JsonProcessingException {
 
 	    return ResponseEntity.ok(
 	            paymentService.getVehicleCostList(
 	                    pickuplatitude,
 	                    pickuplongitude,
 	                    destinationlatitude,
-	                    destinationlongitude));
+	                    destinationlongitude,
+	                    helperRequired,
+	                    helperCount,
+	                    vehicleCategory));
 	}
 	
 	@PostMapping("/free-subscription/createOrder")
