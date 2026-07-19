@@ -1,5 +1,9 @@
 package com.samadhan.enums;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public enum VendorPickupVehicleEnum {
 
     // ---------- SMALL VEHICLE ----------
@@ -429,6 +433,14 @@ public enum VendorPickupVehicleEnum {
         this.lengthFt = lengthFt;
         this.widthFt = widthFt;
         this.heightFt = heightFt;
+    }
+    
+    public static List<VendorPickupVehicleEnum> getByCategory(
+            VehicleCategoryEnum category) {
+
+        return Arrays.stream(VendorPickupVehicleEnum.values())
+                .filter(vehicle -> vehicle.getCategory() == category)
+                .collect(Collectors.toList());
     }
 
     public String getDisplayName() {
