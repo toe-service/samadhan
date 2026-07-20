@@ -91,6 +91,18 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "AND ( " +
 
 	        // Assigned rides of current vendor
+	        
+	        "   NOT EXISTS (SELECT 1 FROM vendor_service vs0 WHERE vs0.vendor_id = :vendorId) " +
+	        "   OR EXISTS ( " +
+	                // Assigned rides of current vendor
+	        "      SELECT 1 FROM vendor_service vs " +
+	        "      WHERE vs.vendor_id = :vendorId " +
+	        "      AND vs.service_type = trd.service_type " +
+	        "      AND vs.is_active = 1 " +
+	        "   ) " +
+	        ") " +
+	        "AND ( " +
+	        
 	        "trd.transfer_id = :vendorId " +
 
 	        "OR ( " +
