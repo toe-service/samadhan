@@ -83,6 +83,18 @@ public class TransferVendor {
 	 @OneToOne(mappedBy = "vendor", fetch = FetchType.LAZY)
 	 @JsonManagedReference
 	 private Subscription subscription;
+	 
+	 @OneToMany(mappedBy = "transferVendor", cascade = CascadeType.ALL, orphanRemoval = true)
+	 @JsonManagedReference
+	 private List<VendorService> vendorServices;
+
+	 public List<VendorService> getVendorServices() {
+	     return vendorServices;
+	 }
+
+	 public void setVendorServices(List<VendorService> vendorServices) {
+	     this.vendorServices = vendorServices;
+	 }
 	
 	public String getAadhaarStorageKey() {
 		return aadhaarStorageKey;
