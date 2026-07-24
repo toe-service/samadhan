@@ -2,7 +2,8 @@ package com.samadhan.enums;
 
 public enum serviceTypeEnum {
 	TRANSFERSERVICE(0,"TRANSFER_SERVICE"),
-	BOOKVEHICLE(1,"BOOK_VEHICLE");
+	BOOKVEHICLE(1,"BOOK_VEHICLE"),
+	HOMESHIFTING(2,"HOME SHIFTING");
 	
 	
 	int id;

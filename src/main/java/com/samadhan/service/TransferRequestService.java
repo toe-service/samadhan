@@ -48,7 +48,8 @@ public interface TransferRequestService{
 			String packageDescription, Long vendorId, String userType, String userName, String userContact,
 			Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost,
 			DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
-			VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory, Boolean instantBooking);
+			VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory, 
+			Boolean instantBooking, String homeType, String packingType, String goodsType);
 	
 
 }
