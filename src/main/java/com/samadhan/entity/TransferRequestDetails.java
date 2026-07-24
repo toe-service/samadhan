@@ -198,6 +198,15 @@ public class TransferRequestDetails {
 	 @Column(name = "instant_booking")
 	 private Boolean instantBooking = false;
 	 
+	 @Column(name = "goods_type")
+	 private String goodsType;
+	 
+	 @Column(name = "home_type")
+	 private String HomeType;
+	 
+	 @Column(name = "packaging_type")
+	 private String PackingType;
+	 
 	public Boolean getHelperRequired() {
 		return helperRequired;
 	}
@@ -535,6 +544,29 @@ public class TransferRequestDetails {
 		VendorPickupVehicle = vendorPickupVehicle;
 	}
 
+	public String getGoodsType() {
+		return goodsType;
+	}
+
+	public void setGoodsType(String goodsType) {
+		this.goodsType = goodsType;
+	}
+
+	public String getHomeType() {
+		return HomeType;
+	}
+
+	public void setHomeType(String homeType) {
+		HomeType = homeType;
+	}
+
+	public String getPackingType() {
+		return PackingType;
+	}
+
+	public void setPackingType(String packingType) {
+		PackingType = packingType;
+	}
 
 
 	 
