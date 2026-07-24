@@ -482,7 +482,9 @@ public class PaymentController {
 	        @RequestParam(required = false, defaultValue = "false") Boolean helperRequired,
 	        @RequestParam(required = false, defaultValue = "0") Integer helperCount,
 	        @RequestParam(required = false) VehicleCategoryEnum vehicleCategory,
-	        @RequestParam(required = false) serviceTypeEnum  serviceType) throws JsonMappingException, JsonProcessingException {
+	        @RequestParam(required = false) serviceTypeEnum  serviceType,
+	        @RequestParam(required = false) String  packingType,
+	        @RequestParam(required = false) String  homeType) throws JsonMappingException, JsonProcessingException {
 
 	    return ResponseEntity.ok(
 	            paymentService.getVehicleCostList(
