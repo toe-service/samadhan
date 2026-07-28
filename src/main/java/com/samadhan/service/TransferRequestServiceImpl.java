@@ -165,9 +165,23 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 	    transferRequest.setVehicleCategory(vehicleCategory);
 	    
-	    transferRequest.setInstantBooking(
-	            instantBooking != null ? instantBooking : false);
+//	    transferRequest.setInstantBooking(
+//	            instantBooking != null ? instantBooking : false);
 	}else if (serviceType == serviceTypeEnum.HOMESHIFTING) {
+		transferRequest.setVendorPickupVehicle(vendorPickupVehicle);
+		
+		transferRequest.setHelperRequired(
+	            helperRequired != null ? helperRequired : false);
+
+	    transferRequest.setHelperCount(
+	            Boolean.TRUE.equals(helperRequired)
+	                    ? helperCount
+	                    : 0);
+
+	    transferRequest.setVehicleCategory(vehicleCategory);
+	    
+//	    transferRequest.setInstantBooking(
+//	            instantBooking != null ? instantBooking : false);
 
 	    transferRequest.setHomeType(homeType);
 	    transferRequest.setPackingType(packingType);
@@ -177,11 +191,21 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	
 //		transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleType]);
 	//	transferRequest.setVehicleType(VehicleTypeEnum.values()[vehicleModel]);
+		
+		  transferRequest.setInstantBooking(
+		            instantBooking != null ? instantBooking : false);
+		  
+		  
 	
 		LocalDate currentDate=LocalDate.now();
 		LocalTime cuurentTime=LocalTime.now();
+		 if(instantBooking != null && instantBooking==true) {
+			 transferRequest.setPickupDate(currentDate);  
+		  }else {
+			  transferRequest.setPickupDate(pickupDate);  
+		  }
 		LocalDateTime currentDateTime=LocalDateTime.now();
-		transferRequest.setPickupDate(pickupDate);
+	//	transferRequest.setPickupDate(pickupDate);
 		transferRequest.setPickupSchedule(pickupSchedule);
 		transferRequest.setRideCost(rideCost);
 		transferRequest.setUserDetails(user);
