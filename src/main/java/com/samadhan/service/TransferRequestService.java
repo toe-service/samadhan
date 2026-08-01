@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.VehicleTransfer;
@@ -49,7 +50,7 @@ public interface TransferRequestService{
 			Double gstCost, Double rideWithoutTaxCalculation, Double loadingUnloading, Double packagingCost,
 			DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
 			VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory, 
-			Boolean instantBooking, String homeType, String packingType, String goodsType);
+			Boolean instantBooking, String homeType, String packingType, String goodsType) throws FirebaseMessagingException;
 	
 
 }

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.VehicleTransfer;
@@ -80,7 +81,7 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false, defaultValue = "0") Integer helperCount,
 	                                               @RequestParam(required = false) VehicleCategoryEnum vehicleCategory,
 	                                               @RequestParam(required = false) String homeType, @RequestParam(required = false) String packingType, 
-	                                               @RequestParam(required = false) String goodsType) throws JsonProcessingException {
+	                                               @RequestParam(required = false) String goodsType) throws JsonProcessingException, FirebaseMessagingException {
 	        System.out.println("hi");
 	        
 	        if (serviceType == serviceTypeEnum.TRANSFERSERVICE) {
@@ -124,6 +125,14 @@ TransferRequestService transferRequestService;
 		  List<TransferRequestDetails> showRidestoVendors = transferRequestService.showRidestoVendors(transferId);		 
 		  return ResponseEntity.ok(showRidestoVendors);
 	    }
+	  
+//	  @PostMapping("/dispatchVehicleRequest/{requestId}")
+//	  public ResponseEntity<String> dispatchVehicleRequest(@PathVariable Long requestId) {
+//
+//	      vehicleDispatchService.dispatchVehicleRequest(requestId);
+//
+//	      return ResponseEntity.ok("Vehicle notifications sent successfully.");
+//	  }
 	  
 	  @GetMapping(value = "/rideTransferByDriver/{driverId}")
 	    public ResponseEntity< List<TransferRequestDetails>> getRidesByDriverId(@PathVariable Long driverId) {
