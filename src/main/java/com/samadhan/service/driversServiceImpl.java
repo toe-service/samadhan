@@ -184,7 +184,7 @@ public class driversServiceImpl implements driversService {
 
 
 	@Override
-	public LoginResponse loginRole(String username, String password) {
+	public LoginResponse loginRole(String username, String password, String fcmToken) {
 
 	    // 🔹 Check Driver
 	    Driver driver = driverRepo.findByUserNamePassword(username, password);
@@ -205,6 +205,10 @@ public class driversServiceImpl implements driversService {
 	        res.setUsername(vehicle.getUserName());
 	        res.setVehicleId(vehicle.getId());
 	        res.setUserType("vehicle");
+	        
+	        vehicle.setFcmToken(fcmToken);
+	        vehicleRepo.save(vehicle);
+	        
 	        return res;
 	    }
 

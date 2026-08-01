@@ -30,7 +30,7 @@ public interface driversService {
 
 	Driver loginDriver(String userName, String password);
 
-	LoginResponse loginRole(String userName, String password);
+	LoginResponse loginRole(String userName, String password, String fcmToken);
 
 	Driver updateLocation(String address, Long id);
 

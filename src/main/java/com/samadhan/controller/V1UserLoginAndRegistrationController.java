@@ -5,6 +5,7 @@ import com.samadhan.entity.Driver;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.enums.CarModelEnum;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.UserLoginRequest;
@@ -131,10 +132,10 @@ public class V1UserLoginAndRegistrationController {
 	}
     
     @PostMapping("/role-login")
-    public ResponseEntity<?> loginRole(@RequestParam String UserName, @RequestParam String password
+    public ResponseEntity<?> loginRole(@RequestParam String UserName, @RequestParam String password,@RequestParam(required = false) String fcmToken
 	) throws ConflictException {
 
-    	LoginResponse data = driverservice.loginRole(UserName, password);
+    	LoginResponse data = driverservice.loginRole(UserName, password, fcmToken);
       
 		ResponseObject<?> success = ResponseUtil.populateResponseObject(data, "SUCCESS", null);
 
