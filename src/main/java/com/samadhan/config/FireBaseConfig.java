@@ -13,38 +13,63 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
-
 
 
 @Configuration
 public class FireBaseConfig {
 
-    @Value("${file.path.service.account.key}")
-    private String serviceAccountKeyPath;
-
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
 
-        File file = new File(serviceAccountKeyPath);
-
-        System.out.println("Loading Firebase from: " + file.getAbsolutePath());
-        System.out.println("File exists: " + file.exists());
-
-        GoogleCredentials credentials =
-                GoogleCredentials.fromStream(new FileInputStream(file));
-
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(credentials)
-                .build();
-
-        if (FirebaseApp.getApps().isEmpty()) {
-            return FirebaseApp.initializeApp(options);
+        if (!FirebaseApp.getApps().isEmpty()) {
+            return FirebaseApp.getInstance();
         }
 
-        return FirebaseApp.getInstance();
+        InputStream serviceAccount =
+                getClass().getClassLoader().getResourceAsStream("serviceAccountKey.json");
+
+        if (serviceAccount == null) {
+            throw new FileNotFoundException("serviceAccountKey.json not found in resources");
+        }
+
+        FirebaseOptions options = FirebaseOptions.builder()
+                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .build();
+
+        return FirebaseApp.initializeApp(options);
     }
 }
+
+//@Configuration
+//public class FireBaseConfig {
+//
+//    @Value("${file.path.service.account.key}")
+//    private String serviceAccountKeyPath;
+//
+//    @Bean
+//    public FirebaseApp firebaseApp() throws IOException {
+//
+//        File file = new File(serviceAccountKeyPath);
+//
+//        System.out.println("Loading Firebase from: " + file.getAbsolutePath());
+//        System.out.println("File exists: " + file.exists());
+//
+//        GoogleCredentials credentials =
+//                GoogleCredentials.fromStream(new FileInputStream(file));
+//
+//        FirebaseOptions options = FirebaseOptions.builder()
+//                .setCredentials(credentials)
+//                .build();
+//
+//        if (FirebaseApp.getApps().isEmpty()) {
+//            return FirebaseApp.initializeApp(options);
+//        }
+//
+//        return FirebaseApp.getInstance();
+//    }
+//}
 
 //@Configuration
 //public class FireBaseConfig {
