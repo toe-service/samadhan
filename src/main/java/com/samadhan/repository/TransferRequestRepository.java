@@ -116,7 +116,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(tv.vendor_longitude) AS DECIMAL(12,8)), CAST(TRIM(tv.vendor_latitude) AS DECIMAL(12,8))) " +
-	        ") <= 30000 " +
+	        ") <= 40000 " +
 
 	        "AND NOT EXISTS ( " +
 	        "SELECT 1 FROM cancelled_request cr " +
@@ -126,6 +126,23 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 
 	        ") " +
 	        ") " +
+	        
+			 // Business Rules
+			 "AND ( " +
+			 "   trd.service_type = 'BOOKVEHICLE' " +
+			 "   OR trd.service_type = 'HOMESHIFTING' " +
+			 "   OR ( " +
+			 "       trd.service_type = 'TRANSFERSERVICE' " +
+			 "       AND ( " +
+			 "           trd.parcel_type IN ('Bike','Car') " +
+			 "           OR ( " +
+			 "               trd.parcel_type = 'Package' " +
+			 "               AND trd.distance_km >= 30 " +
+			 "           ) " +
+			 "       ) " +
+			 "   ) " +
+			 ") " +
+	        
 	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
 	List<TransferRequestDetails> showRidestoVendors(Long vendorId);

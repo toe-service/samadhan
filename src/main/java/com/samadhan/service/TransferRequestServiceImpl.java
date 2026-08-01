@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.google.api.client.util.Objects;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.samadhan.entity.CancelledRequest;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.ParcelDetails;
@@ -43,6 +44,7 @@ import com.samadhan.entity.VehicleTransfer;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
 import com.samadhan.repository.*;
+import com.samadhan.util.FireBaseMessagingService;
 
 
 
@@ -75,6 +77,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	
 	 @Autowired
 	 PaymentRepository paymentRepo;
+	 
+	 @Autowired
+	 private FireBaseMessagingService fireBaseMessagingService;
 	
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
@@ -90,7 +95,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String destination, String carNumber, BikeModelEnum bikeModel, String bikeNumber, Double packageWeight,
 				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation,
 				Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
-				VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory,  Boolean instantBooking, String homeType, String packingType, String goodsType) {	
+				VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory,  Boolean instantBooking, String homeType, String packingType, String goodsType) throws FirebaseMessagingException {	
 		
 		
 		TransferVendor vendor = null;
@@ -275,6 +280,27 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 		
 		transferRepo.save(transferRequest);
+		
+		fireBaseMessagingService.notifyVehicles(transferRequest);
+		
+//		List<TransferVendor> vendors = transferVendorRepo.findAllActiveVendors();
+//		
+//		for (TransferVendor vendorr : vendors) {
+//
+//		    List<TransferRequestDetails> rides =
+//		    		transferRepo.showRidestoVendors(vendorr.getId());
+//
+//		    // If the newly created request is visible for this vendor,
+//		    // send notification to that vendor
+////		    boolean matched = rides.stream()
+////		            .anyMatch(r -> r.getId().equals(savedRequest.getId()));
+////
+////		    if (matched) {
+////		        fireBaseMessagingService.sendVendorNotification(
+////		                vendor.getFcmToken(),
+////		                savedRequest);
+////		    }
+//		}
 		
 		
 		return transferRequest;

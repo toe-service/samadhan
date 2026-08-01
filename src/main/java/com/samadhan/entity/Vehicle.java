@@ -51,6 +51,16 @@ public class Vehicle {
 	
 	@Column(name="vehicle_category", columnDefinition = "BOOLEAN DEFAULT FALSE")
 	private VehicleCategoryEnum VehicleCategory;
+	
+	@Column(name="vehicle_latitude")
+	private String vehicleLatitude;
+	
+	@Column(name="fcm_token")
+	private String fcmToken;
+	
+	@Column(name="vehicle_longitude")
+	private String vehicleLongitude;
+	
 
 	public VehicleCategoryEnum getVehicleCategory() {
 		return VehicleCategory;
@@ -130,6 +140,30 @@ public class Vehicle {
 
 	public void setVendorVehicle(VendorPickupVehicleEnum vendorVehicle) {
 		this.vendorVehicle = vendorVehicle;
+	}
+
+	public String getVehicleLatitude() {
+		return vehicleLatitude;
+	}
+
+	public void setVehicleLatitude(String vehicleLatitude) {
+		this.vehicleLatitude = vehicleLatitude;
+	}
+
+	public String getFcmToken() {
+		return fcmToken;
+	}
+
+	public void setFcmToken(String fcmToken) {
+		this.fcmToken = fcmToken;
+	}
+
+	public String getVehicleLongitude() {
+		return vehicleLongitude;
+	}
+
+	public void setVehicleLongitude(String vehicleLongitude) {
+		this.vehicleLongitude = vehicleLongitude;
 	}
 	
 	
