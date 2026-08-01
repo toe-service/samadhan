@@ -15,30 +15,79 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 
+
+
 @Configuration
 public class FireBaseConfig {
 
     @Value("${file.path.service.account.key}")
     private String serviceAccountKeyPath;
 
-    private File getServiceAccountKeyFile() {
-        try {
-            ClassLoader classLoader = SamadhanApplication.class.getClassLoader();
-      return new File(serviceAccountKeyPath);
-//      return new File(Objects.requireNonNull(classLoader.getResource("serviceAccountKey.json")).getFile());
-        } catch (Exception exp) {
-            return new File(serviceAccountKeyPath);
-        }
-    }
+    @Bean
+    public FirebaseApp firebaseApp() throws IOException {
 
-//    @Bean
-//    public void loadFireBaseConfigs() throws IOException {
-//       File file = getServiceAccountKeyFile();
-//        System.out.println("file path is "+file.getAbsolutePath());
-//        FileInputStream serviceAccount = new FileInputStream(file.getAbsolutePath());
-//        FirebaseOptions options =  new FirebaseOptions.Builder()
-//                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-//                .build();
-//        FirebaseApp.initializeApp(options);
-//    }
+        File file = new File(serviceAccountKeyPath);
+
+        System.out.println("Loading Firebase from: " + file.getAbsolutePath());
+        System.out.println("File exists: " + file.exists());
+
+        GoogleCredentials credentials =
+                GoogleCredentials.fromStream(new FileInputStream(file));
+
+        FirebaseOptions options = FirebaseOptions.builder()
+                .setCredentials(credentials)
+                .build();
+
+        if (FirebaseApp.getApps().isEmpty()) {
+            return FirebaseApp.initializeApp(options);
+        }
+
+        return FirebaseApp.getInstance();
+    }
 }
+
+//@Configuration
+//public class FireBaseConfig {
+//
+//    @Value("${file.path.service.account.key}")
+//    private String serviceAccountKeyPath;
+//
+//    private File getServiceAccountKeyFile() {
+//        try {
+//            ClassLoader classLoader = SamadhanApplication.class.getClassLoader();
+//      return new File(serviceAccountKeyPath);
+////      return new File(Objects.requireNonNull(classLoader.getResource("serviceAccountKey.json")).getFile());
+//        } catch (Exception exp) {
+//            return new File(serviceAccountKeyPath);
+//        }
+//    }
+//    
+//    @Bean
+//    public FirebaseApp firebaseApp() throws IOException {
+//
+//        File file = getServiceAccountKeyFile();
+//
+//        System.out.println("Loading Firebase from: " + file.getAbsolutePath());
+//
+//        FirebaseOptions options = FirebaseOptions.builder()
+//                .setCredentials(GoogleCredentials.fromStream(new FileInputStream(file)))
+//                .build();
+//
+//        if (FirebaseApp.getApps().isEmpty()) {
+//            return FirebaseApp.initializeApp(options);
+//        }
+//
+//        return FirebaseApp.getInstance();
+//    }
+//
+////    @Bean
+////    public void loadFireBaseConfigs() throws IOException {
+////       File file = getServiceAccountKeyFile();
+////        System.out.println("file path is "+file.getAbsolutePath());
+////        FileInputStream serviceAccount = new FileInputStream(file.getAbsolutePath());
+////        FirebaseOptions options =  new FirebaseOptions.Builder()
+////                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+////                .build();
+////        FirebaseApp.initializeApp(options);
+////    }
+//}
