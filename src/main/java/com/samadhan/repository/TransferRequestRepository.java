@@ -127,21 +127,21 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        ") " +
 	        ") " +
 	        
-			 // Business Rules
-			 "AND ( " +
-			 "   trd.service_type = 'BOOKVEHICLE' " +
-			 "   OR trd.service_type = 'HOMESHIFTING' " +
-			 "   OR ( " +
-			 "       trd.service_type = 'TRANSFERSERVICE' " +
-			 "       AND ( " +
-			 "           trd.parcel_type IN ('Bike','Car') " +
-			 "           OR ( " +
-			 "               trd.parcel_type = 'Package' " +
-			 "               AND trd.distance_km >= 30 " +
-			 "           ) " +
-			 "       ) " +
-			 "   ) " +
-			 ") " +
+//			 // Business Rules
+//			 "AND ( " +
+//			 "   trd.service_type = 'BOOKVEHICLE' " +
+//			 "   OR trd.service_type = 'HOMESHIFTING' " +
+//			 "   OR ( " +
+//			 "       trd.service_type = 'TRANSFERSERVICE' " +
+//			 "       AND ( " +
+//			 "           trd.parcel_type IN ('Bike','Car') " +
+//			 "           OR ( " +
+//			 "               trd.parcel_type = 'Package' " +
+//			 "               AND trd.distance_km >= 30 " +
+//			 "           ) " +
+//			 "       ) " +
+//			 "   ) " +
+//			 ") " +
 	        
 	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
