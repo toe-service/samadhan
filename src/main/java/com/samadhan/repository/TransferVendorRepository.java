@@ -1,5 +1,7 @@
 package com.samadhan.repository;
 
+import java.util.List;
+
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,6 +40,12 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 	    @Param("vendorId") Long vendorId,
 	    @Param("vendorStatus") int vendorStatus
 	);
+
+	@Query(
+		    value = "Select * from transfer_vendor ",
+		    nativeQuery = true
+		)
+	List<TransferVendor> findAllActiveVendors();
 	
 }
 
