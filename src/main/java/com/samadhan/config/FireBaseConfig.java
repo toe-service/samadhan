@@ -17,30 +17,30 @@ import java.io.InputStream;
 import java.util.Objects;
 
 
-@Configuration
-public class FireBaseConfig {
-
-    @Bean
-    public FirebaseApp firebaseApp() throws IOException {
-
-        if (!FirebaseApp.getApps().isEmpty()) {
-            return FirebaseApp.getInstance();
-        }
-
-        InputStream serviceAccount =
-                getClass().getClassLoader().getResourceAsStream("serviceAccountKey.json");
-
-        if (serviceAccount == null) {
-            throw new FileNotFoundException("serviceAccountKey.json not found in resources");
-        }
-
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
-
-        return FirebaseApp.initializeApp(options);
-    }
-}
+//@Configuration
+//public class FireBaseConfig {
+//
+//    @Bean
+//    public FirebaseApp firebaseApp() throws IOException {
+//
+//        if (!FirebaseApp.getApps().isEmpty()) {
+//            return FirebaseApp.getInstance();
+//        }
+//
+//        InputStream serviceAccount =
+//                getClass().getClassLoader().getResourceAsStream("serviceAccountKey.json");
+//
+//        if (serviceAccount == null) {
+//            throw new FileNotFoundException("serviceAccountKey.json not found in resources");
+//        }
+//
+//        FirebaseOptions options = FirebaseOptions.builder()
+//                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+//                .build();
+//
+//        return FirebaseApp.initializeApp(options);
+//    }
+//}
 
 //@Configuration
 //public class FireBaseConfig {
