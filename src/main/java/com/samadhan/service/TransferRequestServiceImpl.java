@@ -385,7 +385,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 		else {
 			
-		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE")) {
+		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE") || transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING")) {
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			 transferdetails.setVehicleId(vehicle);
