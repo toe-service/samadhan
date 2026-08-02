@@ -135,6 +135,7 @@ public class V1UserLoginAndRegistrationController {
     public ResponseEntity<?> loginRole(@RequestParam String UserName, @RequestParam String password,@RequestParam(required = false) String fcmToken
 	) throws ConflictException {
 
+    	logger.info("fcmToken "+fcmToken);
     	LoginResponse data = driverservice.loginRole(UserName, password, fcmToken);
       
 		ResponseObject<?> success = ResponseUtil.populateResponseObject(data, "SUCCESS", null);
