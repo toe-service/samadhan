@@ -21,42 +21,42 @@ import java.time.Duration;
 @Service
 public class StorageService {
 
-    @Value("${storage.bucket-name}")
+//    @Value("${storage.bucket-name}")
     private String bucketName;
-
-    @Value("${storage.endpoint}")
-    private String endpoint;
-
-    @Value("${storage.region}")
-    private String region;
-
-    @Value("${storage.access-key}")
-    private String accessKey;
-
-    @Value("${storage.secret-key}")
-    private String secretKey;
+//
+//    @Value("${storage.endpoint}")
+//    private String endpoint;
+//
+//    @Value("${storage.region}")
+//    private String region;
+//
+//    @Value("${storage.access-key}")
+//    private String accessKey;
+//
+//    @Value("${storage.secret-key}")
+//    private String secretKey;
 
     private S3Client s3Client;
     private S3Presigner s3Presigner;
 	
 
 
-    @PostConstruct
-    public void init() {
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
-        
-        this.s3Client = S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .build();
-
-        this.s3Presigner = S3Presigner.builder()
-                .endpointOverride(URI.create(endpoint))
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .build();
-    }
+//    @PostConstruct
+//    public void init() {
+//        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+//        
+//        this.s3Client = S3Client.builder()
+//                .endpointOverride(URI.create(endpoint))
+//                .region(Region.of(region))
+//                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+//                .build();
+//
+//        this.s3Presigner = S3Presigner.builder()
+//                .endpointOverride(URI.create(endpoint))
+//                .region(Region.of(region))
+//                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+//                .build();
+//    }
 
     public void uploadFile(String key, InputStream inputStream, long contentLength, String contentType) throws IOException {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()

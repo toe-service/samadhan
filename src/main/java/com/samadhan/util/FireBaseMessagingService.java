@@ -1,6 +1,8 @@
 package com.samadhan.util;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -13,6 +15,8 @@ import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.repository.VehicleRepository;
 
+import lombok.extern.java.Log;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +28,8 @@ public class FireBaseMessagingService {
 
 	@Autowired
 	FirebaseMessaging firebaseMessaging;
+	
+	   private static final Logger log = LoggerFactory.getLogger(FireBaseMessagingService.class);
 	
 	
 
@@ -69,11 +75,14 @@ public class FireBaseMessagingService {
 
 	public void notifyVehicles(TransferRequestDetails request) throws FirebaseMessagingException {
 
-	    List<Vehicle> vehicles =
-	            vehicleRepository.findNearbyVehicles(
-	                    request.getVendorPickupVehicle().name(),
-	                    request.getSourceLatitude(),
-	                    request.getSourceLongitude());
+//	    List<Vehicle> vehicles =
+//	            vehicleRepository.findNearbyVehicles(
+//	                    request.getVendorPickupVehicle().name(),
+//	                    request.getSourceLatitude(),
+//	                    request.getSourceLongitude());
+		
+		 List<Vehicle> vehicles =
+		            vehicleRepository.findAll();
 
 	    for (Vehicle vehicle : vehicles) {
 
@@ -103,6 +112,8 @@ public class FireBaseMessagingService {
 	                .putData("source", request.getSource())
                     .putData("destination", request.getDestination())
 					.build();
+			
+			log.info("message "+message);
 
 			 firebaseMessaging.send(message);
 	    }

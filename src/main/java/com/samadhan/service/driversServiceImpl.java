@@ -9,6 +9,9 @@ import java.util.Optional;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.NotFoundException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +25,12 @@ import com.samadhan.repository.RidesRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.response.LoginResponse;
+import com.samadhan.util.FireBaseMessagingService;
 
 @Service
 public class driversServiceImpl implements driversService {
+	
+ 		
 
     @Autowired
     DriverRepository driverRepo;
@@ -184,7 +190,7 @@ public class driversServiceImpl implements driversService {
 
 
 	@Override
-	public LoginResponse loginRole(String username, String password) {
+	public LoginResponse loginRole(String username, String password, String fcmToken) {
 
 	    // 🔹 Check Driver
 	    Driver driver = driverRepo.findByUserNamePassword(username, password);
@@ -205,6 +211,9 @@ public class driversServiceImpl implements driversService {
 	        res.setUsername(vehicle.getUserName());
 	        res.setVehicleId(vehicle.getId());
 	        res.setUserType("vehicle");
+	       vehicle.setFcmToken(fcmToken);
+	        vehicleRepo.save(vehicle);
+	        
 	        return res;
 	    }
 

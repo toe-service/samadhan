@@ -136,7 +136,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 		String originalFilename = file.getOriginalFilename();
 
-		String storageKey = String.format("transfers/%d/%d_%s", vendorId, System.currentTimeMillis(),
+		String storageKey = String.format("vendors/%d/%s/%d_%s", vendorId, folderName, System.currentTimeMillis(),
 				originalFilename);
 
 		try {

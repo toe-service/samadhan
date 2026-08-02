@@ -1,0 +1,1090 @@
+2026-08-01 15:45:44.110  INFO 22212 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 22212 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 15:45:44.138 DEBUG 22212 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 15:45:44.139  INFO 22212 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 15:45:45.341  INFO 22212 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 15:45:45.544  INFO 22212 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 186 ms. Found 13 JPA repository interfaces.
+2026-08-01 15:45:45.939  INFO 22212 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 15:45:45.980  INFO 22212 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 15:45:45.982  INFO 22212 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 15:45:45.982  INFO 22212 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 15:45:45.983  INFO 22212 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 15:45:45.983  INFO 22212 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 15:45:45.983  INFO 22212 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 15:45:45.983  INFO 22212 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 15:45:46.081  INFO 22212 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 15:45:46.374  INFO 22212 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 15:45:46.379  INFO 22212 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 15:45:46.864  INFO 22212 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 15:45:46.882  INFO 22212 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 15:45:46.883  INFO 22212 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 15:45:47.122  INFO 22212 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 15:45:47.122  INFO 22212 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2900 ms
+2026-08-01 15:45:47.428  INFO 22212 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 15:45:47.515  INFO 22212 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 15:45:47.771  INFO 22212 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 15:45:47.949  INFO 22212 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 15:45:48.558  INFO 22212 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 15:45:48.584  INFO 22212 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 15:45:50.938  INFO 22212 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 15:45:50.953  INFO 22212 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 15:45:53.124  WARN 22212 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 15:45:53.796  INFO 22212 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-08-01 15:45:53.823  INFO 22212 --- [main] com.samadhan.SamadhanApplication         : Started SamadhanApplication in 10.474 seconds (JVM running for 11.872)
+2026-08-01 15:46:19.691  INFO 22212 --- [http-nio-8082-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-01 15:46:19.693  INFO 22212 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-01 15:46:19.695  INFO 22212 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-08-01 15:56:15.895  INFO 28584 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 28584 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 15:56:15.908 DEBUG 28584 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 15:56:15.909  INFO 28584 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 15:56:17.721  INFO 28584 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 15:56:17.979  INFO 28584 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 231 ms. Found 13 JPA repository interfaces.
+2026-08-01 15:56:18.535  INFO 28584 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 15:56:18.586  INFO 28584 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 15:56:18.589  INFO 28584 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 15:56:18.590  INFO 28584 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 15:56:18.590  INFO 28584 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 15:56:18.591  INFO 28584 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 15:56:18.591  INFO 28584 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 15:56:18.591  INFO 28584 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 15:56:18.732  INFO 28584 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 15:56:19.161  INFO 28584 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 15:56:19.196  INFO 28584 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 15:56:20.029  INFO 28584 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 15:56:20.062  INFO 28584 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 15:56:20.064  INFO 28584 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 15:56:20.446  INFO 28584 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 15:56:20.447  INFO 28584 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4404 ms
+2026-08-01 15:56:20.809  INFO 28584 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 15:56:20.930  INFO 28584 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 15:56:21.311  INFO 28584 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 15:56:21.556  INFO 28584 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 15:56:22.284  INFO 28584 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 15:56:22.324  INFO 28584 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 15:56:25.030  INFO 28584 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 15:56:25.052  INFO 28584 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 15:56:28.304  WARN 28584 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 15:56:29.266  INFO 28584 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-08-01 15:56:29.328  INFO 28584 --- [main] com.samadhan.SamadhanApplication         : Started SamadhanApplication in 14.602 seconds (JVM running for 16.25)
+2026-08-01 15:56:51.772  INFO 28584 --- [http-nio-8082-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-01 15:56:51.773  INFO 28584 --- [http-nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-01 15:56:51.776  INFO 28584 --- [http-nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2026-08-01 16:15:37.569  WARN 28584 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=13m15s177ms146µs100ns).
+2026-08-01 16:22:52.443  INFO 23284 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 23284 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 16:22:52.454 DEBUG 23284 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 16:22:52.455  INFO 23284 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 16:22:54.056  INFO 23284 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 16:22:54.315  INFO 23284 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 233 ms. Found 13 JPA repository interfaces.
+2026-08-01 16:22:54.852  INFO 23284 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 16:22:54.904  INFO 23284 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 16:22:54.907  INFO 23284 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:22:54.908  INFO 23284 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:22:54.909  INFO 23284 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 16:22:54.910  INFO 23284 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 16:22:54.910  INFO 23284 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:22:54.910  INFO 23284 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 16:22:55.060  INFO 23284 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 16:22:55.458  INFO 23284 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 16:22:55.465  INFO 23284 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 16:22:56.094  INFO 23284 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 16:22:56.117  INFO 23284 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 16:22:56.118  INFO 23284 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 16:22:56.389  INFO 23284 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 16:22:56.390  INFO 23284 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3832 ms
+2026-08-01 16:22:56.718  INFO 23284 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 16:22:56.832  INFO 23284 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 16:22:57.180  INFO 23284 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 16:22:57.429  INFO 23284 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 16:22:58.123  INFO 23284 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 16:22:58.159  INFO 23284 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 16:23:00.416  INFO 23284 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 16:23:00.434  INFO 23284 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 16:23:01.905  WARN 23284 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: com/google/auth/oauth2/GoogleCredentials
+2026-08-01 16:23:01.907  INFO 23284 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 16:23:01.911  INFO 23284 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 16:23:01.934  INFO 23284 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 16:23:01.939  INFO 23284 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 16:23:01.959  INFO 23284 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 16:23:02.060 ERROR 23284 --- [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: com/google/auth/oauth2/GoogleCredentials
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:953) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:918) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:583) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:734) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:308) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295) ~[spring-boot-2.7.0.jar:2.7.0]
+	at com.samadhan.SamadhanApplication.main(SamadhanApplication.java:66) ~[classes/:na]
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: com/google/auth/oauth2/GoogleCredentials
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 20 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: com/google/auth/oauth2/GoogleCredentials
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:658) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:486) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 34 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: com/google/auth/oauth2/GoogleCredentials
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:185) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 47 common frames omitted
+Caused by: java.lang.NoClassDefFoundError: com/google/auth/oauth2/GoogleCredentials
+	at com.samadhan.SamadhanApplication.firebaseMessaging(SamadhanApplication.java:38) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$e2100ff1.CGLIB$firebaseMessaging$0(<generated>) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$e2100ff1$$FastClassBySpringCGLIB$$335f8e97.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:244) ~[spring-core-5.3.20.jar:5.3.20]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:331) ~[spring-context-5.3.20.jar:5.3.20]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$e2100ff1.firebaseMessaging(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:154) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 48 common frames omitted
+Caused by: java.lang.ClassNotFoundException: com.google.auth.oauth2.GoogleCredentials
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[na:na]
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[na:na]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[na:na]
+	... 59 common frames omitted
+
+2026-08-01 16:30:11.427  INFO 21488 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 21488 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 16:30:11.436 DEBUG 21488 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 16:30:11.437  INFO 21488 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 16:30:13.002  INFO 21488 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 16:30:13.261  INFO 21488 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 235 ms. Found 13 JPA repository interfaces.
+2026-08-01 16:30:13.790  INFO 21488 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 16:30:13.851  INFO 21488 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 16:30:13.854  INFO 21488 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:30:13.854  INFO 21488 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:30:13.855  INFO 21488 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 16:30:13.855  INFO 21488 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 16:30:13.856  INFO 21488 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:30:13.856  INFO 21488 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 16:30:13.993  INFO 21488 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 16:30:14.389  INFO 21488 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 16:30:14.395  INFO 21488 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 16:30:15.021  INFO 21488 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 16:30:15.052  INFO 21488 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 16:30:15.053  INFO 21488 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 16:30:15.376  INFO 21488 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 16:30:15.377  INFO 21488 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3828 ms
+2026-08-01 16:30:15.727  INFO 21488 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 16:30:15.834  INFO 21488 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 16:30:16.210  INFO 21488 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 16:30:16.449  INFO 21488 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 16:30:17.192  INFO 21488 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 16:30:17.231  INFO 21488 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 16:30:19.550  INFO 21488 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 16:30:19.569  INFO 21488 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 16:30:21.277  WARN 21488 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+2026-08-01 16:30:21.281  INFO 21488 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 16:30:21.286  INFO 21488 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 16:30:21.312  INFO 21488 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 16:30:21.316  INFO 21488 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 16:30:21.338  INFO 21488 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 16:30:21.384 ERROR 21488 --- [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:953) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:918) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:583) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:734) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:308) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295) ~[spring-boot-2.7.0.jar:2.7.0]
+	at com.samadhan.SamadhanApplication.main(SamadhanApplication.java:66) ~[classes/:na]
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 20 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:658) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:486) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 34 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:185) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 47 common frames omitted
+Caused by: java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at com.google.firebase.internal.ApacheHttp2Transport.defaultHttpAsyncClientBuilder(ApacheHttp2Transport.java:77) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.newDefaultHttpAsyncClient(ApacheHttp2Transport.java:65) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.<init>(ApacheHttp2Transport.java:50) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApiClientUtils.getDefaultTransport(ApiClientUtils.java:91) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:107) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:43) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions$Builder.build(FirebaseOptions.java:530) ~[firebase-admin-9.4.3.jar:na]
+	at com.samadhan.SamadhanApplication.firebaseMessaging(SamadhanApplication.java:43) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$3f01f424.CGLIB$firebaseMessaging$0(<generated>) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$3f01f424$$FastClassBySpringCGLIB$$a699dd2e.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:244) ~[spring-core-5.3.20.jar:5.3.20]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:331) ~[spring-context-5.3.20.jar:5.3.20]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$3f01f424.firebaseMessaging(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:154) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 48 common frames omitted
+Caused by: java.lang.ClassNotFoundException: org.apache.hc.client5.http.config.ConnectionConfig
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[na:na]
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[na:na]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[na:na]
+	... 66 common frames omitted
+
+2026-08-01 16:35:12.055  INFO 28352 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 28352 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 16:35:12.068 DEBUG 28352 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 16:35:12.069  INFO 28352 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 16:35:13.654  INFO 28352 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 16:35:13.904  INFO 28352 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 228 ms. Found 13 JPA repository interfaces.
+2026-08-01 16:35:14.426  INFO 28352 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 16:35:14.478  INFO 28352 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 16:35:14.481  INFO 28352 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:35:14.482  INFO 28352 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:35:14.482  INFO 28352 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 16:35:14.483  INFO 28352 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 16:35:14.483  INFO 28352 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 16:35:14.483  INFO 28352 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 16:35:14.623  INFO 28352 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 16:35:14.974  INFO 28352 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 16:35:14.980  INFO 28352 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 16:35:15.579  INFO 28352 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 16:35:15.602  INFO 28352 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 16:35:15.603  INFO 28352 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 16:35:15.956  INFO 28352 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 16:35:15.957  INFO 28352 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3777 ms
+2026-08-01 16:35:16.304  INFO 28352 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 16:35:16.430  INFO 28352 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 16:35:16.898  INFO 28352 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 16:35:17.169  INFO 28352 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 16:35:18.017  INFO 28352 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 16:35:18.056  INFO 28352 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 16:35:20.381  INFO 28352 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 16:35:20.399  INFO 28352 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 16:35:23.276  WARN 28352 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 16:35:24.063  INFO 28352 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-08-01 16:35:24.095  INFO 28352 --- [main] com.samadhan.SamadhanApplication         : Started SamadhanApplication in 13.047 seconds (JVM running for 14.799)
+2026-08-01 16:35:30.352  INFO 28352 --- [http-nio-8082-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-01 16:35:30.353  INFO 28352 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-01 16:35:30.355  INFO 28352 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-08-01 17:16:14.853  WARN 28352 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=34m56s634ms561µs700ns).
+2026-08-01 17:48:05.307  INFO 1840 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 1840 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 17:48:05.312 DEBUG 1840 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 17:48:05.313  INFO 1840 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 17:48:06.456  INFO 1840 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 17:48:06.620  INFO 1840 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 144 ms. Found 13 JPA repository interfaces.
+2026-08-01 17:48:06.959  INFO 1840 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 17:48:06.991  INFO 1840 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 17:48:06.993  INFO 1840 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 17:48:06.994  INFO 1840 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 17:48:06.994  INFO 1840 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 17:48:06.995  INFO 1840 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 17:48:06.995  INFO 1840 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 17:48:06.995  INFO 1840 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 17:48:07.089  INFO 1840 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 17:48:07.324  INFO 1840 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 17:48:07.328  INFO 1840 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 17:48:07.693  INFO 1840 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 17:48:07.711  INFO 1840 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 17:48:07.711  INFO 1840 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 17:48:07.905  INFO 1840 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 17:48:07.905  INFO 1840 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2510 ms
+2026-08-01 17:48:08.133  INFO 1840 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 17:48:08.206  INFO 1840 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 17:48:08.431  INFO 1840 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 17:48:08.596  INFO 1840 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 17:48:09.069  INFO 1840 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 17:48:09.094  INFO 1840 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 17:48:10.659  INFO 1840 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 17:48:10.671  INFO 1840 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 17:48:13.735  WARN 1840 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 17:48:14.762  INFO 1840 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-08-01 17:48:14.800  INFO 1840 --- [main] com.samadhan.SamadhanApplication         : Started SamadhanApplication in 10.068 seconds (JVM running for 11.063)
+2026-08-01 17:48:34.226  INFO 1840 --- [http-nio-8082-exec-3] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-01 17:48:34.227  INFO 1840 --- [http-nio-8082-exec-3] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-01 17:48:34.229  INFO 1840 --- [http-nio-8082-exec-3] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-08-01 17:59:35.032  INFO 16312 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 16312 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 17:59:35.041 DEBUG 16312 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 17:59:35.043  INFO 16312 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 17:59:36.091  INFO 16312 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 17:59:36.284  INFO 16312 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 177 ms. Found 13 JPA repository interfaces.
+2026-08-01 17:59:36.599  INFO 16312 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 17:59:36.630  INFO 16312 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 17:59:36.632  INFO 16312 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 17:59:36.633  INFO 16312 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 17:59:36.633  INFO 16312 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 17:59:36.633  INFO 16312 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 17:59:36.633  INFO 16312 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 17:59:36.633  INFO 16312 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 17:59:36.726  INFO 16312 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 17:59:36.967  INFO 16312 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 17:59:36.972  INFO 16312 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 17:59:37.338  INFO 16312 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 17:59:37.353  INFO 16312 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 17:59:37.354  INFO 16312 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 17:59:37.540  INFO 16312 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 17:59:37.540  INFO 16312 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2421 ms
+2026-08-01 17:59:37.751  INFO 16312 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 17:59:37.818  INFO 16312 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 17:59:38.048  INFO 16312 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 17:59:38.206  INFO 16312 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 17:59:38.639  INFO 16312 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 17:59:38.658  INFO 16312 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 17:59:39.963  INFO 16312 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 17:59:39.971  INFO 16312 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 17:59:41.097  WARN 16312 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+2026-08-01 17:59:41.099  INFO 16312 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 17:59:41.102  INFO 16312 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 17:59:41.117  INFO 16312 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 17:59:41.121  INFO 16312 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 17:59:41.133  INFO 16312 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 17:59:41.160 ERROR 16312 --- [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:953) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:918) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:583) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:734) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:308) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295) ~[spring-boot-2.7.0.jar:2.7.0]
+	at com.samadhan.SamadhanApplication.main(SamadhanApplication.java:66) ~[classes/:na]
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 20 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:658) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:486) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 34 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:185) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 47 common frames omitted
+Caused by: java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder.build(HttpAsyncClientBuilder.java:958) ~[httpclient5-5.3.1.jar:5.3.1]
+	at com.google.firebase.internal.ApacheHttp2Transport.newDefaultHttpAsyncClient(ApacheHttp2Transport.java:65) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.<init>(ApacheHttp2Transport.java:50) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApiClientUtils.getDefaultTransport(ApiClientUtils.java:91) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:107) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:43) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions$Builder.build(FirebaseOptions.java:530) ~[firebase-admin-9.4.3.jar:na]
+	at com.samadhan.SamadhanApplication.firebaseMessaging(SamadhanApplication.java:43) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$763e433.CGLIB$firebaseMessaging$0(<generated>) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$763e433$$FastClassBySpringCGLIB$$6e8b18f9.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:244) ~[spring-core-5.3.20.jar:5.3.20]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:331) ~[spring-context-5.3.20.jar:5.3.20]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$763e433.firebaseMessaging(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:154) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 48 common frames omitted
+Caused by: java.lang.ClassNotFoundException: org.apache.hc.core5.reactor.ProtocolUpgradeHandler
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[na:na]
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[na:na]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[na:na]
+	... 66 common frames omitted
+
+2026-08-01 18:02:04.514  INFO 12864 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 12864 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 18:02:04.521 DEBUG 12864 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 18:02:04.522  INFO 12864 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 18:02:05.540  INFO 12864 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 18:02:05.691  INFO 12864 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 136 ms. Found 13 JPA repository interfaces.
+2026-08-01 18:02:06.053  INFO 12864 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 18:02:06.086  INFO 12864 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 18:02:06.088  INFO 12864 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:02:06.089  INFO 12864 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:02:06.089  INFO 12864 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:02:06.089  INFO 12864 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 18:02:06.089  INFO 12864 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:02:06.089  INFO 12864 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:02:06.178  INFO 12864 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 18:02:06.416  INFO 12864 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 18:02:06.421  INFO 12864 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 18:02:06.798  INFO 12864 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 18:02:06.814  INFO 12864 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 18:02:06.815  INFO 12864 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 18:02:07.013  INFO 12864 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 18:02:07.014  INFO 12864 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2410 ms
+2026-08-01 18:02:07.215  INFO 12864 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 18:02:07.281  INFO 12864 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 18:02:07.496  INFO 12864 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 18:02:07.642  INFO 12864 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 18:02:08.088  INFO 12864 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 18:02:08.107  INFO 12864 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 18:02:09.524  INFO 12864 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 18:02:09.534  INFO 12864 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 18:02:10.576  WARN 12864 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+2026-08-01 18:02:10.577  INFO 12864 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 18:02:10.580  INFO 12864 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 18:02:10.592  INFO 12864 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 18:02:10.596  INFO 12864 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 18:02:10.610  INFO 12864 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 18:02:10.638 ERROR 12864 --- [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:953) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:918) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:583) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:734) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:308) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295) ~[spring-boot-2.7.0.jar:2.7.0]
+	at com.samadhan.SamadhanApplication.main(SamadhanApplication.java:66) ~[classes/:na]
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 20 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:658) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:486) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 34 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:185) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 47 common frames omitted
+Caused by: java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at com.google.firebase.internal.ApacheHttp2Transport.defaultHttpAsyncClientBuilder(ApacheHttp2Transport.java:77) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.newDefaultHttpAsyncClient(ApacheHttp2Transport.java:65) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.<init>(ApacheHttp2Transport.java:50) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.internal.ApiClientUtils.getDefaultTransport(ApiClientUtils.java:91) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:107) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:43) ~[firebase-admin-9.4.3.jar:na]
+	at com.google.firebase.FirebaseOptions$Builder.build(FirebaseOptions.java:530) ~[firebase-admin-9.4.3.jar:na]
+	at com.samadhan.SamadhanApplication.firebaseMessaging(SamadhanApplication.java:43) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$18842ac0.CGLIB$firebaseMessaging$0(<generated>) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$18842ac0$$FastClassBySpringCGLIB$$6332f4c9.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:244) ~[spring-core-5.3.20.jar:5.3.20]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:331) ~[spring-context-5.3.20.jar:5.3.20]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$18842ac0.firebaseMessaging(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:154) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 48 common frames omitted
+Caused by: java.lang.ClassNotFoundException: org.apache.hc.client5.http.config.ConnectionConfig
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[na:na]
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[na:na]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[na:na]
+	... 66 common frames omitted
+
+2026-08-01 18:08:03.525  INFO 14568 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 14568 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 18:08:03.529 DEBUG 14568 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 18:08:03.530  INFO 14568 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 18:08:04.570  INFO 14568 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 18:08:04.731  INFO 14568 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 147 ms. Found 13 JPA repository interfaces.
+2026-08-01 18:08:05.070  INFO 14568 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 18:08:05.105  INFO 14568 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 18:08:05.107  INFO 14568 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:08:05.107  INFO 14568 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:08:05.108  INFO 14568 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:08:05.108  INFO 14568 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 18:08:05.108  INFO 14568 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:08:05.108  INFO 14568 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:08:05.219  INFO 14568 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 18:08:05.462  INFO 14568 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 18:08:05.466  INFO 14568 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 18:08:05.846  INFO 14568 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 18:08:05.865  INFO 14568 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 18:08:05.865  INFO 14568 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 18:08:06.055  INFO 14568 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 18:08:06.055  INFO 14568 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2439 ms
+2026-08-01 18:08:06.259  INFO 14568 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 18:08:06.348  INFO 14568 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 18:08:06.560  INFO 14568 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 18:08:06.700  INFO 14568 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 18:08:07.113  INFO 14568 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 18:08:07.133  INFO 14568 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 18:08:08.450  INFO 14568 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 18:08:08.461  INFO 14568 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 18:08:09.406  WARN 14568 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+2026-08-01 18:08:09.407  INFO 14568 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 18:08:09.410  INFO 14568 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 18:08:09.422  INFO 14568 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 18:08:09.425  INFO 14568 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 18:08:09.439  INFO 14568 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 18:08:09.466 ERROR 14568 --- [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:953) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:918) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:583) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:734) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:308) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295) ~[spring-boot-2.7.0.jar:2.7.0]
+	at com.samadhan.SamadhanApplication.main(SamadhanApplication.java:66) ~[classes/:na]
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 20 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:658) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:486) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 34 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:185) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 47 common frames omitted
+Caused by: java.lang.NoClassDefFoundError: org/apache/hc/client5/http/config/ConnectionConfig
+	at com.google.firebase.internal.ApacheHttp2Transport.defaultHttpAsyncClientBuilder(ApacheHttp2Transport.java:77) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.newDefaultHttpAsyncClient(ApacheHttp2Transport.java:65) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.<init>(ApacheHttp2Transport.java:50) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.internal.ApiClientUtils$TransportInstanceHolder.<clinit>(ApiClientUtils.java:95) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.internal.ApiClientUtils.getDefaultTransport(ApiClientUtils.java:91) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:107) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:43) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.FirebaseOptions$Builder.build(FirebaseOptions.java:530) ~[firebase-admin-9.7.0.jar:na]
+	at com.samadhan.SamadhanApplication.firebaseMessaging(SamadhanApplication.java:43) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$39930d38.CGLIB$firebaseMessaging$0(<generated>) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$39930d38$$FastClassBySpringCGLIB$$698167a3.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:244) ~[spring-core-5.3.20.jar:5.3.20]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:331) ~[spring-context-5.3.20.jar:5.3.20]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$39930d38.firebaseMessaging(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:154) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 48 common frames omitted
+Caused by: java.lang.ClassNotFoundException: org.apache.hc.client5.http.config.ConnectionConfig
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[na:na]
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[na:na]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[na:na]
+	... 67 common frames omitted
+
+2026-08-01 18:12:39.716  INFO 2668 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 2668 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 18:12:39.724 DEBUG 2668 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 18:12:39.726  INFO 2668 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 18:12:40.755  INFO 2668 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 18:12:40.914  INFO 2668 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 143 ms. Found 13 JPA repository interfaces.
+2026-08-01 18:12:41.235  INFO 2668 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 18:12:41.268  INFO 2668 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 18:12:41.270  INFO 2668 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:12:41.270  INFO 2668 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:12:41.271  INFO 2668 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:12:41.271  INFO 2668 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 18:12:41.271  INFO 2668 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:12:41.271  INFO 2668 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:12:41.363  INFO 2668 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 18:12:41.601  INFO 2668 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 18:12:41.606  INFO 2668 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 18:12:41.970  INFO 2668 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 18:12:41.984  INFO 2668 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 18:12:41.984  INFO 2668 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 18:12:42.174  INFO 2668 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 18:12:42.174  INFO 2668 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2364 ms
+2026-08-01 18:12:42.389  INFO 2668 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 18:12:42.455  INFO 2668 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 18:12:42.669  INFO 2668 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 18:12:42.800  INFO 2668 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 18:12:43.207  INFO 2668 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 18:12:43.227  INFO 2668 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 18:12:44.804  INFO 2668 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 18:12:44.813  INFO 2668 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 18:12:45.918  WARN 2668 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+2026-08-01 18:12:45.920  INFO 2668 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 18:12:45.923  INFO 2668 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 18:12:45.937  INFO 2668 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 18:12:45.942  INFO 2668 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 18:12:45.956  INFO 2668 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 18:12:45.990 ERROR 2668 --- [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'notificationController': Unsatisfied dependency expressed through field 'fireBaseMessagingService'; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:953) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:918) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:583) ~[spring-context-5.3.20.jar:5.3.20]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:734) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:308) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306) ~[spring-boot-2.7.0.jar:2.7.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295) ~[spring-boot-2.7.0.jar:2.7.0]
+	at com.samadhan.SamadhanApplication.main(SamadhanApplication.java:66) ~[classes/:na]
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fireBaseMessagingService': Unsatisfied dependency expressed through field 'firebaseMessaging'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:639) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:119) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:399) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1431) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:619) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 20 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'firebaseMessaging' defined in com.samadhan.SamadhanApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:658) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:486) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1389) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1309) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:656) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 34 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.google.firebase.messaging.FirebaseMessaging]: Factory method 'firebaseMessaging' threw exception; nested exception is java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:185) ~[spring-beans-5.3.20.jar:5.3.20]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 47 common frames omitted
+Caused by: java.lang.NoClassDefFoundError: org/apache/hc/core5/reactor/ProtocolUpgradeHandler
+	at org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder.build(HttpAsyncClientBuilder.java:958) ~[httpclient5-5.3.1.jar:5.3.1]
+	at com.google.firebase.internal.ApacheHttp2Transport.newDefaultHttpAsyncClient(ApacheHttp2Transport.java:65) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.internal.ApacheHttp2Transport.<init>(ApacheHttp2Transport.java:50) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.internal.ApiClientUtils$TransportInstanceHolder.<clinit>(ApiClientUtils.java:95) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.internal.ApiClientUtils.getDefaultTransport(ApiClientUtils.java:91) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:107) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.FirebaseOptions.<init>(FirebaseOptions.java:43) ~[firebase-admin-9.7.0.jar:na]
+	at com.google.firebase.FirebaseOptions$Builder.build(FirebaseOptions.java:530) ~[firebase-admin-9.7.0.jar:na]
+	at com.samadhan.SamadhanApplication.firebaseMessaging(SamadhanApplication.java:43) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$7ca8381d.CGLIB$firebaseMessaging$0(<generated>) ~[classes/:na]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$7ca8381d$$FastClassBySpringCGLIB$$fb54da05.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:244) ~[spring-core-5.3.20.jar:5.3.20]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:331) ~[spring-context-5.3.20.jar:5.3.20]
+	at com.samadhan.SamadhanApplication$$EnhancerBySpringCGLIB$$7ca8381d.firebaseMessaging(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:154) ~[spring-beans-5.3.20.jar:5.3.20]
+	... 48 common frames omitted
+Caused by: java.lang.ClassNotFoundException: org.apache.hc.core5.reactor.ProtocolUpgradeHandler
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[na:na]
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[na:na]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[na:na]
+	... 67 common frames omitted
+
+2026-08-01 18:16:27.887  INFO 10944 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 10944 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 18:16:27.894 DEBUG 10944 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 18:16:27.895  INFO 10944 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 18:16:28.902  INFO 10944 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 18:16:29.046  INFO 10944 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 131 ms. Found 13 JPA repository interfaces.
+2026-08-01 18:16:29.378  INFO 10944 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 18:16:29.411  INFO 10944 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 18:16:29.413  INFO 10944 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:16:29.413  INFO 10944 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:16:29.413  INFO 10944 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:16:29.414  INFO 10944 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 18:16:29.414  INFO 10944 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 18:16:29.414  INFO 10944 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 18:16:29.508  INFO 10944 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 18:16:29.739  INFO 10944 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 18:16:29.746  INFO 10944 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 18:16:30.096  INFO 10944 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 18:16:30.109  INFO 10944 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 18:16:30.110  INFO 10944 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 18:16:30.299  INFO 10944 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 18:16:30.299  INFO 10944 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2308 ms
+2026-08-01 18:16:30.506  INFO 10944 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 18:16:30.571  INFO 10944 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 18:16:30.804  INFO 10944 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 18:16:30.944  INFO 10944 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 18:16:31.547  INFO 10944 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 18:16:31.573  INFO 10944 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 18:16:33.088  INFO 10944 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 18:16:33.103  INFO 10944 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 18:16:34.878  WARN 10944 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 18:16:35.366  INFO 10944 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-08-01 18:16:35.386  INFO 10944 --- [main] com.samadhan.SamadhanApplication         : Started SamadhanApplication in 8.094 seconds (JVM running for 9.044)
+2026-08-01 18:16:50.129  INFO 10944 --- [http-nio-8082-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-01 18:16:50.129  INFO 10944 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-01 18:16:50.131  INFO 10944 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-08-01 18:45:53.519  WARN 10944 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=24m21s767ms748µs100ns).
+2026-08-01 20:57:22.623  INFO 12096 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 12096 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 20:57:22.633 DEBUG 12096 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 20:57:22.636  INFO 12096 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 20:57:24.383  INFO 12096 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 20:57:24.676  INFO 12096 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 271 ms. Found 13 JPA repository interfaces.
+2026-08-01 20:57:25.236  INFO 12096 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 20:57:25.305  INFO 12096 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 20:57:25.308  INFO 12096 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 20:57:25.309  INFO 12096 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 20:57:25.311  INFO 12096 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 20:57:25.311  INFO 12096 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 20:57:25.311  INFO 12096 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 20:57:25.312  INFO 12096 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 20:57:25.505  INFO 12096 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 20:57:25.945  INFO 12096 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 20:57:25.951  INFO 12096 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 20:57:26.564  INFO 12096 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 20:57:26.600  INFO 12096 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 20:57:26.600  INFO 12096 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 20:57:26.947  INFO 12096 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 20:57:26.948  INFO 12096 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4180 ms
+2026-08-01 20:57:27.271  INFO 12096 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 20:57:27.407  INFO 12096 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 20:57:27.832  INFO 12096 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 20:57:28.079  INFO 12096 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 20:57:28.752  INFO 12096 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 20:57:28.791  INFO 12096 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 20:57:31.057  INFO 12096 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 20:57:31.080  INFO 12096 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 20:57:34.064  WARN 12096 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 20:57:34.843  INFO 12096 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-08-01 20:57:34.871  INFO 12096 --- [main] com.samadhan.SamadhanApplication         : Started SamadhanApplication in 13.577 seconds (JVM running for 15.32)
+2026-08-01 21:37:37.338  WARN 12096 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=16m8s61ms296µs800ns).
+2026-08-01 21:45:16.690  WARN 12096 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=3m9s266ms919µs200ns).
+2026-08-01 21:57:59.594  INFO 23064 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 23064 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 21:57:59.603 DEBUG 23064 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 21:57:59.604  INFO 23064 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 21:58:01.302  INFO 23064 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 21:58:01.571  INFO 23064 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 244 ms. Found 13 JPA repository interfaces.
+2026-08-01 21:58:02.144  INFO 23064 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 21:58:02.203  INFO 23064 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 21:58:02.207  INFO 23064 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:58:02.207  INFO 23064 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:58:02.209  INFO 23064 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 21:58:02.209  INFO 23064 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 21:58:02.210  INFO 23064 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:58:02.210  INFO 23064 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 21:58:02.370  INFO 23064 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 21:58:02.756  INFO 23064 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 21:58:02.762  INFO 23064 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 21:58:03.463  INFO 23064 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 21:58:03.490  INFO 23064 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 21:58:03.490  INFO 23064 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 21:58:03.847  INFO 23064 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 21:58:03.849  INFO 23064 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4141 ms
+2026-08-01 21:58:04.221  INFO 23064 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 21:58:04.365  INFO 23064 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 21:58:04.784  INFO 23064 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 21:58:05.056  INFO 23064 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 21:58:05.794  INFO 23064 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 21:58:05.835  INFO 23064 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 21:58:08.274  INFO 23064 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 21:58:08.301  INFO 23064 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 21:58:11.330  WARN 23064 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 21:58:12.088  WARN 23064 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'; nested exception is org.springframework.boot.web.server.PortInUseException: Port 8082 is already in use
+2026-08-01 21:58:12.101  INFO 23064 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 21:58:12.120  INFO 23064 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 21:58:12.138  INFO 23064 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 21:58:12.144  INFO 23064 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 21:58:12.172  INFO 23064 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 21:58:12.213 ERROR 23064 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8082 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8082 or configure this application to listen on another port.
+
+2026-08-01 21:58:34.736  INFO 25072 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 25072 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 21:58:34.757 DEBUG 25072 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 21:58:34.760  INFO 25072 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 21:58:36.674  INFO 25072 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 21:58:36.984  INFO 25072 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 281 ms. Found 13 JPA repository interfaces.
+2026-08-01 21:58:37.631  INFO 25072 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 21:58:37.695  INFO 25072 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 21:58:37.699  INFO 25072 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:58:37.699  INFO 25072 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:58:37.700  INFO 25072 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 21:58:37.700  INFO 25072 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 21:58:37.700  INFO 25072 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:58:37.701  INFO 25072 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 21:58:37.878  INFO 25072 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 21:58:38.400  INFO 25072 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 21:58:38.408  INFO 25072 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 21:58:39.164  INFO 25072 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 21:58:39.194  INFO 25072 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 21:58:39.195  INFO 25072 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 21:58:39.611  INFO 25072 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 21:58:39.612  INFO 25072 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4715 ms
+2026-08-01 21:58:40.078  INFO 25072 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 21:58:40.210  INFO 25072 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 21:58:40.678  INFO 25072 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 21:58:40.990  INFO 25072 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 21:58:41.815  INFO 25072 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 21:58:41.857  INFO 25072 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 21:58:44.247  INFO 25072 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 21:58:44.265  INFO 25072 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 21:58:47.123  WARN 25072 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 21:58:47.866  WARN 25072 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'; nested exception is org.springframework.boot.web.server.PortInUseException: Port 8082 is already in use
+2026-08-01 21:58:47.878  INFO 25072 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 21:58:47.883  INFO 25072 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-01 21:58:47.900  INFO 25072 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-01 21:58:47.908  INFO 25072 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-08-01 21:58:47.934  INFO 25072 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2026-08-01 21:58:47.976 ERROR 25072 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8082 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8082 or configure this application to listen on another port.
+
+2026-08-01 21:59:35.186  INFO 11876 --- [main] com.samadhan.SamadhanApplication         : Starting SamadhanApplication using Java 17.0.4.1 on SHIVANK with PID 11876 (C:\Users\shiva\git\samadhan\target\classes started by shiva in C:\Users\shiva\git\samadhan)
+2026-08-01 21:59:35.195 DEBUG 11876 --- [main] com.samadhan.SamadhanApplication         : Running with Spring Boot v2.7.0, Spring v5.3.20
+2026-08-01 21:59:35.197  INFO 11876 --- [main] com.samadhan.SamadhanApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-08-01 21:59:36.721  INFO 11876 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-01 21:59:36.999  INFO 11876 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 253 ms. Found 13 JPA repository interfaces.
+2026-08-01 21:59:37.523  INFO 11876 --- [main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-08-01 21:59:37.576  INFO 11876 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource configurationProperties [org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource] to AOP Proxy
+2026-08-01 21:59:37.579  INFO 11876 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletConfigInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:59:37.580  INFO 11876 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.core.env.PropertySource$StubPropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:59:37.581  INFO 11876 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 21:59:37.581  INFO 11876 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-08-01 21:59:37.581  INFO 11876 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-08-01 21:59:37.582  INFO 11876 --- [main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-08-01 21:59:37.724  INFO 11876 --- [main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-08-01 21:59:38.120  INFO 11876 --- [main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-08-01 21:59:38.129  INFO 11876 --- [main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-08-01 21:59:38.766  INFO 11876 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-08-01 21:59:38.790  INFO 11876 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-01 21:59:38.791  INFO 11876 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.63]
+2026-08-01 21:59:39.128  INFO 11876 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-01 21:59:39.129  INFO 11876 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3834 ms
+2026-08-01 21:59:39.485  INFO 11876 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-01 21:59:39.591  INFO 11876 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2026-08-01 21:59:39.947  INFO 11876 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2026-08-01 21:59:40.176  INFO 11876 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-01 21:59:40.883  INFO 11876 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-01 21:59:40.926  INFO 11876 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2026-08-01 21:59:43.226  INFO 11876 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-01 21:59:43.246  INFO 11876 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-01 21:59:46.337  WARN 11876 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-01 21:59:47.126  INFO 11876 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-08-01 21:59:47.158  INFO 11876 --- [main] com.samadhan.SamadhanApplication         : Started SamadhanApplication in 13.011 seconds (JVM running for 14.817)
+2026-08-01 21:59:50.744  INFO 11876 --- [http-nio-8082-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-01 21:59:50.744  INFO 11876 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-01 21:59:50.746  INFO 11876 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
