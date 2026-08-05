@@ -1,6 +1,9 @@
 package com.samadhan.service;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,9 +13,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.entity.VendorService;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
 import com.samadhan.enums.VendorStatusEnum;
+import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.repository.TransferMediaRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
@@ -65,7 +70,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	@Transactional
 	public TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber,
 			String vendorCity, String vendorAddress, String vendorLatitude, String vendorLongitude,
-			MultipartFile aadhaarFile, MultipartFile panFile, String gst) {
+			MultipartFile aadhaarFile, MultipartFile panFile, String gst, String services) {
 		  TransferVendor vendor = new TransferVendor();
 
 			if(vendorEmail != null) {
@@ -83,6 +88,22 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    vendor.setVendorLatitude(vendorLatitude);
 		    vendor.setVendorLongitude(vendorLongitude);
 		    vendor.setGstNumber(gst);
+		    final TransferVendor finalVendor = vendor;
+		    if (services != null && !services.isBlank()) {
+		        List<VendorService> vendorServiceList = Arrays.stream(services.split(","))
+		                .map(String::trim)
+		                .filter(s -> !s.isEmpty())
+		                .map(s -> {
+		                    VendorService vs = new VendorService();
+		                    vs.setServiceType(serviceTypeEnum.valueOf(s));
+		                    vs.setActive(true);
+		                    vs.setTransferVendor(finalVendor); // sets the FK side
+		                    return vs;
+		                })
+		                .collect(Collectors.toList());
+
+		        vendor.setVendorServices(vendorServiceList);
+		    }
 		    
 		    transferVendorRepo.save(vendor);
 		    

@@ -34,11 +34,12 @@ public class TransferVendorController {
 	        @RequestParam String vendorLatitude,
 	        @RequestParam String vendorLongitude,
 	        @RequestParam String gst,
+	        @RequestParam(required = false) String services,
 	        @RequestParam(required = false) MultipartFile aadhaarFile,
 	        @RequestParam(required = false) MultipartFile panFile
 	) {
 		
-		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst );
+		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst, services );
 		return resp;
 	}
 
