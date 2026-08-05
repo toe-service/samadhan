@@ -13,7 +13,7 @@ public interface TransferVendorService {
 
 	TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber, String vendorCity,
 			String vendorAddress, String vendorLatitude, String vendorLongitude, MultipartFile aadhaarFile,
-			MultipartFile panFile, String gst);
+			MultipartFile panFile, String gst, String services);
 
 	void deductLeadCost(Long vendorId, Long requestId, String userType);
 
