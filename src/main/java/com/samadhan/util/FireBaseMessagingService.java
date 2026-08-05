@@ -3,6 +3,8 @@ package com.samadhan.util;
 import com.google.auth.oauth2.GoogleCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.firebase.messaging.AndroidConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -18,6 +20,7 @@ import com.samadhan.repository.VehicleRepository;
 import lombok.extern.java.Log;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,13 +84,17 @@ public class FireBaseMessagingService {
 //	                    request.getSourceLatitude(),
 //	                    request.getSourceLongitude());
 		
-		 List<Vehicle> vehicles =
-		            vehicleRepository.findAll();
+//		 List<Vehicle> vehicles =
+//		            vehicleRepository.findAll();e]
+		 Optional<Vehicle> vehicles =
+		            vehicleRepository.findById(1l);
+		            		
+		 Vehicle vehicle=vehicles.get();
 
-	    for (Vehicle vehicle : vehicles) {
+	//    for (Vehicle vehicle : vehicles) {
 
 	        if (vehicle.getFcmToken() == null || vehicle.getFcmToken().isEmpty()) {
-	            continue;
+	        //    continue;
 	        }
 
 //	        firebaseService.sendPushNotification(
@@ -96,26 +103,72 @@ public class FireBaseMessagingService {
 //	                request.getSource() + " → " + request.getDestination(),
 //	                request.getId().toString());
 
-			Notification notification = Notification
-					.builder()
-					.setTitle("New Booking Available")
-				    .setBody(request.getSource() + " → " + request.getDestination())
-				//	.setImage(notificationMessage.getImage())
-					.build();
-			//Message message = Message.builder().setToken(notificationMessage.getRecipientToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
-			Message message = Message
-					.builder()
-					.setToken(vehicle.getFcmToken())
-					.setNotification(notification)
-				    .putData("requestId", request.getId().toString())
+//			Notification notification = Notification
+//					.builder()
+//					.setTitle("New Booking Available")
+//				    .setBody(request.getSource() + " → " + request.getDestination())
+//				//	.setImage(notificationMessage.getImage())
+//					.build();
+//			//Message message = Message.builder().setToken(notificationMessage.getRecipientToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
+//			Message message = Message
+//					.builder()
+//					.setToken(vehicle.getFcmToken())
+//					.setNotification(notification)
+//				    .putData("requestId", request.getId().toString())
+//	                .putData("serviceType", request.getServiceType().name())
+//	                .putData("source", request.getSource())
+//                    .putData("destination", request.getDestination())
+//					.build();
+	        Message message = Message
+	                .builder()
+	                .setToken(vehicle.getFcmToken())
+	                .putData("type", "RIDE_REQUEST")
+	                .putData("requestId", request.getId().toString())
 	                .putData("serviceType", request.getServiceType().name())
 	                .putData("source", request.getSource())
-                    .putData("destination", request.getDestination())
-					.build();
+	                .putData("destination", request.getDestination())
+	                .putData("title", "New Booking Available")
+	                .putData("body", request.getSource() + " → " + request.getDestination())
+	                .setAndroidConfig(
+	                        AndroidConfig.builder()
+	                                .setPriority(AndroidConfig.Priority.HIGH) // wakes device even if backgrounded/killed
+	                                .build()
+	                )
+	                .build();
 			
 			log.info("message "+message);
 
 			 firebaseMessaging.send(message);
+	    //}
+	}
+
+
+
+	public void notifyRideTaken(TransferRequestDetails request) {
+	    List<Vehicle> vehicles = vehicleRepository.findAll();
+
+	    for (Vehicle vehicle : vehicles) {
+	        if (vehicle.getFcmToken() == null || vehicle.getFcmToken().isEmpty()) {
+	            continue;
+	        }
+
+	        Message message = Message
+	                .builder()
+	                .setToken(vehicle.getFcmToken())
+	                .putData("type", "RIDE_TAKEN")
+	                .putData("requestId", request.getId().toString())
+	                .setAndroidConfig(
+	                        AndroidConfig.builder()
+	                                .setPriority(AndroidConfig.Priority.HIGH)
+	                                .build()
+	                )
+	                .build();
+
+	        try {
+	            firebaseMessaging.send(message);
+	        } catch (FirebaseMessagingException e) {
+	            log.error("Failed to send RIDE_TAKEN to vehicle {}", vehicle.getId(), e);
+	        }
 	    }
 	}
 	
