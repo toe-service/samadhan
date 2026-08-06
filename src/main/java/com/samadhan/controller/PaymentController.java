@@ -484,17 +484,16 @@ public class PaymentController {
 	        @RequestParam(required = false) VehicleCategoryEnum vehicleCategory,
 	        @RequestParam(required = false) serviceTypeEnum  serviceType,
 	        @RequestParam(required = false) String  packingType,
-	        @RequestParam(required = false) String  homeType) throws JsonMappingException, JsonProcessingException {
+	        @RequestParam(required = false) String  homeType,
+	        @RequestParam(required = false, defaultValue = "0") Integer fromFloor,
+	        @RequestParam(required = false, defaultValue = "false") Boolean liftAvailable) throws JsonMappingException, JsonProcessingException {
 
-	    return ResponseEntity.ok(
-	            paymentService.getVehicleCostList(
-	                    pickuplatitude,
-	                    pickuplongitude,
-	                    destinationlatitude,
-	                    destinationlongitude,
-	                    helperRequired,
-	                    helperCount,
-	                    vehicleCategory));
+//		return ResponseEntity.ok(paymentService.getVehicleCostList(pickuplatitude, pickuplongitude, destinationlatitude,
+//				destinationlongitude, helperRequired, helperCount, vehicleCategory, fromFloor, liftAvailable));
+		
+		return ResponseEntity.ok(paymentService.getVehicleCostList(pickuplatitude, pickuplongitude, destinationlatitude,
+				destinationlongitude, helperRequired, helperCount, vehicleCategory, serviceType, homeType, packingType,
+				fromFloor, liftAvailable));
 	}
 	
 	@PostMapping("/free-subscription/createOrder")

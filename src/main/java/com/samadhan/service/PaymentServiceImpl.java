@@ -984,231 +984,486 @@ public class PaymentServiceImpl {
 	}
 
 
-	public List<BookVehicleCostResponse> getVehicleCostList(Double pickupLat, Double pickupLng, Double destinationLat,
-			Double destinationLng, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory) throws JsonMappingException, JsonProcessingException {
+//	public List<BookVehicleCostResponse> getVehicleCostList(Double pickupLat, Double pickupLng, Double destinationLat,
+//			Double destinationLng, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory, Integer fromFloor, Boolean liftAvailable) throws JsonMappingException, JsonProcessingException {
+//
+//		List<BookVehicleCostResponse> list = new ArrayList<>();
+//		
+//		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickupLat + ","
+//				+ pickupLng + "&destination=" + destinationLat + "," + destinationLng
+//				+ "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
+//
+//		RestTemplate restTemplate = new RestTemplate();
+//		String response = restTemplate.getForObject(url, String.class);
+//
+//		RideCostSummary rideSummary = new RideCostSummary();
+//
+//	//	try {
+//			ObjectMapper mapper = new ObjectMapper();
+//			JsonNode root = mapper.readTree(response);
+//
+//			int distanceInMeters = root.path("routes").get(0).path("legs").get(0).path("distance").path("value")
+//					.asInt();
+//
+//			double distanceInKm = distanceInMeters / 1000.0;
+//
+//			  for (VendorPickupVehicleEnum vehicle : VendorPickupVehicleEnum.values()) {
+//
+//			        BookVehicleCostResponse cost = calculateVehicleFare(
+//			                distanceInKm,
+//			                vehicle,
+//			                helperRequired,
+//			                helperCount);
+//
+//			        list.add(cost);
+//			    }
+//
+//		return list;
+//	}
 
-		List<BookVehicleCostResponse> list = new ArrayList<>();
-		
-		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickupLat + ","
-				+ pickupLng + "&destination=" + destinationLat + "," + destinationLng
-				+ "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
+	
+	public List<BookVehicleCostResponse> getVehicleCostList(
+	        Double pickupLat, Double pickupLng, Double destinationLat, Double destinationLng,
+	        Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory,
+	        serviceTypeEnum serviceType, String homeType, String packingType,
+	        Integer fromFloor, Boolean liftAvailable) throws JsonMappingException, JsonProcessingException {
 
-		RestTemplate restTemplate = new RestTemplate();
-		String response = restTemplate.getForObject(url, String.class);
+	    List<BookVehicleCostResponse> list = new ArrayList<>();
 
-		RideCostSummary rideSummary = new RideCostSummary();
+	    String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickupLat + ","
+	            + pickupLng + "&destination=" + destinationLat + "," + destinationLng
+	            + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
 
-	//	try {
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode root = mapper.readTree(response);
+	    RestTemplate restTemplate = new RestTemplate();
+	    String response = restTemplate.getForObject(url, String.class);
 
-			int distanceInMeters = root.path("routes").get(0).path("legs").get(0).path("distance").path("value")
-					.asInt();
+	    ObjectMapper mapper = new ObjectMapper();
+	    JsonNode root = mapper.readTree(response);
+	    int distanceInMeters = root.path("routes").get(0).path("legs").get(0).path("distance").path("value").asInt();
+	    double distanceInKm = distanceInMeters / 1000.0;
 
-			double distanceInKm = distanceInMeters / 1000.0;
+	    for (VendorPickupVehicleEnum vehicle : VendorPickupVehicleEnum.values()) {
+	        BookVehicleCostResponse cost = calculateVehicleFare(
+	                distanceInKm,
+	                vehicle,
+	                helperRequired,
+	                helperCount,
+	                serviceType,     // NEW
+	                homeType,        // NEW
+	                packingType,     // NEW
+	                fromFloor,       // NEW
+	                liftAvailable);  // NEW
+	        list.add(cost);
+	    }
 
-			  for (VendorPickupVehicleEnum vehicle : VendorPickupVehicleEnum.values()) {
-
-			        BookVehicleCostResponse cost = calculateVehicleFare(
-			                distanceInKm,
-			                vehicle,
-			                helperRequired,
-			                helperCount);
-
-			        list.add(cost);
-			    }
-
-		return list;
+	    return list;
 	}
 
+//	private BookVehicleCostResponse calculateVehicleFare(
+//	        double distance,
+//	        VendorPickupVehicleEnum vehicle,
+//	        Boolean helperRequired,
+//	        Integer helperCount) {
+//
+//	    BookVehicleCostResponse response = new BookVehicleCostResponse();
+//
+//	    double perKm = getPerKm(vehicle);
+//
+//	    double rideCost = distance * perKm;
+//
+//	    double helperCharge = Boolean.TRUE.equals(helperRequired)
+//	            ? (helperCount == null ? 1 : helperCount) * 300
+//	            : 0;
+//
+//	    double loading = 0;
+//	    double packaging = 0;
+//
+//	    double subtotal = rideCost + helperCharge + loading + packaging;
+//	    double gst = subtotal * 0.18;
+//
+//	    response.setVehicle(vehicle.getDisplayName());
+//	   response.setRideCost(rideCost);
+//	    response.setHelperCharge(helperCharge);
+//	    response.setLoadingUnloading(loading);
+//	    response.setPackaging(packaging);
+//	    response.setGst(gst);
+//	    response.setTotalCost(subtotal + gst);
+//
+//	    return response;
+//	}
 
+
+//	private double getPerKm(VendorPickupVehicleEnum vehicle) {
+//
+//	    switch (vehicle) {
+//
+//	        // ---------- Small Vehicle ----------
+//	        case SCOOTER:
+//	            return 13;
+//
+//	        case TWO_WHEELER:
+//	            return 12;
+//
+//	        case E_LOADER:
+//	            return 18;
+//
+//	        case THREE_WHEELER:
+//	            return 22;
+//
+//	        case EECO:
+//	            return 28;
+//
+//	        case TATA_ACE:
+//	            return 30;
+//
+//	        // ---------- Open Body Truck ----------
+//	        case PICKUP_8FT:
+//	            return 35;
+//
+//	        case TRUCK_10FT:
+//	            return 42;
+//
+//	        case TRUCK_14FT_OPEN:
+//	            return 50;
+//
+//	        case TRUCK_15FT_OPEN:
+//	            return 55;
+//
+//	        case TRUCK_17FT_OPEN:
+//	            return 60;
+//
+//	        case TRUCK_19FT_OPEN:
+//	            return 72;
+//
+//	        case TRUCK_20FT_OPEN:
+//	            return 75;
+//
+//	        case TRUCK_22FT_OPEN:
+//	            return 80;
+//
+//	        case TRUCK_22FT_10TYRE:
+//	            return 90;
+//
+//	        case TRUCK_24FT_12TYRE:
+//	            return 100;
+//
+//	        case TRUCK_28FT_14TYRE:
+//	            return 115;
+//
+//	        case TRUCK_30FT_14TYRE:
+//	            return 125;
+//
+//	        case HALF_BODY_TRUCK_32FT:
+//	            return 130;
+//
+//	        // ---------- Closed Container Truck ----------
+//	        case TRUCK_14FT:
+//	        case TRUCK_14FT_CLOSED:
+//	            return 52;
+//
+//	        case TRUCK_17FT:
+//	        case TRUCK_17FT_CLOSED:
+//	            return 62;
+//
+//	        case TRUCK_19FT:
+//	            return 72;
+//
+//	        case CONTAINER_7FT:
+//	            return 28;
+//
+//	        case CONTAINER_8FT:
+//	            return 30;
+//
+//	        case CONTAINER_10FT:
+//	            return 40;
+//
+//	        case CONTAINER_20FT:
+//	            return 85;
+//
+//	        case CONTAINER_22FT:
+//	            return 90;
+//
+//	        case CONTAINER_32FT_9TON:
+//	            return 120;
+//
+//	        case CONTAINER_32FT_18TON:
+//	            return 150;
+//
+//	        // ---------- Trailer ----------
+//	        case FLATBED_TRAILER_20FT:
+//	            return 110;
+//
+//	        case FLATBED_TRAILER_22FT:
+//	            return 115;
+//
+//	        case FLATBED_TRAILER_24FT:
+//	            return 120;
+//
+//	        case FLATBED_TRAILER_28FT_9TON:
+//	            return 130;
+//
+//	        case FLATBED_TRAILER_28FT_14TON:
+//	            return 140;
+//
+//	        case FLATBED_TRAILER_32FT_9TON:
+//	            return 145;
+//
+//	        case FLATBED_TRAILER_32FT_14TON:
+//	            return 155;
+//
+//	        case FLATBED_TRAILER_40FT_30TON:
+//	            return 180;
+//
+//	        case FLATBED_TRAILER_40FT_32TON:
+//	            return 190;
+//
+//	        case FLATBED_TRAILER_40FT_35TON:
+//	            return 200;
+//
+//	        case FLATBED_TRAILER_40FT_42TON:
+//	            return 220;
+//
+//	        case LOWBED_TRAILER_40FT_30TON:
+//	            return 185;
+//
+//	        case LOWBED_TRAILER_40FT_32TON:
+//	            return 195;
+//
+//	        case LOWBED_TRAILER_40FT_35TON:
+//	            return 205;
+//
+//	        case LOWBED_TRAILER_40FT_42TON:
+//	            return 225;
+//
+//	        case SEMIBED_TRAILER_40FT_30TON:
+//	            return 185;
+//
+//	        case SEMIBED_TRAILER_40FT_32TON:
+//	            return 195;
+//
+//	        case SEMIBED_TRAILER_40FT_35TON:
+//	            return 205;
+//
+//	        case SEMIBED_TRAILER_40FT_42TON:
+//	            return 225;
+//
+//	        default:
+//	            throw new IllegalArgumentException("Rate not configured for vehicle: " + vehicle);
+//	    }
+//	}
+	
 	private BookVehicleCostResponse calculateVehicleFare(
 	        double distance,
 	        VendorPickupVehicleEnum vehicle,
 	        Boolean helperRequired,
-	        Integer helperCount) {
+	        Integer helperCount,
+	        serviceTypeEnum serviceType,
+	        String homeType,
+	        String packingType,
+	        Integer fromFloor,
+	        Boolean liftAvailable) {
 
 	    BookVehicleCostResponse response = new BookVehicleCostResponse();
 
-	    double perKm = getPerKm(vehicle);
-
-	    double rideCost = distance * perKm;
+	    // ---- CHANGED: base fare + tiered per-km instead of flat perKm * distance ----
+	    VehicleRateConfig rateConfig = getRateConfig(vehicle);
+	    double rideCost = calculateDistanceCost(distance, rateConfig.baseFare, rateConfig.includedKm, rateConfig.perKmAfter);
 
 	    double helperCharge = Boolean.TRUE.equals(helperRequired)
-	            ? (helperCount == null ? 1 : helperCount) * 300
+	            ? (helperCount == null ? 1 : helperCount) * 350   // CHANGED: 300 -> 350
 	            : 0;
 
 	    double loading = 0;
 	    double packaging = 0;
+	    double laborCost = 0;
+	    double floorCharge = 0;
 
-	    double subtotal = rideCost + helperCharge + loading + packaging;
+	    // ---- NEW: home shifting now actually uses homeType / packingType / floor ----
+	    boolean isHomeShifting = serviceType != null && serviceType.name().equalsIgnoreCase("HOMESHIFTING");
+
+	    if (isHomeShifting) {
+	        laborCost = getHomeTypeLaborCost(homeType) * getPackingMultiplier(packingType);
+
+	        boolean hasLift = Boolean.TRUE.equals(liftAvailable);
+	        int floors = (fromFloor == null) ? 0 : fromFloor;
+
+	        if (!hasLift && floors > 0) {
+	            floorCharge = floors * 300; // per-floor charge when no lift
+	        }
+	    }
+
+	    double subtotal = rideCost + helperCharge + loading + packaging + laborCost + floorCharge;
 	    double gst = subtotal * 0.18;
 
 	    response.setVehicle(vehicle.getDisplayName());
-	   response.setRideCost(rideCost);
+	    response.setRideCost(rideCost);
 	    response.setHelperCharge(helperCharge);
 	    response.setLoadingUnloading(loading);
 	    response.setPackaging(packaging);
+	    response.setLaborCost(laborCost);       // NEW — add this field to BookVehicleCostResponse
+	    response.setFloorCharge(floorCharge);   // NEW — add this field to BookVehicleCostResponse
 	    response.setGst(gst);
 	    response.setTotalCost(subtotal + gst);
 
 	    return response;
 	}
 
+	// ---- NEW: base fare + reduced per-km-after-threshold, replaces flat rate ----
+	private double calculateDistanceCost(double distance, double baseFare, double includedKm, double perKmAfter) {
+	    if (distance <= includedKm) {
+	        return baseFare;
+	    }
+	    return baseFare + (distance - includedKm) * perKmAfter;
+	}
 
-	private double getPerKm(VendorPickupVehicleEnum vehicle) {
+	// ---- NEW: home shifting labor cost by home size ----
+	private double getHomeTypeLaborCost(String homeType) {
+	    if (homeType == null) return 1500;
+	    switch (homeType.toUpperCase()) {
+	        case "1RK": return 800;
+	        case "1BHK": return 1500;
+	        case "2BHK": return 2800;
+	        case "3BHK": return 4000;
+	        case "4BHK_PLUS":
+	        case "4+BHK": return 5500;
+	        default: return 1500;
+	    }
+	}
+
+	// ---- NEW: packing complexity multiplier ----
+	private double getPackingMultiplier(String packingType) {
+	    if (packingType == null) return 1.0;
+	    switch (packingType.toUpperCase()) {
+	        case "BASIC_MOVE": return 1.0;
+	        case "STANDARD_HOME": return 1.35;
+	        case "HEAVY_MOVE": return 1.75;
+	        default: return 1.0;
+	    }
+	}
+
+	// ---- NEW: small config holder replacing the old single-number getPerKm ----
+	private static class VehicleRateConfig {
+	    double baseFare;
+	    double includedKm;
+	    double perKmAfter;
+
+	    VehicleRateConfig(double baseFare, double includedKm, double perKmAfter) {
+	        this.baseFare = baseFare;
+	        this.includedKm = includedKm;
+	        this.perKmAfter = perKmAfter;
+	    }
+	}
+
+	// ---- CHANGED: replaces old getPerKm — now returns base fare + per-km-after ----
+	private VehicleRateConfig getRateConfig(VendorPickupVehicleEnum vehicle) {
 
 	    switch (vehicle) {
 
 	        // ---------- Small Vehicle ----------
 	        case SCOOTER:
-	            return 13;
-
+	            return new VehicleRateConfig(60, 3, 10);
 	        case TWO_WHEELER:
-	            return 12;
-
+	            return new VehicleRateConfig(60, 3, 10);
 	        case E_LOADER:
-	            return 18;
-
+	            return new VehicleRateConfig(100, 3, 15);
 	        case THREE_WHEELER:
-	            return 22;
-
+	            return new VehicleRateConfig(120, 3, 18);
 	        case EECO:
-	            return 28;
-
+	            return new VehicleRateConfig(150, 3, 20);
 	        case TATA_ACE:
-	            return 30;
+	            return new VehicleRateConfig(180, 3, 22);
 
 	        // ---------- Open Body Truck ----------
 	        case PICKUP_8FT:
-	            return 35;
-
+	            return new VehicleRateConfig(250, 3, 32);
 	        case TRUCK_10FT:
-	            return 42;
-
+	            return new VehicleRateConfig(250, 3, 38);
 	        case TRUCK_14FT_OPEN:
-	            return 50;
-
+	            return new VehicleRateConfig(350, 3, 48);
 	        case TRUCK_15FT_OPEN:
-	            return 55;
-
+	            return new VehicleRateConfig(350, 3, 50);
 	        case TRUCK_17FT_OPEN:
-	            return 60;
-
+	            return new VehicleRateConfig(350, 3, 55);
 	        case TRUCK_19FT_OPEN:
-	            return 72;
-
+	            return new VehicleRateConfig(450, 3, 65);
 	        case TRUCK_20FT_OPEN:
-	            return 75;
-
+	            return new VehicleRateConfig(450, 3, 68);
 	        case TRUCK_22FT_OPEN:
-	            return 80;
-
+	            return new VehicleRateConfig(450, 3, 72);
 	        case TRUCK_22FT_10TYRE:
-	            return 90;
-
+	            return new VehicleRateConfig(550, 3, 82);
 	        case TRUCK_24FT_12TYRE:
-	            return 100;
-
+	            return new VehicleRateConfig(600, 3, 92);
 	        case TRUCK_28FT_14TYRE:
-	            return 115;
-
+	            return new VehicleRateConfig(700, 3, 105);
 	        case TRUCK_30FT_14TYRE:
-	            return 125;
-
+	            return new VehicleRateConfig(700, 3, 115);
 	        case HALF_BODY_TRUCK_32FT:
-	            return 130;
+	            return new VehicleRateConfig(800, 3, 120);
 
 	        // ---------- Closed Container Truck ----------
 	        case TRUCK_14FT:
 	        case TRUCK_14FT_CLOSED:
-	            return 52;
-
+	            return new VehicleRateConfig(350, 3, 50);
 	        case TRUCK_17FT:
 	        case TRUCK_17FT_CLOSED:
-	            return 62;
-
+	            return new VehicleRateConfig(350, 3, 58);
 	        case TRUCK_19FT:
-	            return 72;
-
+	            return new VehicleRateConfig(450, 3, 65);
 	        case CONTAINER_7FT:
-	            return 28;
-
+	            return new VehicleRateConfig(150, 3, 20);
 	        case CONTAINER_8FT:
-	            return 30;
-
+	            return new VehicleRateConfig(180, 3, 22);
 	        case CONTAINER_10FT:
-	            return 40;
-
+	            return new VehicleRateConfig(250, 3, 32);
 	        case CONTAINER_20FT:
-	            return 85;
-
+	            return new VehicleRateConfig(550, 3, 80);
 	        case CONTAINER_22FT:
-	            return 90;
-
+	            return new VehicleRateConfig(550, 3, 85);
 	        case CONTAINER_32FT_9TON:
-	            return 120;
-
+	            return new VehicleRateConfig(750, 3, 110);
 	        case CONTAINER_32FT_18TON:
-	            return 150;
+	            return new VehicleRateConfig(900, 3, 140);
 
-	        // ---------- Trailer ----------
+	        // ---------- Trailer (kept close to your original — already market-aligned) ----------
 	        case FLATBED_TRAILER_20FT:
-	            return 110;
-
+	            return new VehicleRateConfig(800, 3, 110);
 	        case FLATBED_TRAILER_22FT:
-	            return 115;
-
+	            return new VehicleRateConfig(800, 3, 115);
 	        case FLATBED_TRAILER_24FT:
-	            return 120;
-
+	            return new VehicleRateConfig(850, 3, 120);
 	        case FLATBED_TRAILER_28FT_9TON:
-	            return 130;
-
+	            return new VehicleRateConfig(900, 3, 130);
 	        case FLATBED_TRAILER_28FT_14TON:
-	            return 140;
-
+	            return new VehicleRateConfig(950, 3, 140);
 	        case FLATBED_TRAILER_32FT_9TON:
-	            return 145;
-
+	            return new VehicleRateConfig(1000, 3, 145);
 	        case FLATBED_TRAILER_32FT_14TON:
-	            return 155;
-
+	            return new VehicleRateConfig(1050, 3, 155);
 	        case FLATBED_TRAILER_40FT_30TON:
-	            return 180;
-
+	            return new VehicleRateConfig(1200, 3, 180);
 	        case FLATBED_TRAILER_40FT_32TON:
-	            return 190;
-
+	            return new VehicleRateConfig(1250, 3, 190);
 	        case FLATBED_TRAILER_40FT_35TON:
-	            return 200;
-
+	            return new VehicleRateConfig(1300, 3, 200);
 	        case FLATBED_TRAILER_40FT_42TON:
-	            return 220;
-
+	            return new VehicleRateConfig(1400, 3, 220);
 	        case LOWBED_TRAILER_40FT_30TON:
-	            return 185;
-
+	            return new VehicleRateConfig(1200, 3, 185);
 	        case LOWBED_TRAILER_40FT_32TON:
-	            return 195;
-
+	            return new VehicleRateConfig(1250, 3, 195);
 	        case LOWBED_TRAILER_40FT_35TON:
-	            return 205;
-
+	            return new VehicleRateConfig(1300, 3, 205);
 	        case LOWBED_TRAILER_40FT_42TON:
-	            return 225;
-
+	            return new VehicleRateConfig(1400, 3, 225);
 	        case SEMIBED_TRAILER_40FT_30TON:
-	            return 185;
-
+	            return new VehicleRateConfig(1200, 3, 185);
 	        case SEMIBED_TRAILER_40FT_32TON:
-	            return 195;
-
+	            return new VehicleRateConfig(1250, 3, 195);
 	        case SEMIBED_TRAILER_40FT_35TON:
-	            return 205;
-
+	            return new VehicleRateConfig(1300, 3, 205);
 	        case SEMIBED_TRAILER_40FT_42TON:
-	            return 225;
+	            return new VehicleRateConfig(1400, 3, 225);
 
 	        default:
 	            throw new IllegalArgumentException("Rate not configured for vehicle: " + vehicle);

@@ -16,15 +16,20 @@ public class BookVehicleCostResponse {
     private Double totalCost;
     
     private Double helperCharge;
+    
+    private double laborCost;     // NEW
+    private double floorCharge; 
 
 	public BookVehicleCostResponse(String vehicle, Double rideCost, Double gst, Double loadingUnloading,
-			Double packaging, Double totalCost) {
+			Double packaging, Double totalCost, Double laborCost, Double floorCharge) {
 		this.vehicle = vehicle;
 		this.rideCost = rideCost;
 		this.gst = gst;
 		this.loadingUnloading = loadingUnloading;
 		this.packaging = packaging;
 		this.totalCost = totalCost;
+		this.laborCost = laborCost;
+		this.floorCharge = floorCharge;
 	}
 
 	public BookVehicleCostResponse() {
@@ -85,5 +90,21 @@ public class BookVehicleCostResponse {
 
 	public void setHelperCharge(Double helperCharge) {
 		this.helperCharge = helperCharge;
+	}
+
+	public double getLaborCost() {
+		return laborCost;
+	}
+
+	public void setLaborCost(double laborCost) {
+		this.laborCost = laborCost;
+	}
+
+	public double getFloorCharge() {
+		return floorCharge;
+	}
+
+	public void setFloorCharge(double floorCharge) {
+		this.floorCharge = floorCharge;
 	}
 }

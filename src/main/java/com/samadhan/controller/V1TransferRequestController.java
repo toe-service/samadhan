@@ -160,9 +160,10 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam int transferApproval
 	                                               ,@RequestParam(required = false) String cancellationReason,@RequestParam(required = false) String userType
 	                                               , @RequestParam(required = false, defaultValue = "TRANSFERSERVICE") serviceTypeEnum serviceType
-	                                               , @RequestParam(required = false) Integer vehicleId) throws JsonProcessingException {
+	                                               , @RequestParam(required = false) Integer vehicleId
+	                                               , @RequestParam(required = false, defaultValue = "Vehicle") String acceptedBy) throws JsonProcessingException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId, cancellationReason, userType, serviceType, vehicleId);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferApproval( transferId, transferApproval,vendorId, cancellationReason, userType, serviceType, vehicleId, acceptedBy);
 	        return rideTransfer;
 	  }
 	  
