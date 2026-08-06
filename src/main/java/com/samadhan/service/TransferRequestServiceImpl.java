@@ -318,7 +318,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason,String userType, serviceTypeEnum serviceType, Integer vehicleId) {
+	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason,String userType, serviceTypeEnum serviceType, Integer vehicleId, String acceptedBy) {
 
 		LocalDateTime dateTime = LocalDateTime.now();
 		
@@ -385,7 +385,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 		else {
 			
-		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE") || transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING")) {
+		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE") || transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING") || (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE") && acceptedBy.equalsIgnoreCase("Vehicle"))) {
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			 transferdetails.setVehicleId(vehicle);
@@ -395,7 +395,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			 transferdetails.setTransferVendor(transferVendor);
 		
 			
-		}else if (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE")) {
+		}else if (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE")  && acceptedBy.equalsIgnoreCase("Vendor")) {
 
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
