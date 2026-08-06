@@ -1281,14 +1281,26 @@ public class PaymentServiceImpl {
 	    // ---- NEW: home shifting now actually uses homeType / packingType / floor ----
 	    boolean isHomeShifting = serviceType != null && serviceType.name().equalsIgnoreCase("HOMESHIFTING");
 
+//	    if (isHomeShifting) {
+//	        laborCost = getHomeTypeLaborCost(homeType) * getPackingMultiplier(packingType);
+//
+//	        boolean hasLift = Boolean.TRUE.equals(liftAvailable);
+//	        int floors = (fromFloor == null) ? 0 : fromFloor;
+//
+//	        if (!hasLift && floors > 0) {
+//	            floorCharge = floors * 300; // per-floor charge when no lift
+//	        }
+//	    }
+//
+//	    double subtotal = rideCost + helperCharge + loading + packaging + laborCost + floorCharge;
 	    if (isHomeShifting) {
-	        laborCost = getHomeTypeLaborCost(homeType) * getPackingMultiplier(packingType);
+	        laborCost = getHomeTypeLaborCost(homeType);
+	        packaging = getPackagingCost(homeType, packingType);  // CHANGED: no longer hardcoded 0
 
 	        boolean hasLift = Boolean.TRUE.equals(liftAvailable);
 	        int floors = (fromFloor == null) ? 0 : fromFloor;
-
 	        if (!hasLift && floors > 0) {
-	            floorCharge = floors * 300; // per-floor charge when no lift
+	            floorCharge = floors * 100;
 	        }
 	    }
 
@@ -1317,16 +1329,29 @@ public class PaymentServiceImpl {
 	}
 
 	// ---- NEW: home shifting labor cost by home size ----
+//	private double getHomeTypeLaborCost(String homeType) {
+//	    if (homeType == null) return 1500;
+//	    switch (homeType.toUpperCase()) {
+//	        case "1RK": return 800;
+//	        case "1BHK": return 1500;
+//	        case "2BHK": return 2800;
+//	        case "3BHK": return 4000;
+//	        case "4BHK_PLUS":
+//	        case "4+BHK": return 5500;
+//	        default: return 1500;
+//	    }
+//	}
+	
 	private double getHomeTypeLaborCost(String homeType) {
-	    if (homeType == null) return 1500;
+	    if (homeType == null) return 800;
 	    switch (homeType.toUpperCase()) {
-	        case "1RK": return 800;
-	        case "1BHK": return 1500;
-	        case "2BHK": return 2800;
-	        case "3BHK": return 4000;
+	        case "1RK": return 500;
+	        case "1BHK": return 1000;
+	        case "2BHK": return 1500;
+	        case "3BHK": return 2000;
 	        case "4BHK_PLUS":
-	        case "4+BHK": return 5500;
-	        default: return 1500;
+	        case "4+BHK": return 2500;
+	        default: return 800;
 	    }
 	}
 
@@ -1339,6 +1364,31 @@ public class PaymentServiceImpl {
 	        case "HEAVY_MOVE": return 1.75;
 	        default: return 1.0;
 	    }
+	}
+	
+	private double getPackagingCost(String homeType, String packingType) {
+	    double base;
+	    if (homeType == null) base = 300;
+	    else switch (homeType.toUpperCase()) {
+	        case "1RK": base = 500; break;
+	        case "1BHK": base = 600; break;
+	        case "2BHK": base = 1000; break;
+	        case "3BHK": base = 1500; break;
+	        case "4BHK_PLUS":
+	        case "4+BHK": base = 2200; break;
+	        default: base = 300;
+	    }
+
+	    double multiplier;
+	    if (packingType == null) multiplier = 1.0;
+	    else switch (packingType.toUpperCase()) {
+	        case "BASIC_MOVE": multiplier = 1.0; break;
+	        case "STANDARD_HOME": multiplier = 1.3; break;
+	        case "HEAVY_MOVE": multiplier = 1.6; break;
+	        default: multiplier = 1.0;
+	    }
+
+	    return base * multiplier;
 	}
 
 	// ---- NEW: small config holder replacing the old single-number getPerKm ----
