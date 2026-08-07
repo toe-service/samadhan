@@ -1267,8 +1267,9 @@ public class PaymentServiceImpl {
 
 	    // ---- CHANGED: base fare + tiered per-km instead of flat perKm * distance ----
 	    VehicleRateConfig rateConfig = getRateConfig(vehicle);
-	    double rideCost = calculateDistanceCost(distance, rateConfig.baseFare, rateConfig.includedKm, rateConfig.perKmAfter);
-
+	  //  double rideCost = calculateDistanceCost(distance, rateConfig.baseFare, rateConfig.includedKm, rateConfig.perKmAfter);
+	    double rideCost = calculateDistanceCost(distance, rateConfig);
+	    
 	    double helperCharge = Boolean.TRUE.equals(helperRequired)
 	            ? (helperCount == null ? 1 : helperCount) * 350   // CHANGED: 300 -> 350
 	            : 0;
@@ -1321,11 +1322,40 @@ public class PaymentServiceImpl {
 	}
 
 	// ---- NEW: base fare + reduced per-km-after-threshold, replaces flat rate ----
-	private double calculateDistanceCost(double distance, double baseFare, double includedKm, double perKmAfter) {
-	    if (distance <= includedKm) {
-	        return baseFare;
-	    }
-	    return baseFare + (distance - includedKm) * perKmAfter;
+//	private double calculateDistanceCost(double distance, double baseFare, double includedKm, double perKmAfter) {
+//	    if (distance <= includedKm) {
+//	        return baseFare;
+//	    }
+//	    return baseFare + (distance - includedKm) * perKmAfter;
+//	}
+	
+	private double calculateDistanceCost(double distance, VehicleRateConfig config) {
+
+		if (distance <= config.includedKm) {
+			return config.baseFare;
+		}
+
+		double cost = config.baseFare;
+		double remaining = distance - config.includedKm;
+
+		// Included Km -> 20 Km
+		double slab1 = Math.min(remaining, 20 - config.includedKm);
+		cost += slab1 * config.rate0To20;
+		remaining -= slab1;
+
+		// 20 -> 50 Km
+		if (remaining > 0) {
+			double slab2 = Math.min(remaining, 30);
+			cost += slab2 * config.rate20To50;
+			remaining -= slab2;
+		}
+
+		// Above 50 Km
+		if (remaining > 0) {
+			cost += remaining * config.rateAbove50;
+		}
+
+		return cost;
 	}
 
 	// ---- NEW: home shifting labor cost by home size ----
@@ -1395,125 +1425,294 @@ public class PaymentServiceImpl {
 	private static class VehicleRateConfig {
 	    double baseFare;
 	    double includedKm;
-	    double perKmAfter;
+	   // double perKmAfter;
+	    double rate0To20;
+	    double rate20To50;
+	    double rateAbove50;
 
-	    VehicleRateConfig(double baseFare, double includedKm, double perKmAfter) {
+	    VehicleRateConfig(double baseFare, double includedKm,  double rate0To20, double rate20To50, double rateAbove50) {
 	        this.baseFare = baseFare;
 	        this.includedKm = includedKm;
-	        this.perKmAfter = perKmAfter;
+	      //  this.perKmAfter = perKmAfter;
+	        this.rate0To20 = rate0To20;
+	        this.rate20To50 = rate20To50;
+	        this.rateAbove50 = rateAbove50;
 	    }
 	}
 
 	// ---- CHANGED: replaces old getPerKm — now returns base fare + per-km-after ----
+//	private VehicleRateConfig getRateConfig(VendorPickupVehicleEnum vehicle) {
+//
+//	    switch (vehicle) {
+//
+//	        // ---------- Small Vehicle ----------
+//	        case SCOOTER:
+//	            return new VehicleRateConfig(80, 3, 10);
+//	        case TWO_WHEELER:
+//	            return new VehicleRateConfig(100, 3, 10);
+//	        case E_LOADER:
+//	            return new VehicleRateConfig(150, 1, 15);
+//	        case THREE_WHEELER:
+//	            return new VehicleRateConfig(180, 1, 18);
+//	        case EECO:
+//	            return new VehicleRateConfig(300, 2, 20);
+//	        case TATA_ACE:
+//	            return new VehicleRateConfig(400, 2, 22);
+//
+//	        // ---------- Open Body Truck ----------
+//	        case PICKUP_8FT:
+//	            return new VehicleRateConfig(450, 2, 32);
+//	        case TRUCK_10FT:
+//	            return new VehicleRateConfig(500, 2, 38);
+//	        case TRUCK_14FT_OPEN:
+//	            return new VehicleRateConfig(550, 2, 48);
+//	        case TRUCK_15FT_OPEN:
+//	            return new VehicleRateConfig(600, 2, 50);
+//	        case TRUCK_17FT_OPEN:
+//	            return new VehicleRateConfig(650, 2, 55);
+//	        case TRUCK_19FT_OPEN:
+//	            return new VehicleRateConfig(700, 2, 65);
+//	        case TRUCK_20FT_OPEN:
+//	            return new VehicleRateConfig(750, 2, 68);
+//	        case TRUCK_22FT_OPEN:
+//	            return new VehicleRateConfig(800, 2, 72);
+//	        case TRUCK_22FT_10TYRE:
+//	            return new VehicleRateConfig(850, 2, 82);
+//	        case TRUCK_24FT_12TYRE:
+//	            return new VehicleRateConfig(900, 2, 92);
+//	        case TRUCK_28FT_14TYRE:
+//	            return new VehicleRateConfig(950, 2, 105);
+//	        case TRUCK_30FT_14TYRE:
+//	            return new VehicleRateConfig(1000, 2, 115);
+//	        case HALF_BODY_TRUCK_32FT:
+//	            return new VehicleRateConfig(1100, 2, 120);
+//
+//	        // ---------- Closed Container Truck ----------
+//	        case TRUCK_14FT:
+//	        case TRUCK_14FT_CLOSED:
+//	            return new VehicleRateConfig(550, 2, 50);
+//	        case TRUCK_17FT:
+//	        case TRUCK_17FT_CLOSED:
+//	            return new VehicleRateConfig(650, 2, 58);
+//	        case TRUCK_19FT:
+//	            return new VehicleRateConfig(700, 2, 65);
+//	        case CONTAINER_7FT:
+//	            return new VehicleRateConfig(400, 2, 20);
+//	        case CONTAINER_8FT:
+//	            return new VehicleRateConfig(450, 2, 22);
+//	        case CONTAINER_10FT:
+//	            return new VehicleRateConfig(500, 2, 32);
+//	        case CONTAINER_20FT:
+//	            return new VehicleRateConfig(750, 2, 80);
+//	        case CONTAINER_22FT:
+//	            return new VehicleRateConfig(850, 2, 85);
+//	        case CONTAINER_32FT_9TON:
+//	            return new VehicleRateConfig(1000, 2, 110);
+//	        case CONTAINER_32FT_18TON:
+//	            return new VehicleRateConfig(1100, 2, 140);
+//
+//	        // ---------- Trailer (kept close to your original — already market-aligned) ----------
+//	        case FLATBED_TRAILER_20FT:
+//	            return new VehicleRateConfig(1000, 2, 110);
+//	        case FLATBED_TRAILER_22FT:
+//	            return new VehicleRateConfig(1100, 2, 115);
+//	        case FLATBED_TRAILER_24FT:
+//	            return new VehicleRateConfig(1150, 2, 120);
+//	        case FLATBED_TRAILER_28FT_9TON:
+//	            return new VehicleRateConfig(1200, 2, 130);
+//	        case FLATBED_TRAILER_28FT_14TON:
+//	            return new VehicleRateConfig(1250, 2, 140);
+//	        case FLATBED_TRAILER_32FT_9TON:
+//	            return new VehicleRateConfig(1300, 2, 145);
+//	        case FLATBED_TRAILER_32FT_14TON:
+//	            return new VehicleRateConfig(1350, 2, 155);
+//	        case FLATBED_TRAILER_40FT_30TON:
+//	            return new VehicleRateConfig(1400, 2, 180);
+//	        case FLATBED_TRAILER_40FT_32TON:
+//	            return new VehicleRateConfig(1450, 2, 190);
+//	        case FLATBED_TRAILER_40FT_35TON:
+//	            return new VehicleRateConfig(1500, 2, 200);
+//	        case FLATBED_TRAILER_40FT_42TON:
+//	            return new VehicleRateConfig(1600, 2, 220);
+//	        case LOWBED_TRAILER_40FT_30TON:
+//	            return new VehicleRateConfig(1450, 2, 185);
+//	        case LOWBED_TRAILER_40FT_32TON:
+//	            return new VehicleRateConfig(1500, 2, 195);
+//	        case LOWBED_TRAILER_40FT_35TON:
+//	            return new VehicleRateConfig(1500, 2, 205);
+//	        case LOWBED_TRAILER_40FT_42TON:
+//	            return new VehicleRateConfig(1600, 2, 225);
+//	        case SEMIBED_TRAILER_40FT_30TON:
+//	            return new VehicleRateConfig(1400, 2, 185);
+//	        case SEMIBED_TRAILER_40FT_32TON:
+//	            return new VehicleRateConfig(1450, 2, 195);
+//	        case SEMIBED_TRAILER_40FT_35TON:
+//	            return new VehicleRateConfig(1500, 2, 205);
+//	        case SEMIBED_TRAILER_40FT_42TON:
+//	            return new VehicleRateConfig(1600, 2, 225);
+//
+//	        default:
+//	            throw new IllegalArgumentException("Rate not configured for vehicle: " + vehicle);
+//	    }
+//	}
+	
+	
+	
 	private VehicleRateConfig getRateConfig(VendorPickupVehicleEnum vehicle) {
 
 	    switch (vehicle) {
 
 	        // ---------- Small Vehicle ----------
 	        case SCOOTER:
-	            return new VehicleRateConfig(80, 1, 10);
+	            return new VehicleRateConfig(80, 3, 10, 8, 6);
+
 	        case TWO_WHEELER:
-	            return new VehicleRateConfig(100, 1, 10);
+	            return new VehicleRateConfig(100, 3, 10, 9, 7);
+
 	        case E_LOADER:
-	            return new VehicleRateConfig(150, 1, 15);
+	            return new VehicleRateConfig(150, 1, 15, 13, 11);
+
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(180, 1, 18);
+	            return new VehicleRateConfig(180, 1, 18, 16, 14);
+
 	        case EECO:
-	            return new VehicleRateConfig(300, 2, 20);
+	            return new VehicleRateConfig(300, 2, 20, 18, 16);
+
 	        case TATA_ACE:
-	            return new VehicleRateConfig(400, 2, 22);
+	            return new VehicleRateConfig(400, 2, 22, 20, 18);
 
 	        // ---------- Open Body Truck ----------
 	        case PICKUP_8FT:
-	            return new VehicleRateConfig(450, 2, 32);
-	        case TRUCK_10FT:
-	            return new VehicleRateConfig(500, 2, 38);
-	        case TRUCK_14FT_OPEN:
-	            return new VehicleRateConfig(550, 2, 48);
-	        case TRUCK_15FT_OPEN:
-	            return new VehicleRateConfig(600, 2, 50);
-	        case TRUCK_17FT_OPEN:
-	            return new VehicleRateConfig(650, 2, 55);
-	        case TRUCK_19FT_OPEN:
-	            return new VehicleRateConfig(700, 2, 65);
-	        case TRUCK_20FT_OPEN:
-	            return new VehicleRateConfig(750, 2, 68);
-	        case TRUCK_22FT_OPEN:
-	            return new VehicleRateConfig(800, 2, 72);
-	        case TRUCK_22FT_10TYRE:
-	            return new VehicleRateConfig(850, 2, 82);
-	        case TRUCK_24FT_12TYRE:
-	            return new VehicleRateConfig(900, 2, 92);
-	        case TRUCK_28FT_14TYRE:
-	            return new VehicleRateConfig(950, 2, 105);
-	        case TRUCK_30FT_14TYRE:
-	            return new VehicleRateConfig(1000, 2, 115);
-	        case HALF_BODY_TRUCK_32FT:
-	            return new VehicleRateConfig(1100, 2, 120);
+	            return new VehicleRateConfig(450, 2, 32, 28, 24);
 
-	        // ---------- Closed Container Truck ----------
+	        case TRUCK_10FT:
+	            return new VehicleRateConfig(500, 2, 38, 34, 30);
+
+	        case TRUCK_14FT_OPEN:
+	            return new VehicleRateConfig(550, 2, 48, 42, 36);
+
+	        case TRUCK_15FT_OPEN:
+	            return new VehicleRateConfig(600, 2, 50, 44, 38);
+
+	        case TRUCK_17FT_OPEN:
+	            return new VehicleRateConfig(650, 2, 55, 48, 42);
+
+	        case TRUCK_19FT_OPEN:
+	            return new VehicleRateConfig(700, 2, 65, 58, 50);
+
+	        case TRUCK_20FT_OPEN:
+	            return new VehicleRateConfig(750, 2, 68, 60, 52);
+
+	        case TRUCK_22FT_OPEN:
+	            return new VehicleRateConfig(800, 2, 72, 64, 56);
+
+	        case TRUCK_22FT_10TYRE:
+	            return new VehicleRateConfig(850, 2, 82, 72, 64);
+
+	        case TRUCK_24FT_12TYRE:
+	            return new VehicleRateConfig(900, 2, 92, 82, 72);
+
+	        case TRUCK_28FT_14TYRE:
+	            return new VehicleRateConfig(950, 2, 105, 92, 82);
+
+	        case TRUCK_30FT_14TYRE:
+	            return new VehicleRateConfig(1000, 2, 115, 100, 90);
+
+	        case HALF_BODY_TRUCK_32FT:
+	            return new VehicleRateConfig(1100, 2, 120, 105, 95);
+
+	        // ---------- Closed Container ----------
 	        case TRUCK_14FT:
 	        case TRUCK_14FT_CLOSED:
-	            return new VehicleRateConfig(550, 2, 50);
+	            return new VehicleRateConfig(550, 2, 50, 44, 38);
+
 	        case TRUCK_17FT:
 	        case TRUCK_17FT_CLOSED:
-	            return new VehicleRateConfig(650, 2, 58);
-	        case TRUCK_19FT:
-	            return new VehicleRateConfig(700, 2, 65);
-	        case CONTAINER_7FT:
-	            return new VehicleRateConfig(400, 2, 20);
-	        case CONTAINER_8FT:
-	            return new VehicleRateConfig(450, 2, 22);
-	        case CONTAINER_10FT:
-	            return new VehicleRateConfig(500, 2, 32);
-	        case CONTAINER_20FT:
-	            return new VehicleRateConfig(750, 2, 80);
-	        case CONTAINER_22FT:
-	            return new VehicleRateConfig(850, 2, 85);
-	        case CONTAINER_32FT_9TON:
-	            return new VehicleRateConfig(1000, 2, 110);
-	        case CONTAINER_32FT_18TON:
-	            return new VehicleRateConfig(1100, 2, 140);
+	            return new VehicleRateConfig(650, 2, 58, 50, 44);
 
-	        // ---------- Trailer (kept close to your original — already market-aligned) ----------
+	        case TRUCK_19FT:
+	            return new VehicleRateConfig(700, 2, 65, 58, 50);
+
+	        case CONTAINER_7FT:
+	            return new VehicleRateConfig(400, 2, 20, 18, 16);
+
+	        case CONTAINER_8FT:
+	            return new VehicleRateConfig(450, 2, 22, 20, 18);
+
+	        case CONTAINER_10FT:
+	            return new VehicleRateConfig(500, 2, 32, 28, 24);
+
+	        case CONTAINER_20FT:
+	            return new VehicleRateConfig(750, 2, 80, 70, 60);
+
+	        case CONTAINER_22FT:
+	            return new VehicleRateConfig(850, 2, 85, 75, 65);
+
+	        case CONTAINER_32FT_9TON:
+	            return new VehicleRateConfig(1000, 2, 110, 95, 85);
+
+	        case CONTAINER_32FT_18TON:
+	            return new VehicleRateConfig(1100, 2, 140, 120, 100);
+
+	        // ---------- Flatbed Trailer ----------
 	        case FLATBED_TRAILER_20FT:
-	            return new VehicleRateConfig(1000, 2, 110);
+	            return new VehicleRateConfig(1000, 2, 110, 95, 85);
+
 	        case FLATBED_TRAILER_22FT:
-	            return new VehicleRateConfig(1100, 2, 115);
+	            return new VehicleRateConfig(1100, 2, 115, 100, 90);
+
 	        case FLATBED_TRAILER_24FT:
-	            return new VehicleRateConfig(1150, 2, 120);
+	            return new VehicleRateConfig(1150, 2, 120, 105, 95);
+
 	        case FLATBED_TRAILER_28FT_9TON:
-	            return new VehicleRateConfig(1200, 2, 130);
+	            return new VehicleRateConfig(1200, 2, 130, 115, 100);
+
 	        case FLATBED_TRAILER_28FT_14TON:
-	            return new VehicleRateConfig(1250, 2, 140);
+	            return new VehicleRateConfig(1250, 2, 140, 120, 105);
+
 	        case FLATBED_TRAILER_32FT_9TON:
-	            return new VehicleRateConfig(1300, 2, 145);
+	            return new VehicleRateConfig(1300, 2, 145, 125, 110);
+
 	        case FLATBED_TRAILER_32FT_14TON:
-	            return new VehicleRateConfig(1350, 2, 155);
+	            return new VehicleRateConfig(1350, 2, 155, 135, 120);
+
 	        case FLATBED_TRAILER_40FT_30TON:
-	            return new VehicleRateConfig(1400, 2, 180);
+	            return new VehicleRateConfig(1400, 2, 180, 160, 140);
+
 	        case FLATBED_TRAILER_40FT_32TON:
-	            return new VehicleRateConfig(1450, 2, 190);
+	            return new VehicleRateConfig(1450, 2, 190, 170, 150);
+
 	        case FLATBED_TRAILER_40FT_35TON:
-	            return new VehicleRateConfig(1500, 2, 200);
+	            return new VehicleRateConfig(1500, 2, 200, 180, 160);
+
 	        case FLATBED_TRAILER_40FT_42TON:
-	            return new VehicleRateConfig(1600, 2, 220);
+	            return new VehicleRateConfig(1600, 2, 220, 200, 180);
+
+	        // ---------- Lowbed Trailer ----------
 	        case LOWBED_TRAILER_40FT_30TON:
-	            return new VehicleRateConfig(1450, 2, 185);
+	            return new VehicleRateConfig(1450, 2, 185, 165, 145);
+
 	        case LOWBED_TRAILER_40FT_32TON:
-	            return new VehicleRateConfig(1500, 2, 195);
+	            return new VehicleRateConfig(1500, 2, 195, 175, 155);
+
 	        case LOWBED_TRAILER_40FT_35TON:
-	            return new VehicleRateConfig(1500, 2, 205);
+	            return new VehicleRateConfig(1500, 2, 205, 185, 165);
+
 	        case LOWBED_TRAILER_40FT_42TON:
-	            return new VehicleRateConfig(1600, 2, 225);
+	            return new VehicleRateConfig(1600, 2, 225, 205, 185);
+
+	        // ---------- Semi Bed Trailer ----------
 	        case SEMIBED_TRAILER_40FT_30TON:
-	            return new VehicleRateConfig(1400, 2, 185);
+	            return new VehicleRateConfig(1400, 2, 185, 165, 145);
+
 	        case SEMIBED_TRAILER_40FT_32TON:
-	            return new VehicleRateConfig(1450, 2, 195);
+	            return new VehicleRateConfig(1450, 2, 195, 175, 155);
+
 	        case SEMIBED_TRAILER_40FT_35TON:
-	            return new VehicleRateConfig(1500, 2, 205);
+	            return new VehicleRateConfig(1500, 2, 205, 185, 165);
+
 	        case SEMIBED_TRAILER_40FT_42TON:
-	            return new VehicleRateConfig(1600, 2, 225);
+	            return new VehicleRateConfig(1600, 2, 225, 205, 185);
 
 	        default:
 	            throw new IllegalArgumentException("Rate not configured for vehicle: " + vehicle);
