@@ -1564,16 +1564,16 @@ public class PaymentServiceImpl {
 
 	        // ---------- Small Vehicle ----------
 	        case SCOOTER:
-	            return new VehicleRateConfig(80, 3, 10, 8, 6);
+	            return new VehicleRateConfig(60, 3, 8, 6, 5);
 
 	        case TWO_WHEELER:
-	            return new VehicleRateConfig(100, 3, 10, 9, 7);
+	            return new VehicleRateConfig(80, 3, 8, 6, 5);
 
 	        case E_LOADER:
-	            return new VehicleRateConfig(150, 1, 15, 13, 11);
+	            return new VehicleRateConfig(130, 1, 12, 10, 8);
 
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(180, 1, 18, 16, 14);
+	            return new VehicleRateConfig(150, 1, 15, 13, 11);
 
 	        case EECO:
 	            return new VehicleRateConfig(300, 2, 20, 18, 16);
