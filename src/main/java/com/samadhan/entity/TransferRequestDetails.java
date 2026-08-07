@@ -207,6 +207,28 @@ public class TransferRequestDetails {
 	 @Column(name = "packaging_type")
 	 private String PackingType;
 	 
+	 @Column(name="from_floor")
+	 private Integer fromFloor;
+	 
+	 @Column(name="lift_available")
+	 private Boolean liftAvailable;
+	 
+	public Integer getFromFloor() {
+		return fromFloor;
+	}
+
+	public void setFromFloor(Integer fromFloor) {
+		this.fromFloor = fromFloor;
+	}
+
+	public Boolean getLiftAvailable() {
+		return liftAvailable;
+	}
+
+	public void setLiftAvailable(Boolean liftAvailable) {
+		this.liftAvailable = liftAvailable;
+	}
+
 	public Boolean getHelperRequired() {
 		return helperRequired;
 	}
