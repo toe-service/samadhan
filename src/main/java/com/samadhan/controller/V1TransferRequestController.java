@@ -81,7 +81,9 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false, defaultValue = "0") Integer helperCount,
 	                                               @RequestParam(required = false) VehicleCategoryEnum vehicleCategory,
 	                                               @RequestParam(required = false) String homeType, @RequestParam(required = false) String packingType, 
-	                                               @RequestParam(required = false) String goodsType) throws JsonProcessingException, FirebaseMessagingException {
+	                                               @RequestParam(required = false) String goodsType,
+		                                   	       @RequestParam(required = false, defaultValue = "0") Integer fromFloor,
+		                                	       @RequestParam(required = false, defaultValue = "false") Boolean liftAvailable) throws JsonProcessingException, FirebaseMessagingException {
 	        System.out.println("hi");
 	        
 	        if (serviceType == serviceTypeEnum.TRANSFERSERVICE) {
@@ -100,7 +102,7 @@ TransferRequestService transferRequestService;
 	                pickupDate, pickupSchedule,source, destination, carNumber, bikeModel, bikeNumber
 	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, 
 	                rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, 
-	                height, serviceType, vendorPickupVehicle, helperRequired, helperCount, vehicleCategory, instantBooking, homeType, packingType, goodsType);
+	                height, serviceType, vendorPickupVehicle, helperRequired, helperCount, vehicleCategory, instantBooking, homeType, packingType, goodsType, fromFloor, liftAvailable);
 	        return rideTransfer;
 	  }
 	  
