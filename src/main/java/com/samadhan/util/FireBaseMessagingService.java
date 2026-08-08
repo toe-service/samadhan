@@ -118,6 +118,11 @@ public class FireBaseMessagingService {
 	                .putData("serviceType", request.getServiceType().name())
 	                .putData("source", request.getSource())
                     .putData("destination", request.getDestination())
+	                .setAndroidConfig(
+                    AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH) // wakes device even if backgrounded/killed
+                            .build()
+	                		)
 					.build();
 //	        Message message = Message
 //	                .builder()
@@ -129,11 +134,7 @@ public class FireBaseMessagingService {
 //	                .putData("destination", request.getDestination())
 //	                .putData("title", "New Booking Available")
 //	                .putData("body", request.getSource() + " → " + request.getDestination())
-//	                .setAndroidConfig(
-//	                        AndroidConfig.builder()
-//	                                .setPriority(AndroidConfig.Priority.HIGH) // wakes device even if backgrounded/killed
-//	                                .build()
-//	                )
+
 //	                .build();
 			
 			log.info("message "+message);
