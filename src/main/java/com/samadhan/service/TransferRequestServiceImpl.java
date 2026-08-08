@@ -193,6 +193,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	    transferRequest.setPackingType(packingType);
 	    transferRequest.setFromFloor(fromFloor);
 	    transferRequest.setLiftAvailable(liftAvailable);
+	    transferRequest.setPackagingCost(packagingCost);
 
 	}
 		
@@ -691,7 +692,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 	@Override
 	public List<TransferRequestDetails> getrideTransferByVehicle(Long vehicleId) {
-		List<TransferRequestDetails> getRidesByVehicle = transferRepo.getRidesByVehicle(vehicleId);
+		 Vehicle vehicle = vehicleRepo.findById(vehicleId)
+		            .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+
+//		    String vehicleLatitude = vehicle.getVehicleLatitude();
+//		    String vehicleLongitude = vehicle.getVehicleLongitude();
+//
+//		    if (vehicleLatitude == null || vehicleLongitude == null) {
+//		        throw new IllegalStateException("Vehicle location not available for id: " + vehicleId);
+//		    }
+		
+		List<TransferRequestDetails> getRidesByVehicle = transferRepo.getVehicleFeed(vehicleId);
 		System.out.println("getRidesByVehicle" + getRidesByVehicle);
 		
 		return getRidesByVehicle;
