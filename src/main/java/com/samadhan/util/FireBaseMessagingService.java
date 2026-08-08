@@ -103,38 +103,38 @@ public class FireBaseMessagingService {
 //	                request.getSource() + " → " + request.getDestination(),
 //	                request.getId().toString());
 
-//			Notification notification = Notification
-//					.builder()
-//					.setTitle("New Booking Available")
-//				    .setBody(request.getSource() + " → " + request.getDestination())
-//				//	.setImage(notificationMessage.getImage())
-//					.build();
-//			//Message message = Message.builder().setToken(notificationMessage.getRecipientToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
-//			Message message = Message
-//					.builder()
-//					.setToken(vehicle.getFcmToken())
-//					.setNotification(notification)
-//				    .putData("requestId", request.getId().toString())
-//	                .putData("serviceType", request.getServiceType().name())
-//	                .putData("source", request.getSource())
-//                    .putData("destination", request.getDestination())
-//					.build();
-	        Message message = Message
-	                .builder()
-	                .setToken(vehicle.getFcmToken())
-	                .putData("type", "RIDE_REQUEST")
-	                .putData("requestId", request.getId().toString())
+			Notification notification = Notification
+					.builder()
+					.setTitle("New Booking Available")
+				    .setBody(request.getSource() + " → " + request.getDestination())
+				//	.setImage(notificationMessage.getImage())
+					.build();
+			//Message message = Message.builder().setToken(notificationMessage.getRecipientToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
+			Message message = Message
+					.builder()
+					.setToken(vehicle.getFcmToken())
+					.setNotification(notification)
+				    .putData("requestId", request.getId().toString())
 	                .putData("serviceType", request.getServiceType().name())
 	                .putData("source", request.getSource())
-	                .putData("destination", request.getDestination())
-	                .putData("title", "New Booking Available")
-	                .putData("body", request.getSource() + " → " + request.getDestination())
-	                .setAndroidConfig(
-	                        AndroidConfig.builder()
-	                                .setPriority(AndroidConfig.Priority.HIGH) // wakes device even if backgrounded/killed
-	                                .build()
-	                )
-	                .build();
+                    .putData("destination", request.getDestination())
+					.build();
+//	        Message message = Message
+//	                .builder()
+//	                .setToken(vehicle.getFcmToken())
+//	                .putData("type", "RIDE_REQUEST")
+//	                .putData("requestId", request.getId().toString())
+//	                .putData("serviceType", request.getServiceType().name())
+//	                .putData("source", request.getSource())
+//	                .putData("destination", request.getDestination())
+//	                .putData("title", "New Booking Available")
+//	                .putData("body", request.getSource() + " → " + request.getDestination())
+//	                .setAndroidConfig(
+//	                        AndroidConfig.builder()
+//	                                .setPriority(AndroidConfig.Priority.HIGH) // wakes device even if backgrounded/killed
+//	                                .build()
+//	                )
+//	                .build();
 			
 			log.info("message "+message);
 
