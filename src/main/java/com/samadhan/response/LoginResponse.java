@@ -5,7 +5,15 @@ public class LoginResponse {
 	    private String userType;
 	    private Long vehicleId;
 	    private Long driverId;
+	    private Long vendorId;
 	    
+	    
+		public Long getVendorId() {
+			return vendorId;
+		}
+		public void setVendorId(Long vendorId) {
+			this.vendorId = vendorId;
+		}
 		public String getUsername() {
 			return username;
 		}

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.samadhan.entity.TransferRequestDetails;
 
@@ -147,8 +148,54 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	List<TransferRequestDetails> showRidestoVendors(Long vendorId);
 
-	@Query(value="select * from transfer_request_details where vehicle_id=:vehicleId AND transfer_status IN(5,6,7,8) ORDER BY request_created_date DESC " ,nativeQuery = true)
-	List<TransferRequestDetails> getRidesByVehicle(Long vehicleId);
+//	@Query(value =
+//	        "SELECT * " +
+//	        "FROM transfer_request_details t " +
+//	        "WHERE " +
+//	        "  ( t.vehicle_id = :vehicleId AND t.transfer_status IN (5,6,7,8) ) " +
+//	        "  OR " +
+//	        "  ( t.transfer_status = 'PENDING' " +
+//	        "    AND t.pickup_latitude IS NOT NULL " +
+//	        "    AND t.pickup_longitude IS NOT NULL " +
+//	        "    AND ST_Distance_Sphere( " +
+//	        "          POINT(CAST(TRIM(t.pickup_longitude) AS DECIMAL(12,8)), " +
+//	        "                CAST(TRIM(t.pickup_latitude) AS DECIMAL(12,8))), " +
+//	        "          POINT(CAST(:vehicleLongitude AS DECIMAL(12,8)), " +
+//	        "                CAST(:vehicleLatitude AS DECIMAL(12,8))) " +
+//	        "        ) <= 30000 " +
+//	        "  ) " +
+//	        "ORDER BY t.request_created_date DESC",
+//	        nativeQuery = true)
+//	List<TransferRequestDetails> findVehicleFeed(
+//	        @Param("vehicleId") Long vehicleId,
+//	        @Param("vehicleLatitude") String vehicleLatitude,
+//	        @Param("vehicleLongitude") String vehicleLongitude);
+	
+	@Query(value =
+	        "SELECT trd.*, " +
+	        "ST_Distance_Sphere( " +
+	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
+	        "POINT(CAST(TRIM(v.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(v.vehicle_latitude) AS DECIMAL(12,8))) " +
+	        ") / 1000 AS distance_km " +
+	        "FROM transfer_request_details trd " +
+	        "JOIN vehicle v ON v.id = :vehicleId " +
+	        "WHERE ( " +
+	        // Already assigned to this vehicle, in an active status
+	        "   ( trd.vehicle_id = :vehicleId AND trd.transfer_status IN (5,6,7,8) ) " +
+	        "   OR ( " +
+	        // Unassigned, nearby, within 30km of this vehicle's current location
+	        "       trd.vehicle_id IS NULL " +
+	        "       AND trd.source_latitude IS NOT NULL " +
+	        "       AND trd.source_longitude IS NOT NULL " +
+	        "       AND ST_Distance_Sphere( " +
+	        "           POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
+	        "           POINT(CAST(TRIM(v.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(v.vehicle_latitude) AS DECIMAL(12,8))) " +
+	        "       ) <= 30000 " +
+	        "   ) " +
+	        ") " +
+	        "ORDER BY trd.request_created_date DESC",
+	        nativeQuery = true)
+	List<TransferRequestDetails> getVehicleFeed(@Param("vehicleId") Long vehicleId);
 
 	@Query(value="select * from transfer_request_details where id=:transferId AND transfer_id=:vendorId" ,nativeQuery = true)
 	Boolean IsExist(Long transferId, Long vendorId);

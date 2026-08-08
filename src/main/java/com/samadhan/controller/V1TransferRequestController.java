@@ -158,7 +158,7 @@ TransferRequestService transferRequestService;
 	  
 	  @PostMapping(value = "/requestTransferApproval")
 	  public TransferRequestDetails requestTransferApproval(@RequestParam Long transferId,
-	                                               @RequestParam Long vendorId,
+	                                               @RequestParam(required = false) Long vendorId,
 	                                               @RequestParam int transferApproval
 	                                               ,@RequestParam(required = false) String cancellationReason,@RequestParam(required = false) String userType
 	                                               , @RequestParam(required = false, defaultValue = "TRANSFERSERVICE") serviceTypeEnum serviceType
