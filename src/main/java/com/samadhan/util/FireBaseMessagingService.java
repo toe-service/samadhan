@@ -114,10 +114,12 @@ public class FireBaseMessagingService {
 					.builder()
 					.setToken(vehicle.getFcmToken())
 					.setNotification(notification)
+					.putData("type", "RIDE_REQUEST")
 				    .putData("requestId", request.getId().toString())
 	                .putData("serviceType", request.getServiceType().name())
 	                .putData("source", request.getSource())
                     .putData("destination", request.getDestination())
+                    .putData("title", "New Booking Available")
 	                .setAndroidConfig(
                     AndroidConfig.builder()
                             .setPriority(AndroidConfig.Priority.HIGH) // wakes device even if backgrounded/killed
