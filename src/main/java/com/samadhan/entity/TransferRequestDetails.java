@@ -213,6 +213,12 @@ public class TransferRequestDetails {
 	 @Column(name="lift_available")
 	 private Boolean liftAvailable;
 	 
+	 @Column(name="receiver_name")
+	 private String receiverName;
+	 
+	 @Column(name="receiver_number")
+	 private String receiverNumber;
+	 
 	public Integer getFromFloor() {
 		return fromFloor;
 	}
@@ -588,6 +594,22 @@ public class TransferRequestDetails {
 
 	public void setPackingType(String packingType) {
 		PackingType = packingType;
+	}
+
+	public String getReceiverName() {
+		return receiverName;
+	}
+
+	public void setReceiverName(String receiverName) {
+		this.receiverName = receiverName;
+	}
+
+	public String getReceiverNumber() {
+		return receiverNumber;
+	}
+
+	public void setReceiverNumber(String receiverNumber) {
+		this.receiverNumber = receiverNumber;
 	}
 
 
