@@ -115,6 +115,7 @@ public class FireBaseMessagingService {
 					.setToken(vehicle.getFcmToken())
 					.setNotification(notification)
 					.putData("type", "RIDE_REQUEST")
+					.putData("Ride Cost",  String.valueOf(request.getRideCost()))
 				    .putData("requestId", request.getId().toString())
 	                .putData("serviceType", request.getServiceType().name())
 	                .putData("source", request.getSource())
