@@ -12,9 +12,11 @@ import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
+import com.samadhan.response.AuthenticationResponse;
 import com.samadhan.response.LoginResponse;
 import com.samadhan.response.ResponseObject;
 import com.samadhan.response.UserOtpVerifyResponse;
+import com.samadhan.security.TokenApi;
 import com.samadhan.service.LoginService;
 import com.samadhan.service.UserService;
 import com.samadhan.service.VehicleService;
@@ -39,35 +41,41 @@ public class V1UserLoginAndRegistrationController {
 
     @Autowired
     private driversService driverservice;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private VehicleService vehicleService;
 
+    @Autowired
+    private TokenApi tokenApi;
+
 
     @PostMapping("/user-otp-verify")
-    public ResponseEntity<ResponseObject<?>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
+    public ResponseEntity<AuthenticationResponse> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         logger.info("User login request is {}", userOtpVerifyRequest.toString());
+        UserDetails userDetails;
+
         if (userOtpVerifyRequest.getOtp() == 1234) {
-            UserDetails userDetails = userService.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
+            userDetails = userService.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
                     .orElseThrow(() -> new OtpMismatchException("user details not found"));
-            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
-            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
-            response.setOtp(userOtpVerifyRequest.getOtp());
-            response.setUserId(userDetails.getId());
-            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
-            return ResponseEntity.ok(userLoginRequestResponseObject);
         } else {
-            UserDetails userDetails = loginService.isOtpValid(userOtpVerifyRequest);
-            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
-            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
-            response.setOtp(userOtpVerifyRequest.getOtp());
-            response.setUserId(userDetails.getId());
-            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
-            return ResponseEntity.ok(userLoginRequestResponseObject);
+            userDetails = loginService.isOtpValid(userOtpVerifyRequest);
         }
+
+        String userRole = userDetails.getUserRole() != null ? userDetails.getUserRole() : "USER";
+        String jwtToken = tokenApi.generateToken(userDetails.getUserContactNumber(), userRole, userDetails.getId(), 15);
+
+        userDetails.setLastLogin(System.currentTimeMillis());
+
+        AuthenticationResponse response = new AuthenticationResponse(
+                200, true, AppConstant.USER_LOGIN_SUCCESSFUL,
+                jwtToken, userDetails.getId(),
+                userDetails.getUserName(), userRole, 900000L
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     /**
