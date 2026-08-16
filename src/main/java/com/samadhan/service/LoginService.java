@@ -133,7 +133,11 @@ public class LoginService {
 	public TransferVendor loginTransfervendor(String userName, String password) {
 
 		TransferVendor transferv=transferVendorRepository.findByUserAndPassword(userName,password);
-		
+
+		if (transferv == null) {
+			throw new RuntimeException("Invalid credentials");
+		}
+
 		return transferv;
 	}
 

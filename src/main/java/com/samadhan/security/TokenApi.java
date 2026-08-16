@@ -72,9 +72,13 @@ public class TokenApi {
 
 
     public Boolean validateToken(final String token) {
-        String alg = extractClaim(token, alg_claim_field);
-        return !isTokenExpired(token) &&
-                alg.equals(encryptedClaimData);
+        try {
+            String alg = extractClaim(token, alg_claim_field);
+            return !isTokenExpired(token) &&
+                    alg.equals(encryptedClaimData);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private Boolean isTokenExpired(String token) {

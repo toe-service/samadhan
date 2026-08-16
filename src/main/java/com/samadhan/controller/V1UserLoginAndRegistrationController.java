@@ -6,15 +6,16 @@ import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.UserRole;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
-import com.samadhan.response.AuthenticationResponse;
 import com.samadhan.response.LoginResponse;
 import com.samadhan.response.ResponseObject;
+import com.samadhan.response.TransferVendorLoginResponse;
 import com.samadhan.response.UserOtpVerifyResponse;
 import com.samadhan.security.TokenApi;
 import com.samadhan.service.LoginService;
@@ -53,7 +54,7 @@ public class V1UserLoginAndRegistrationController {
 
 
     @PostMapping("/user-otp-verify")
-    public ResponseEntity<AuthenticationResponse> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
+    public ResponseEntity<ResponseObject<UserOtpVerifyResponse>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         logger.info("User login request is {}", userOtpVerifyRequest.toString());
         UserDetails userDetails;
 
@@ -69,11 +70,16 @@ public class V1UserLoginAndRegistrationController {
 
         userDetails.setLastLogin(System.currentTimeMillis());
 
-        AuthenticationResponse response = new AuthenticationResponse(
-                200, true, AppConstant.USER_LOGIN_SUCCESSFUL,
-                jwtToken, userDetails.getId(),
-                userDetails.getUserName(), userRole, 900000L
-        );
+        UserOtpVerifyResponse otpVerifyResponse = new UserOtpVerifyResponse();
+        otpVerifyResponse.setUserContactNumber(userDetails.getUserContactNumber());
+        otpVerifyResponse.setOtp(userOtpVerifyRequest.getOtp());
+        otpVerifyResponse.setUserId(userDetails.getId());
+        otpVerifyResponse.setToken(jwtToken);
+        otpVerifyResponse.setUserRole(userRole);
+        otpVerifyResponse.setExpiresIn(900000L);
+
+        ResponseObject<UserOtpVerifyResponse> response = ResponseUtil.populateResponseObject(
+                otpVerifyResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
 
         return ResponseEntity.ok(response);
     }
@@ -153,17 +159,26 @@ public class V1UserLoginAndRegistrationController {
 	}
 
     @PostMapping("/transfervendor-login")
-    public ResponseEntity<ResponseObject<TransferVendor>> loginTransfervendor(@RequestParam String UserName, @RequestParam String password
+    public ResponseEntity<ResponseObject<TransferVendorLoginResponse>> loginTransfervendor(@RequestParam String UserName, @RequestParam String password
            ) throws ConflictException {
-    	
-    		TransferVendor transferv=loginService.loginTransfervendor(UserName,password);
-//        logger.info("User Login request is {}", userLoginRequest);
-//        loginService.registerUser(userRegisterRequest);
-        ResponseObject<TransferVendor> success = ResponseUtil.populateResponseObject(transferv, "SUCCESS", null);
-       
-        return ResponseEntity.ok(success);
-    	
 
+        TransferVendor transferv = loginService.loginTransfervendor(UserName, password);
+
+        String jwtToken = tokenApi.generateToken(
+                transferv.getVendorEmail(), UserRole.VENDOR.getValue(), transferv.getId(), 15);
+
+        TransferVendorLoginResponse vendorLoginResponse = new TransferVendorLoginResponse();
+        vendorLoginResponse.setVendorId(transferv.getId());
+        vendorLoginResponse.setVendorName(transferv.getVendorName());
+        vendorLoginResponse.setVendorEmail(transferv.getVendorEmail());
+        vendorLoginResponse.setToken(jwtToken);
+        vendorLoginResponse.setUserRole(UserRole.VENDOR.getValue());
+        vendorLoginResponse.setExpiresIn(900000L);
+
+        ResponseObject<TransferVendorLoginResponse> response = ResponseUtil.populateResponseObject(
+                vendorLoginResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+
+        return ResponseEntity.ok(response);
     }
 
 }

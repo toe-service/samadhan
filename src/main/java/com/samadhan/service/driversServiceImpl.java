@@ -20,11 +20,13 @@ import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.SamadhanException;
+import com.samadhan.enums.UserRole;
 import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.RidesRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.response.LoginResponse;
+import com.samadhan.security.TokenApi;
 import com.samadhan.util.FireBaseMessagingService;
 
 @Service
@@ -34,6 +36,9 @@ public class driversServiceImpl implements driversService {
 
     @Autowired
     DriverRepository driverRepo;
+
+    @Autowired
+    TokenApi tokenApi;
 
     @Autowired
     RidesRepository rideRepo;
@@ -200,6 +205,10 @@ public class driversServiceImpl implements driversService {
 	        res.setUsername(driver.getDriverEmail());
 	        res.setDriverId(driver.getId());
 	        res.setUserType("driver");
+	        String token = tokenApi.generateToken(
+	                driver.getDriverEmail(), UserRole.DRIVER.getValue(), driver.getId(), 15);
+	        res.setToken(token);
+	        res.setExpiresIn(900000L);
 	        return res;
 	    }
 
@@ -214,7 +223,10 @@ public class driversServiceImpl implements driversService {
 	       vehicle.setFcmToken(fcmToken);
 	       res.setVendorId(vehicle.getTransferVendor().getId());
 	        vehicleRepo.save(vehicle);
-	        
+	        String token = tokenApi.generateToken(
+	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId(), 15);
+	        res.setToken(token);
+	        res.setExpiresIn(900000L);
 	        return res;
 	    }
 

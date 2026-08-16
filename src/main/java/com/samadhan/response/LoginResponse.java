@@ -6,8 +6,22 @@ public class LoginResponse {
 	    private Long vehicleId;
 	    private Long driverId;
 	    private Long vendorId;
-	    
-	    
+	    private String token;
+	    private Long expiresIn;
+
+
+		public String getToken() {
+			return token;
+		}
+		public void setToken(String token) {
+			this.token = token;
+		}
+		public Long getExpiresIn() {
+			return expiresIn;
+		}
+		public void setExpiresIn(Long expiresIn) {
+			this.expiresIn = expiresIn;
+		}
 		public Long getVendorId() {
 			return vendorId;
 		}

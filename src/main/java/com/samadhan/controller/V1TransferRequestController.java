@@ -57,8 +57,8 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) Long userId,
 	                                               @RequestParam(required = false) String userName,
 	                                               @RequestParam(required = false) String userContact,
-	                                               @RequestParam(required = false) String ReceiverName,
-	                                               @RequestParam(required = false) String ReceiverContact,
+	                                               @RequestParam(required = false) String receiverName,
+	                                               @RequestParam(required = false) String receiverContact,
 	                                               @RequestParam double rideCost,
 	                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate pickupDate,
 	                                               @RequestParam(required = false) String pickupSchedule,
@@ -105,7 +105,7 @@ TransferRequestService transferRequestService;
 	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, 
 	                rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, 
 	                height, serviceType, vendorPickupVehicle, helperRequired, helperCount, vehicleCategory, 
-	                instantBooking, homeType, packingType, goodsType, fromFloor, liftAvailable, ReceiverName, ReceiverContact);
+	                instantBooking, homeType, packingType, goodsType, fromFloor, liftAvailable, receiverName, receiverContact);
 	        return rideTransfer;
 	  }
 	  
