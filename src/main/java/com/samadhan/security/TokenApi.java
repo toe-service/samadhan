@@ -29,6 +29,14 @@ public class TokenApi {
         return createToken(claims, userName, jwtId, tokenAliveMin);
     }
 
+    public String generateToken(String userName, String userRole, Long userId, int tokenAliveMin) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(alg_claim_field, encryptedClaimData);
+        claims.put("userRole", userRole != null ? userRole : "USER");
+        claims.put("userId", userId);
+        return createToken(claims, userName, jwtId, tokenAliveMin);
+    }
+
 
     public Claims extractAllClaims(String token) throws ExpiredJwtException {
         return Jwts
@@ -42,11 +50,35 @@ public class TokenApi {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        Object userIdObj = claims.get("userId");
+        if (userIdObj != null) {
+            if (userIdObj instanceof Number) {
+                return ((Number) userIdObj).longValue();
+            }
+            try {
+                return Long.parseLong(userIdObj.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public String extractUserRole(String token) {
+        return extractClaim(token, "userRole");
+    }
+
 
     public Boolean validateToken(final String token) {
-        String alg = extractClaim(token, alg_claim_field);
-        return !isTokenExpired(token) &&
-                alg.equals(encryptedClaimData);
+        try {
+            String alg = extractClaim(token, alg_claim_field);
+            return !isTokenExpired(token) &&
+                    alg.equals(encryptedClaimData);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private Boolean isTokenExpired(String token) {

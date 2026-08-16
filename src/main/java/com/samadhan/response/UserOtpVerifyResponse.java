@@ -11,6 +11,9 @@ public class UserOtpVerifyResponse {
     private String userContactNumber;
     private Integer otp;
     private Long userId;
+    private String token;
+    private String userRole;
+    private Long expiresIn;
 
     public String getUserContactNumber() {
         return userContactNumber;
@@ -34,5 +37,29 @@ public class UserOtpVerifyResponse {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(String userRole) {
+        this.userRole = userRole;
+    }
+
+    public Long getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(Long expiresIn) {
+        this.expiresIn = expiresIn;
     }
 }

@@ -6,6 +6,7 @@ import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.CarModelEnum;
+import com.samadhan.enums.UserRole;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.UserLoginRequest;
@@ -14,7 +15,9 @@ import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.response.LoginResponse;
 import com.samadhan.response.ResponseObject;
+import com.samadhan.response.TransferVendorLoginResponse;
 import com.samadhan.response.UserOtpVerifyResponse;
+import com.samadhan.security.TokenApi;
 import com.samadhan.service.LoginService;
 import com.samadhan.service.UserService;
 import com.samadhan.service.VehicleService;
@@ -39,35 +42,46 @@ public class V1UserLoginAndRegistrationController {
 
     @Autowired
     private driversService driverservice;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private VehicleService vehicleService;
 
+    @Autowired
+    private TokenApi tokenApi;
+
 
     @PostMapping("/user-otp-verify")
-    public ResponseEntity<ResponseObject<?>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
+    public ResponseEntity<ResponseObject<UserOtpVerifyResponse>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         logger.info("User login request is {}", userOtpVerifyRequest.toString());
+        UserDetails userDetails;
+
         if (userOtpVerifyRequest.getOtp() == 1234) {
-            UserDetails userDetails = userService.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
+            userDetails = userService.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
                     .orElseThrow(() -> new OtpMismatchException("user details not found"));
-            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
-            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
-            response.setOtp(userOtpVerifyRequest.getOtp());
-            response.setUserId(userDetails.getId());
-            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
-            return ResponseEntity.ok(userLoginRequestResponseObject);
         } else {
-            UserDetails userDetails = loginService.isOtpValid(userOtpVerifyRequest);
-            UserOtpVerifyResponse response = new UserOtpVerifyResponse();
-            response.setUserContactNumber(userOtpVerifyRequest.getUserContactNumber());
-            response.setOtp(userOtpVerifyRequest.getOtp());
-            response.setUserId(userDetails.getId());
-            ResponseObject<UserOtpVerifyResponse> userLoginRequestResponseObject = ResponseUtil.populateResponseObject(response, AppConstant.USER_LOGIN_SUCCESSFUL, null);
-            return ResponseEntity.ok(userLoginRequestResponseObject);
+            userDetails = loginService.isOtpValid(userOtpVerifyRequest);
         }
+
+        String userRole = userDetails.getUserRole() != null ? userDetails.getUserRole() : "USER";
+        String jwtToken = tokenApi.generateToken(userDetails.getUserContactNumber(), userRole, userDetails.getId(), 15);
+
+        userDetails.setLastLogin(System.currentTimeMillis());
+
+        UserOtpVerifyResponse otpVerifyResponse = new UserOtpVerifyResponse();
+        otpVerifyResponse.setUserContactNumber(userDetails.getUserContactNumber());
+        otpVerifyResponse.setOtp(userOtpVerifyRequest.getOtp());
+        otpVerifyResponse.setUserId(userDetails.getId());
+        otpVerifyResponse.setToken(jwtToken);
+        otpVerifyResponse.setUserRole(userRole);
+        otpVerifyResponse.setExpiresIn(900000L);
+
+        ResponseObject<UserOtpVerifyResponse> response = ResponseUtil.populateResponseObject(
+                otpVerifyResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -145,17 +159,26 @@ public class V1UserLoginAndRegistrationController {
 	}
 
     @PostMapping("/transfervendor-login")
-    public ResponseEntity<ResponseObject<TransferVendor>> loginTransfervendor(@RequestParam String UserName, @RequestParam String password
+    public ResponseEntity<ResponseObject<TransferVendorLoginResponse>> loginTransfervendor(@RequestParam String UserName, @RequestParam String password
            ) throws ConflictException {
-    	
-    		TransferVendor transferv=loginService.loginTransfervendor(UserName,password);
-//        logger.info("User Login request is {}", userLoginRequest);
-//        loginService.registerUser(userRegisterRequest);
-        ResponseObject<TransferVendor> success = ResponseUtil.populateResponseObject(transferv, "SUCCESS", null);
-       
-        return ResponseEntity.ok(success);
-    	
 
+        TransferVendor transferv = loginService.loginTransfervendor(UserName, password);
+
+        String jwtToken = tokenApi.generateToken(
+                transferv.getVendorEmail(), UserRole.VENDOR.getValue(), transferv.getId(), 15);
+
+        TransferVendorLoginResponse vendorLoginResponse = new TransferVendorLoginResponse();
+        vendorLoginResponse.setVendorId(transferv.getId());
+        vendorLoginResponse.setVendorName(transferv.getVendorName());
+        vendorLoginResponse.setVendorEmail(transferv.getVendorEmail());
+        vendorLoginResponse.setToken(jwtToken);
+        vendorLoginResponse.setUserRole(UserRole.VENDOR.getValue());
+        vendorLoginResponse.setExpiresIn(900000L);
+
+        ResponseObject<TransferVendorLoginResponse> response = ResponseUtil.populateResponseObject(
+                vendorLoginResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+
+        return ResponseEntity.ok(response);
     }
 
 }

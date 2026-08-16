@@ -47,6 +47,15 @@ public class UserDetails {
 	@Column(name = "device_id")
 	private String deviceId;
 
+	@Column(name = "user_role")
+	private String userRole;
+
+	@Column(name = "is_active")
+	private Boolean isActive = true;
+
+	@Column(name = "last_login")
+	private Long lastLogin;
+
 	public Long getId() {
 		return id;
 	}
@@ -117,5 +126,29 @@ public class UserDetails {
 
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
+	}
+
+	public String getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(String userRole) {
+		this.userRole = userRole;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public Long getLastLogin() {
+		return lastLogin;
+	}
+
+	public void setLastLogin(Long lastLogin) {
+		this.lastLogin = lastLogin;
 	}
 }
