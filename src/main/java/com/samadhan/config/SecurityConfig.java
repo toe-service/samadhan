@@ -79,6 +79,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/v1/role-login").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/search").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/source/search").permitAll()
+                .antMatchers(HttpMethod.GET, "/location/latlong").permitAll()
                 .antMatchers(HttpMethod.GET, "/pay/bookVehicleCostList").permitAll()
                 .antMatchers(HttpMethod.POST, "/transfer/requestRideTransfer").permitAll()
                 .antMatchers("/health").permitAll()
