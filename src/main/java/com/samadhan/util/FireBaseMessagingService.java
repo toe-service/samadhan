@@ -88,13 +88,19 @@ public class FireBaseMessagingService {
 //		            vehicleRepository.findAll();e]
 		 Optional<Vehicle> vehicles =
 		            vehicleRepository.findById(1l);
-		            		
+
+		 if (vehicles.isEmpty()) {
+		     log.warn("No vehicle found to notify for request {}", request.getId());
+		     return;
+		 }
+
 		 Vehicle vehicle=vehicles.get();
 
 	//    for (Vehicle vehicle : vehicles) {
 
 	        if (vehicle.getFcmToken() == null || vehicle.getFcmToken().isEmpty()) {
-	        //    continue;
+	            log.warn("Vehicle {} has no FCM token, skipping notification for request {}", vehicle.getId(), request.getId());
+	            return;
 	        }
 
 //	        firebaseService.sendPushNotification(
@@ -142,7 +148,11 @@ public class FireBaseMessagingService {
 			
 			log.info("message "+message);
 
-			 firebaseMessaging.send(message);
+			try {
+			    firebaseMessaging.send(message);
+			} catch (FirebaseMessagingException e) {
+			    log.error("Failed to send RIDE_REQUEST notification to vehicle {}", vehicle.getId(), e);
+			}
 	    //}
 	}
 
