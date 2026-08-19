@@ -8,6 +8,20 @@ public class RideCostSummary {
 	double packaging;
 	double LoadingUnloading;
 	double pickupCost;
+	String vendorVehicleType;
+	double distanceInKm;
+	public double getDistanceInKm() {
+		return distanceInKm;
+	}
+	public void setDistanceInKm(double distanceInKm) {
+		this.distanceInKm = distanceInKm;
+	}
+	public String getVendorVehicleType() {
+		return vendorVehicleType;
+	}
+	public void setVendorVehicleType(String vendorVehicleType) {
+		this.vendorVehicleType = vendorVehicleType;
+	}
 	public double getTotalCost() {
 		return totalCost;
 	}
