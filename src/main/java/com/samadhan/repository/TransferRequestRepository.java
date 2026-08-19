@@ -176,21 +176,35 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(v.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(v.vehicle_latitude) AS DECIMAL(12,8))) " +
-	        ") / 1000 AS distance_km " +
+	        ") / 1000 AS vehicle_distance_km " +
 	        "FROM transfer_request_details trd " +
 	        "JOIN vehicle v ON v.id = :vehicleId " +
 	        "WHERE ( " +
 	        // Already assigned to this vehicle, in an active status
 	        "   ( trd.vehicle_id = :vehicleId AND trd.transfer_status IN (5,6,7,8) ) " +
 	        "   OR ( " +
-	        // Unassigned, nearby, within 30km of this vehicle's current location
+	        // Unassigned and nearby. How near counts as "nearby" scales with the
+	        // length of the ride itself: a short local trip is only worth showing
+	        // to a vehicle right next to the pickup, while a long-haul ride is
+	        // worth a longer drive to reach the pickup point.
+	        //   ride  < 20 km  -> vehicle within  3 km
+	        //   ride <= 50 km  -> vehicle within 10 km
+	        //   ride  < 100 km -> vehicle within 25 km
+	        //   ride >= 100 km -> vehicle within 30 km
+	        // Rides with no distance_km recorded fall through to 30 km, which is
+	        // the radius the feed used before this rule existed.
 	        "       trd.vehicle_id IS NULL " +
 	        "       AND trd.source_latitude IS NOT NULL " +
 	        "       AND trd.source_longitude IS NOT NULL " +
 	        "       AND ST_Distance_Sphere( " +
 	        "           POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
 	        "           POINT(CAST(TRIM(v.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(v.vehicle_latitude) AS DECIMAL(12,8))) " +
-	        "       ) <= 30000 " +
+	        "       ) <= CASE " +
+	        "           WHEN trd.distance_km <  20  THEN  3000 " +
+	        "           WHEN trd.distance_km <= 50  THEN 10000 " +
+	        "           WHEN trd.distance_km <  100 THEN 25000 " +
+	        "           ELSE 30000 " +
+	        "       END " +
 	        "   ) " +
 	        ") " +
 	        "ORDER BY trd.request_created_date DESC",
