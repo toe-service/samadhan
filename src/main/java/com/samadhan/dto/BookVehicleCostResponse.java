@@ -18,7 +18,9 @@ public class BookVehicleCostResponse {
     private Double helperCharge;
     
     private double laborCost;     // NEW
-    private double floorCharge; 
+    private double floorCharge;
+
+    private double distanceInKm;  // NEW
 
 	public BookVehicleCostResponse(String vehicle, Double rideCost, Double gst, Double loadingUnloading,
 			Double packaging, Double totalCost, Double laborCost, Double floorCharge) {
@@ -106,5 +108,13 @@ public class BookVehicleCostResponse {
 
 	public void setFloorCharge(double floorCharge) {
 		this.floorCharge = floorCharge;
+	}
+
+	public double getDistanceInKm() {
+		return distanceInKm;
+	}
+
+	public void setDistanceInKm(double distanceInKm) {
+		this.distanceInKm = distanceInKm;
 	}
 }

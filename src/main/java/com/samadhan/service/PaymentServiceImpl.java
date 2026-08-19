@@ -1511,6 +1511,7 @@ public class PaymentServiceImpl {
 	    response.setPackaging(packaging);
 	    response.setLaborCost(laborCost);       // NEW — add this field to BookVehicleCostResponse
 	    response.setFloorCharge(floorCharge);   // NEW — add this field to BookVehicleCostResponse
+	    response.setDistanceInKm(distance);     // NEW — same distance used by /rideCostCalculation
 	    response.setGst(gst);
 	    response.setTotalCost(subtotal + gst);
 
