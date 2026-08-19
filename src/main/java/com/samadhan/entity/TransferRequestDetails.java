@@ -171,7 +171,7 @@ public class TransferRequestDetails {
 	 @Column(name="vehicle_assign_date")
 	 private LocalDateTime VehicleAssignDateTime;
 	 
-	 @Column(name = "distance_km", insertable = false, updatable = false)
+	 @Column(name = "distance_km")
 	 private Double distanceKm;
 	 
 	 @Column(name = "ride_without_tax")
