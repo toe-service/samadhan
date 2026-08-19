@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -326,7 +327,9 @@ public class PaymentServiceImpl {
 					.asInt();
 
 			double distanceInKm = distanceInMeters / 1000.0;
-			
+
+			rideSummary.setDistanceInKm(distanceInKm);
+
 //			if (distanceInKm < 50) {
 //			    throw new RuntimeException(
 //			        "Service is available only for distances greater than or equal to 50 KM"
@@ -413,27 +416,10 @@ public class PaymentServiceImpl {
 //		     double volume = length * width * heigth;
 
 		     //-------------------------------------------------
-		     // Distance Rate (Bulk Transportation)
+		     // Volumetric Weight (needed up front to pick a vehicle
+		     // for short-distance pricing below)
 		     //-------------------------------------------------
 
-		     if (distanceInKm <= 50) {
-		         perKmRate = 2.8;
-		     } else if (distanceInKm <= 200) {
-		         perKmRate = 1.6;
-		     } else if (distanceInKm <= 500) {
-		         perKmRate = 1.1;
-		     } else if (distanceInKm <= 1000) {
-		         perKmRate = 0.75;
-		     } else {
-		         perKmRate = 0.55;
-		     }
-
-		     distanceCharge = distanceInKm * perKmRate;
-
-		     //-------------------------------------------------
-		     // Volumetric Weight
-		     //-------------------------------------------------
-		     
 		     double lengthInch = length;
 		     double widthInch = width;
 		     double heightInch = heigth;
@@ -450,73 +436,283 @@ public class PaymentServiceImpl {
 
 		     double volume = lengthInch * widthInch * heightInch;
 
-		     
-
 		     double volumetricWeight = volume / 250.0;
 
 		     double chargeableWeight =
 		             Math.max(parcelWeight, volumetricWeight);
 
 		     //-------------------------------------------------
-		     // Base Handling Charge
+		     // Distance Rate (Bulk Transportation)
 		     //-------------------------------------------------
 
-		     fixedCharge = 150;
+		     if (distanceInKm <= 50) {
 
-		     //-------------------------------------------------
-		     // Weight Charge
-		     //-------------------------------------------------
+		         // Mirror /bookVehicleCost: pick the smallest vehicle that can
+		         // carry the chargeable weight and price it the same way
+		         // calculateVehicleFare does, with no extra fixed/weight/
+		         // packaging/loading charges stacked on top.
+		         VendorPickupVehicleEnum vehicle = selectVehicleForWeight(chargeableWeight);
+		         distanceCharge = calculateDistanceCost(distanceInKm, getRateConfig(vehicle));
+		         rideSummary.setVendorVehicleType(vehicle.getDisplayName());
 
-		      weightCharge = chargeableWeight * 15;
+		         fixedCharge = 0;
+		         weightCharge = 0;
+		         packaging = 0;
+		         loadingUnloading = 0;
 
-		     //-------------------------------------------------
-		     // Packaging Charge
-		     //-------------------------------------------------
+//		     } else {
+//
+//		         if (distanceInKm <= 200) {
+//		             perKmRate = 1.6;
+//		             distanceCharge = distanceInKm * perKmRate;
+//		         } else if (distanceInKm <= 500) {
+//		             perKmRate = 1.1;
+//		             distanceCharge = distanceInKm * perKmRate;
+//		         } else if (distanceInKm <= 1000) {
+//		             perKmRate = 0.75;
+//		             distanceCharge = distanceInKm * perKmRate;
+//		         } else {
+//		             perKmRate = 0.55;
+//		             distanceCharge = distanceInKm * perKmRate;
+//		         }
+//
+//		         //-------------------------------------------------
+//		         // Base Handling Charge
+//		         //-------------------------------------------------
+//
+//		         fixedCharge = 150;
+//
+//		         //-------------------------------------------------
+//		         // Weight Charge
+//		         //-------------------------------------------------
+//
+//		         weightCharge = chargeableWeight * 15;
+//
+//		         //-------------------------------------------------
+//		         // Packaging Charge
+//		         //-------------------------------------------------
+//
+//		         packaging = 0;
+//
+//		         if (!(parcelWeight <= 5 && volume <= 1500)) {
+//
+//		             if (volume <= 4000) {
+//		                 packaging = 60;
+//		             }
+//		             else if (volume <= 8000) {
+//		                 packaging = 120;
+//		             }
+//		             else if (volume <= 15000) {
+//		                 packaging = 220;
+//		             }
+//		             else if (volume <= 25000) {
+//		                 packaging = 350;
+//		             }
+//		             else {
+//		                 packaging = 500;
+//		             }
+//		         }
+//
+//		         //-------------------------------------------------
+//		         // Loading / Unloading
+//		         //-------------------------------------------------
+//
+//		         loadingUnloading = 0;
+//
+//		         if (chargeableWeight > 20) {
+//
+//		             loadingUnloading = chargeableWeight * 8;
+//
+//		             if (loadingUnloading > 500) {
+//		                 loadingUnloading = 500;
+//		             }
+//		         }
+//		     }
+		         
+		     } else {
 
-		     packaging = 0;
+		        	 //-------------------------------------------------
+		        	 // Long-Distance Freight Rate (Distance > 50 KM)
+		        	 //-------------------------------------------------
+		        	 // Per-km rate tapers off as distance grows, same way
+		        	 // logistics companies price long-haul freight cheaper
+		        	 // per km on longer routes (economies of scale).
 
-		     if (!(parcelWeight <= 5 && volume <= 1500)) {
+		        	 double perKmRatePackage;
 
-		         if (volume <= 4000) {
-		             packaging = 60;
+		        	 if (distanceInKm <= 100) {
+		        	     perKmRatePackage = 1.3;
+		        	 } else if (distanceInKm <= 200) {
+		        	     perKmRatePackage = 1;
+		        	 } else if (distanceInKm <= 350) {
+		        	     perKmRatePackage = 0.85;
+		        	 } else if (distanceInKm <= 600) {
+		        	     perKmRatePackage = 0.70;
+		        	 } else if (distanceInKm <= 1000) {
+		        	     perKmRatePackage = 0.65;
+		        	 } else if (distanceInKm <= 2000) {
+		        	     perKmRatePackage = 0.45;
+		        	 } else {
+		        	     perKmRatePackage = 0.40;
+		        	 }
+
+		        	 // Scale by chargeable weight (max of actual vs. volumetric
+		        	 // weight, already computed above) so bulkier/heavier
+		        	 // packages cost more to truck over distance, same as
+		        	 // the <=50 KM branch pricing by vehicle capacity.
+
+		        	 double weightMultiplier;
+
+		        	 if (chargeableWeight <= 5) {
+		        	     weightMultiplier = 1.0;
+		        	 } else if (chargeableWeight <= 20) {
+		        	     weightMultiplier = 1.3;
+		        	 } else if (chargeableWeight <= 50) {
+		        	     weightMultiplier = 1.6;
+		        	 } else if (chargeableWeight <= 100) {
+		        	     weightMultiplier = 2.0;
+		        	 } else if (chargeableWeight <= 250) {
+		        	     weightMultiplier = 2.1;
+		        	 } else if (chargeableWeight <= 500) {
+		        	     weightMultiplier = 3.0;
+		        	 } else {
+		        	     weightMultiplier = 3.5 + Math.ceil((chargeableWeight - 500) / 100.0) * 0.2;
+		        	 }
+
+		        	 distanceCharge = distanceInKm * perKmRatePackage * weightMultiplier;
+
+				        //-------------------------------------------------
+				        // Small Package
+				        //-------------------------------------------------
+
+				        // Tier is picked by chargeableWeight (max of actual vs.
+				        // volumetric weight, computed above), not raw weight/
+				        // volume separately — a bulky-but-light box (e.g. 1 kg
+				        // cotton in a 10x10x10 in carton -> 4 kg volumetric)
+				        // must land in the same tier as an equally bulky box
+				        // that actually weighs 4 kg, while a small dense box
+				        // (e.g. 10 kg iron in 2x5x3 cm) stays priced by its
+				        // real weight since its volumetric weight is negligible.
+
+				        if (chargeableWeight <= 5) {
+
+				            fixedCharge = 50;
+
+				            packaging = 30;
+
+				            loadingUnloading = 0;
+
+				        }
+
+				        else if (chargeableWeight <= 20) {
+				        	 fixedCharge = 65;
+				            packaging = 45;
+				        }
+
+				        //-------------------------------------------------
+				        // Medium Package
+				        //-------------------------------------------------
+
+				        else if (chargeableWeight <= 32) {
+
+				            fixedCharge = 100;
+
+				            packaging = 65;
+
+				            loadingUnloading = 30;
+
+				        }
+
+				        else if (chargeableWeight <= 48) {
+				        	  fixedCharge = 130;
+
+					          packaging = 80;
+
+					          loadingUnloading = 30;
+				        }
+
+				        //-------------------------------------------------
+				        // Large Package
+				        //-------------------------------------------------
+
+				        else if (chargeableWeight <= 60) {
+
+				            fixedCharge = 160;
+
+				            packaging = 100;
+
+				            loadingUnloading = 65;
+
+				        }
+
+				        //-------------------------------------------------
+				        // Heavy Package
+				        //-------------------------------------------------
+
+				        else if (chargeableWeight <= 100) {
+
+				            fixedCharge = 320;
+
+				            packaging = 165;
+
+				            loadingUnloading = 100;
+
+				        }
+
+				        //-------------------------------------------------
+				        // Commercial Package
+				        //-------------------------------------------------
+
+				        else if (chargeableWeight <= 250) {
+
+				            fixedCharge = 390;
+
+				            packaging = 200;
+
+				            loadingUnloading = 130;
+
+				        }
+
+				        //-------------------------------------------------
+				        // Industrial Package
+				        //-------------------------------------------------
+
+				        else if (chargeableWeight <= 500) {
+
+				            fixedCharge = 950;
+
+				            packaging = 450;
+
+				            loadingUnloading = 260;
+
+				        }
+
+				        //-------------------------------------------------
+				        // Above 500 KG
+				        //-------------------------------------------------
+
+				        else {
+
+				            fixedCharge = 1300;
+
+				            packaging = 580;
+
+				            loadingUnloading = 330;
+
+				            double extraWeight = chargeableWeight - 500;
+
+				            int slabs = (int) Math.ceil(extraWeight / 100);
+
+				            fixedCharge += slabs * 130;
+
+				        }
+		        	 
+		        	 
+		        	 
+		        	 
+		         
+		        	 
 		         }
-		         else if (volume <= 8000) {
-		             packaging = 120;
-		         }
-		         else if (volume <= 15000) {
-		             packaging = 220;
-		         }
-		         else if (volume <= 25000) {
-		             packaging = 350;
-		         }
-		         else {
-		             packaging = 500;
-		         }
-		     }
-
-		     //-------------------------------------------------
-		     // Loading / Unloading
-		     //-------------------------------------------------
-
-		     loadingUnloading = 0;
-
-		     if (chargeableWeight > 20) {
-
-		         loadingUnloading = chargeableWeight * 8;
-
-		         if (loadingUnloading > 500) {
-		             loadingUnloading = 500;
-		         }
-		     }
-
-		     //-------------------------------------------------
-		     // Final Ride Charge
-		     //-------------------------------------------------
-
-//		     rideCalculation =
-//		             fixedCharge
-//		             + distanceCharge
-//		             + weightCharge;
 		 }
 		    
 		    
@@ -1329,6 +1525,18 @@ public class PaymentServiceImpl {
 //	    return baseFare + (distance - includedKm) * perKmAfter;
 //	}
 	
+	// Picks the smallest vehicle (by maxWeightKg) able to carry the chargeable
+	// weight, so /rideCostCalculation (Package) and /bookVehicleCostList price
+	// a given distance identically for that vehicle.
+	private VendorPickupVehicleEnum selectVehicleForWeight(double chargeableWeight) {
+		return Arrays.stream(VendorPickupVehicleEnum.values())
+				.filter(vehicle -> vehicle.getMaxWeightKg() >= chargeableWeight)
+				.min(Comparator.comparing(VendorPickupVehicleEnum::getMaxWeightKg))
+				.orElseGet(() -> Arrays.stream(VendorPickupVehicleEnum.values())
+						.max(Comparator.comparing(VendorPickupVehicleEnum::getMaxWeightKg))
+						.get());
+	}
+
 	private double calculateDistanceCost(double distance, VehicleRateConfig config) {
 
 		if (distance <= config.includedKm) {
@@ -1564,8 +1772,6 @@ public class PaymentServiceImpl {
 
 	        // ---------- Small Vehicle ----------
 	        case SCOOTER:
-	            return new VehicleRateConfig(60, 3, 8, 6, 5);
-
 	        case TWO_WHEELER:
 	            return new VehicleRateConfig(80, 3, 8, 6, 5);
 

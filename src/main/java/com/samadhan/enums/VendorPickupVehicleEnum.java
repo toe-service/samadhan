@@ -11,17 +11,17 @@ public enum VendorPickupVehicleEnum {
             "Scooter",
             VehicleCategoryEnum.SMALL_VEHICLE,
             20,
-            6.0,
-            2.0,
-            3.0
+            1.31,
+            1.31,
+            1.31
     ),
     TWO_WHEELER(
             "2 Wheeler",
             VehicleCategoryEnum.SMALL_VEHICLE,
             20,
-            6.0,
-            2.0,
-            3.0
+            1.31,
+            1.31,
+            1.31
     ),
     E_LOADER(
             "E Loader",
