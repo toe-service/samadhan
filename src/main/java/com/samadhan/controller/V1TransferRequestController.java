@@ -86,7 +86,7 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) String goodsType,
 		                                   	       @RequestParam(required = false, defaultValue = "0") Integer fromFloor,
 		                                	       @RequestParam(required = false, defaultValue = "false") Boolean liftAvailable,
-		                                	       @RequestParam(required = false, defaultValue = "0") Double distanceInKm) throws JsonProcessingException, FirebaseMessagingException {
+		                                	       @RequestParam(name = "distanceKm", required = false, defaultValue = "0") Double distanceInKm) throws JsonProcessingException, FirebaseMessagingException {
 	        System.out.println("hi");
 	        
 	        if (serviceType == serviceTypeEnum.TRANSFERSERVICE) {
