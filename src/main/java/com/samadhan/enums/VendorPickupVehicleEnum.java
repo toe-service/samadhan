@@ -2,7 +2,10 @@ package com.samadhan.enums;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public enum VendorPickupVehicleEnum {
@@ -442,6 +445,42 @@ public enum VendorPickupVehicleEnum {
         return Arrays.stream(VendorPickupVehicleEnum.values())
                 .filter(vehicle -> vehicle.getCategory() == category)
                 .collect(Collectors.toList());
+    }
+
+    /** Constant names and display names, normalised, to the constant they stand for. */
+    private static final Map<String, VendorPickupVehicleEnum> LOOKUP = buildLookup();
+
+    private static Map<String, VendorPickupVehicleEnum> buildLookup() {
+        Map<String, VendorPickupVehicleEnum> lookup = new HashMap<>();
+        for (VendorPickupVehicleEnum vehicle : values()) {
+            lookup.put(normalise(vehicle.name()), vehicle);
+        }
+        // Constant names win where a display name would normalise onto one of them.
+        for (VendorPickupVehicleEnum vehicle : values()) {
+            lookup.putIfAbsent(normalise(vehicle.displayName), vehicle);
+        }
+        return lookup;
+    }
+
+    private static String normalise(String value) {
+        return value.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "");
+    }
+
+    /**
+     * Resolves what the client sent, which is either the constant name ("E_LOADER") or the
+     * display name ("E Loader"). Spacing, case, hyphens and underscores are ignored, so
+     * "Pickup 8ft" and "PICKUP_8FT" both resolve. Blank means "no vehicle type given".
+     */
+    public static VendorPickupVehicleEnum fromValue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
+        VendorPickupVehicleEnum vehicle = LOOKUP.get(normalise(value));
+        if (vehicle == null) {
+            throw new IllegalArgumentException("Unknown vehicle type: " + value);
+        }
+        return vehicle;
     }
 
     /** How many larger vehicle types, on top of the requested one, a ride is also offered to. */
