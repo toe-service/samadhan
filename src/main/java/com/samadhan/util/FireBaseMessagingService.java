@@ -80,9 +80,13 @@ public class FireBaseMessagingService {
 
 	public void notifyVehicles(TransferRequestDetails request) throws FirebaseMessagingException {
 
-		if (request.getSourceLatitude() == null || request.getSourceLongitude() == null) {
+		if (request.getSourceLatitude() == null || request.getSourceLongitude() == null  ) {
 		    log.warn("Request {} has no pickup coordinates, cannot notify nearby vehicles", request.getId());
 		    return;
+		}
+		
+		if(request.getVendorPickupVehicle() == null) {
+			  return;
 		}
 
 		// The requested vehicle type plus the next larger ones: a bigger vehicle standing
