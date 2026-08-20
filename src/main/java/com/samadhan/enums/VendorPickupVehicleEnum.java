@@ -1,6 +1,7 @@
 package com.samadhan.enums;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -441,6 +442,33 @@ public enum VendorPickupVehicleEnum {
         return Arrays.stream(VendorPickupVehicleEnum.values())
                 .filter(vehicle -> vehicle.getCategory() == category)
                 .collect(Collectors.toList());
+    }
+
+    /** How many larger vehicle types, on top of the requested one, a ride is also offered to. */
+    public static final int LARGER_ALTERNATIVES = 4;
+
+    /**
+     * The requested vehicle type plus the next {@value #LARGER_ALTERNATIVES} larger ones.
+     * A bigger vehicle can carry a smaller load, so the ride is worth offering to it; the
+     * reverse is not true. Ordering is by payload capacity rather than declaration order,
+     * because capacity is not monotonic across the categories. A null request means "no
+     * preference" and returns every type.
+     */
+    public static List<VendorPickupVehicleEnum> getRequestedAndLarger(
+            VendorPickupVehicleEnum requested) {
+
+        List<VendorPickupVehicleEnum> byCapacity = Arrays.stream(values())
+                .sorted(Comparator.comparing(VendorPickupVehicleEnum::getMaxWeightKg)
+                        .thenComparingInt(VendorPickupVehicleEnum::ordinal))
+                .collect(Collectors.toList());
+
+        if (requested == null) {
+            return byCapacity;
+        }
+
+        int from = byCapacity.indexOf(requested);
+        int to = Math.min(from + 1 + LARGER_ALTERNATIVES, byCapacity.size());
+        return byCapacity.subList(from, to);
     }
 
     public String getDisplayName() {

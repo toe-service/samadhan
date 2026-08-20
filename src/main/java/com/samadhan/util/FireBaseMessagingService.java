@@ -15,12 +15,14 @@ import com.samadhan.entity.Driver;
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.repository.VehicleRepository;
 
 import lombok.extern.java.Log;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -78,29 +80,36 @@ public class FireBaseMessagingService {
 
 	public void notifyVehicles(TransferRequestDetails request) throws FirebaseMessagingException {
 
-//	    List<Vehicle> vehicles =
-//	            vehicleRepository.findNearbyVehicles(
-//	                    request.getVendorPickupVehicle().name(),
-//	                    request.getSourceLatitude(),
-//	                    request.getSourceLongitude());
-		
+		if (request.getSourceLatitude() == null || request.getSourceLongitude() == null) {
+		    log.warn("Request {} has no pickup coordinates, cannot notify nearby vehicles", request.getId());
+		    return;
+		}
+
+		// The requested vehicle type plus the next larger ones: a bigger vehicle standing
+		// nearby can still take the load, so it is worth offering the ride to.
+		List<Integer> vehicleTypes =
+		        VendorPickupVehicleEnum.getRequestedAndLarger(request.getVendorPickupVehicle())
+		                .stream()
+		                .map(Enum::ordinal)
+		                .collect(Collectors.toList());
+
 		 List<Vehicle> vehicles =
-		            vehicleRepository.findAll();
-//		 Optional<Vehicle> vehicles =
-//		            vehicleRepository.findById(1l);
+		            vehicleRepository.findNearbyVehicles(
+		                    vehicleTypes,
+		                    request.getSourceLatitude(),
+		                    request.getSourceLongitude(),
+		                    request.getDistanceKm());
 
 		 if (vehicles.isEmpty()) {
 		     log.warn("No vehicle found to notify for request {}", request.getId());
 		     return;
 		 }
 
-	//	 Vehicle vehicle=vehicles.get();
-
 	    for (Vehicle vehicle : vehicles) {
 
 	        if (vehicle.getFcmToken() == null || vehicle.getFcmToken().isEmpty()) {
 	            log.warn("Vehicle {} has no FCM token, skipping notification for request {}", vehicle.getId(), request.getId());
-	            return;
+	            continue;
 	        }
 
 //	        firebaseService.sendPushNotification(

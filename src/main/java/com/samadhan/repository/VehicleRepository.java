@@ -20,22 +20,45 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	Vehicle findByUserNamePassword(String userName, String password);
 	
 	@Query(value =
-	        "SELECT * " +
+	        "SELECT v.* " +
 	        "FROM vehicle v " +
 	        "WHERE v.fcm_token IS NOT NULL " +
 	        "AND v.ongoing_status = false " +
-	        "AND ( :vehicleType IS NULL OR v.vendor_vehicle_type = :vehicleType ) " +
+	        // vendor_vehicle_type holds the enum ordinal (Vehicle.vendorVehicle has no
+	        // @Enumerated(EnumType.STRING)), so the caller passes ordinals, not names.
+	        // The caller passes the requested vehicle type plus the next larger ones, so a
+	        // bigger vehicle standing nearby still gets the offer. Never pass an empty list:
+	        // "IN ()" is a syntax error in MySQL.
+	        "AND ( :vehicleType IS NULL OR v.vendor_vehicle_type IN (:vehicleTypes) ) " +
+	        "AND v.vehicle_latitude IS NOT NULL " +
+	        "AND v.vehicle_longitude IS NOT NULL " +
+	        // Same radius rule as TransferRequestRepository.getVehicleFeed, so a vehicle is
+	        // only notified about a ride it would also see in its feed. How near counts as
+	        // "nearby" scales with the length of the ride itself: a short local trip is only
+	        // worth offering to a vehicle right next to the pickup, while a long-haul ride is
+	        // worth a longer drive to reach the pickup point.
+	        //   ride  < 20 km  -> vehicle within  3 km
+	        //   ride <= 50 km  -> vehicle within 10 km
+	        //   ride  < 100 km -> vehicle within 25 km
+	        //   ride >= 100 km -> vehicle within 30 km
+	        // A ride with no distance_km recorded falls through to 30 km.
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(v.vehicle_longitude) AS DECIMAL(12,8)), " +
 	        "      CAST(TRIM(v.vehicle_latitude) AS DECIMAL(12,8))), " +
-	        "POINT(CAST(:pickupLongitude AS DECIMAL(12,8)), " +
-	        "      CAST(:pickupLatitude AS DECIMAL(12,8))) " +
-	        ") <= 50000",
+	        "POINT(CAST(TRIM(:pickupLongitude) AS DECIMAL(12,8)), " +
+	        "      CAST(TRIM(:pickupLatitude) AS DECIMAL(12,8))) " +
+	        ") <= CASE " +
+	        "      WHEN :rideDistanceKm <  20  THEN  3000 " +
+	        "      WHEN :rideDistanceKm <= 50  THEN 10000 " +
+	        "      WHEN :rideDistanceKm <  100 THEN 25000 " +
+	        "      ELSE 30000 " +
+	        "END",
 	        nativeQuery = true)
 	    List<Vehicle> findNearbyVehicles(
-	            @Param("vehicleType") String vehicleType,
+	            @Param("vehicleTypes") List<Integer> vehicleTypes,
 	            @Param("pickupLatitude") String pickupLatitude,
-	            @Param("pickupLongitude") String pickupLongitude);
+	            @Param("pickupLongitude") String pickupLongitude,
+	            @Param("rideDistanceKm") Double rideDistanceKm);
 
 
 
