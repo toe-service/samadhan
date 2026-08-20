@@ -1,6 +1,8 @@
 package com.samadhan.enums;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -484,7 +486,14 @@ public enum VendorPickupVehicleEnum {
     }
 
     /** How many larger vehicle types, on top of the requested one, a ride is also offered to. */
-    public static final int LARGER_ALTERNATIVES = 4;
+    public static final int LARGER_ALTERNATIVES = 2;
+
+    /**
+     * Types that are interchangeable for a booking: asking for either one offers the ride to
+     * both, since a scooter and a 2 wheeler carry the same load.
+     */
+    private static final List<VendorPickupVehicleEnum> TWO_WHEELERS =
+            Arrays.asList(SCOOTER, TWO_WHEELER);
 
     /**
      * The requested vehicle type plus the next {@value #LARGER_ALTERNATIVES} larger ones.
@@ -505,9 +514,18 @@ public enum VendorPickupVehicleEnum {
             return byCapacity;
         }
 
-        int from = byCapacity.indexOf(requested);
-        int to = Math.min(from + 1 + LARGER_ALTERNATIVES, byCapacity.size());
-        return byCapacity.subList(from, to);
+        // The interchangeable pair counts as one step on the ladder, so a scooter booking
+        // still reaches 2 larger types rather than spending a slot on the 2 wheeler.
+        List<VendorPickupVehicleEnum> offeredTo = new ArrayList<>(
+                TWO_WHEELERS.contains(requested) ? TWO_WHEELERS : Collections.singletonList(requested));
+
+        int from = 0;
+        for (VendorPickupVehicleEnum vehicle : offeredTo) {
+            from = Math.max(from, byCapacity.indexOf(vehicle) + 1);
+        }
+        int to = Math.min(from + LARGER_ALTERNATIVES, byCapacity.size());
+        offeredTo.addAll(byCapacity.subList(from, to));
+        return offeredTo;
     }
 
     public String getDisplayName() {
