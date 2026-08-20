@@ -29,7 +29,10 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	        // The caller passes the requested vehicle type plus the next larger ones, so a
 	        // bigger vehicle standing nearby still gets the offer. Never pass an empty list:
 	        // "IN ()" is a syntax error in MySQL.
-	        "AND ( :vehicleType IS NULL OR v.vendor_vehicle_type IN (:vehicleTypes) ) " +
+	        // A request that names no vehicle type (anyVehicleType = 1) drops the filter
+	        // entirely, which also lets through vehicles with no type recorded - they would
+	        // never match an IN list, since NULL never equals anything.
+	        "AND ( :anyVehicleType = 1 OR v.vendor_vehicle_type IN (:vehicleTypes) ) " +
 	        "AND v.vehicle_latitude IS NOT NULL " +
 	        "AND v.vehicle_longitude IS NOT NULL " +
 	        // Same radius rule as TransferRequestRepository.getVehicleFeed, so a vehicle is
@@ -55,6 +58,7 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	        "END",
 	        nativeQuery = true)
 	    List<Vehicle> findNearbyVehicles(
+	            @Param("anyVehicleType") int anyVehicleType,
 	            @Param("vehicleTypes") List<Integer> vehicleTypes,
 	            @Param("pickupLatitude") String pickupLatitude,
 	            @Param("pickupLongitude") String pickupLongitude,

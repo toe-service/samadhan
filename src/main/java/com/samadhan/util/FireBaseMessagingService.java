@@ -86,15 +86,19 @@ public class FireBaseMessagingService {
 		}
 
 		// The requested vehicle type plus the next larger ones: a bigger vehicle standing
-		// nearby can still take the load, so it is worth offering the ride to.
+		// nearby can still take the load, so it is worth offering the ride to. A request
+		// that names no vehicle type is offered to every nearby vehicle.
+		VendorPickupVehicleEnum requiredVehicle = request.getVendorPickupVehicle();
+
 		List<Integer> vehicleTypes =
-		        VendorPickupVehicleEnum.getRequestedAndLarger(request.getVendorPickupVehicle())
+		        VendorPickupVehicleEnum.getRequestedAndLarger(requiredVehicle)
 		                .stream()
 		                .map(Enum::ordinal)
 		                .collect(Collectors.toList());
 
 		 List<Vehicle> vehicles =
 		            vehicleRepository.findNearbyVehicles(
+		                    requiredVehicle == null ? 1 : 0,
 		                    vehicleTypes,
 		                    request.getSourceLatitude(),
 		                    request.getSourceLongitude(),
