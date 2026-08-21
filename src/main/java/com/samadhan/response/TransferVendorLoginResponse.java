@@ -5,6 +5,7 @@ public class TransferVendorLoginResponse {
     private String vendorName;
     private String vendorEmail;
     private String token;
+    private String refreshToken;
     private String userRole;
     private Long expiresIn;
 
@@ -38,6 +39,14 @@ public class TransferVendorLoginResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getUserRole() {

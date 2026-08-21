@@ -12,6 +12,7 @@ public class UserOtpVerifyResponse {
     private Integer otp;
     private Long userId;
     private String token;
+    private String refreshToken;
     private String userRole;
     private Long expiresIn;
 

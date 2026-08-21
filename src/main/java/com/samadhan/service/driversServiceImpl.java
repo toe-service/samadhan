@@ -25,7 +25,9 @@ import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.RidesRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.repository.VehicleRepository;
+import com.samadhan.entity.RefreshToken;
 import com.samadhan.response.LoginResponse;
+import com.samadhan.security.RefreshTokenService;
 import com.samadhan.security.TokenApi;
 import com.samadhan.util.FireBaseMessagingService;
 
@@ -39,6 +41,9 @@ public class driversServiceImpl implements driversService {
 
     @Autowired
     TokenApi tokenApi;
+
+    @Autowired
+    RefreshTokenService refreshTokenService;
 
     @Autowired
     RidesRepository rideRepo;
@@ -207,7 +212,10 @@ public class driversServiceImpl implements driversService {
 	        res.setUserType("driver");
 	        String token = tokenApi.generateToken(
 	                driver.getDriverEmail(), UserRole.DRIVER.getValue(), driver.getId(), 15);
+	        RefreshToken refreshToken = refreshTokenService.createRefreshToken(
+	                driver.getDriverEmail(), UserRole.DRIVER.getValue(), driver.getId());
 	        res.setToken(token);
+	        res.setRefreshToken(refreshToken.getToken());
 	        res.setExpiresIn(900000L);
 	        return res;
 	    }
@@ -225,7 +233,10 @@ public class driversServiceImpl implements driversService {
 	        vehicleRepo.save(vehicle);
 	        String token = tokenApi.generateToken(
 	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId(), 15);
+	        RefreshToken refreshToken = refreshTokenService.createRefreshToken(
+	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId());
 	        res.setToken(token);
+	        res.setRefreshToken(refreshToken.getToken());
 	        res.setExpiresIn(900000L);
 	        return res;
 	    }

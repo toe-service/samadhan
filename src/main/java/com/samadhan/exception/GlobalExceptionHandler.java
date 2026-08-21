@@ -86,6 +86,17 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(RefreshTokenException.class)
+    public ResponseEntity<Object> handleRefreshTokenException(RefreshTokenException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "401",
+                        new Error("Auth", ex.getMessage())
+                )
+        );
+    }
+
     @ExceptionHandler(OtpMismatchException.class)
     public ResponseEntity<Object> handleOtpMismatchException(OtpMismatchException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(

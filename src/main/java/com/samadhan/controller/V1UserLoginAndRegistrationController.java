@@ -9,14 +9,18 @@ import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.UserRole;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
+import com.samadhan.request.RefreshTokenRequest;
 import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
+import com.samadhan.entity.RefreshToken;
 import com.samadhan.response.LoginResponse;
 import com.samadhan.response.ResponseObject;
+import com.samadhan.response.TokenRefreshResponse;
 import com.samadhan.response.TransferVendorLoginResponse;
 import com.samadhan.response.UserOtpVerifyResponse;
+import com.samadhan.security.RefreshTokenService;
 import com.samadhan.security.TokenApi;
 import com.samadhan.service.LoginService;
 import com.samadhan.service.UserService;
@@ -52,6 +56,9 @@ public class V1UserLoginAndRegistrationController {
     @Autowired
     private TokenApi tokenApi;
 
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
 
     @PostMapping("/user-otp-verify")
     public ResponseEntity<ResponseObject<UserOtpVerifyResponse>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
@@ -67,6 +74,8 @@ public class V1UserLoginAndRegistrationController {
 
         String userRole = userDetails.getUserRole() != null ? userDetails.getUserRole() : "USER";
         String jwtToken = tokenApi.generateToken(userDetails.getUserContactNumber(), userRole, userDetails.getId(), 15);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(
+                userDetails.getUserContactNumber(), userRole, userDetails.getId());
 
         userDetails.setLastLogin(System.currentTimeMillis());
 
@@ -75,6 +84,7 @@ public class V1UserLoginAndRegistrationController {
         otpVerifyResponse.setOtp(userOtpVerifyRequest.getOtp());
         otpVerifyResponse.setUserId(userDetails.getId());
         otpVerifyResponse.setToken(jwtToken);
+        otpVerifyResponse.setRefreshToken(refreshToken.getToken());
         otpVerifyResponse.setUserRole(userRole);
         otpVerifyResponse.setExpiresIn(900000L);
 
@@ -166,18 +176,52 @@ public class V1UserLoginAndRegistrationController {
 
         String jwtToken = tokenApi.generateToken(
                 transferv.getVendorEmail(), UserRole.VENDOR.getValue(), transferv.getId(), 15);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(
+                transferv.getVendorEmail(), UserRole.VENDOR.getValue(), transferv.getId());
 
         TransferVendorLoginResponse vendorLoginResponse = new TransferVendorLoginResponse();
         vendorLoginResponse.setVendorId(transferv.getId());
         vendorLoginResponse.setVendorName(transferv.getVendorName());
         vendorLoginResponse.setVendorEmail(transferv.getVendorEmail());
         vendorLoginResponse.setToken(jwtToken);
+        vendorLoginResponse.setRefreshToken(refreshToken.getToken());
         vendorLoginResponse.setUserRole(UserRole.VENDOR.getValue());
         vendorLoginResponse.setExpiresIn(900000L);
 
         ResponseObject<TransferVendorLoginResponse> response = ResponseUtil.populateResponseObject(
                 vendorLoginResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ResponseObject<TokenRefreshResponse>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+
+        RefreshToken existingRefreshToken = refreshTokenService.findByToken(refreshTokenRequest.getRefreshToken());
+        refreshTokenService.verifyExpiration(existingRefreshToken);
+
+        String newAccessToken = tokenApi.generateToken(
+                existingRefreshToken.getUserName(), existingRefreshToken.getUserRole(),
+                existingRefreshToken.getUserId(), 15);
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(
+                existingRefreshToken.getUserName(), existingRefreshToken.getUserRole(),
+                existingRefreshToken.getUserId());
+
+        TokenRefreshResponse tokenRefreshResponse = new TokenRefreshResponse();
+        tokenRefreshResponse.setToken(newAccessToken);
+        tokenRefreshResponse.setRefreshToken(newRefreshToken.getToken());
+        tokenRefreshResponse.setExpiresIn(900000L);
+
+        ResponseObject<TokenRefreshResponse> response = ResponseUtil.populateResponseObject(
+                tokenRefreshResponse, "SUCCESS", null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseObject<?>> logout(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        refreshTokenService.revokeToken(refreshTokenRequest.getRefreshToken());
+        ResponseObject<?> response = ResponseUtil.populateResponseObject(null, "SUCCESS", null);
         return ResponseEntity.ok(response);
     }
 

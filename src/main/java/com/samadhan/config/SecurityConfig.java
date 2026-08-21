@@ -77,6 +77,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/v1/user-register").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/transfervendor-login").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/role-login").permitAll()
+                .antMatchers(HttpMethod.POST, "/v1/refresh-token").permitAll()
+                .antMatchers(HttpMethod.POST, "/v1/logout").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/search").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/source/search").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/latlong").permitAll()

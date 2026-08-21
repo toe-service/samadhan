@@ -7,6 +7,7 @@ public class LoginResponse {
 	    private Long driverId;
 	    private Long vendorId;
 	    private String token;
+	    private String refreshToken;
 	    private Long expiresIn;
 
 
@@ -15,6 +16,12 @@ public class LoginResponse {
 		}
 		public void setToken(String token) {
 			this.token = token;
+		}
+		public String getRefreshToken() {
+			return refreshToken;
+		}
+		public void setRefreshToken(String refreshToken) {
+			this.refreshToken = refreshToken;
 		}
 		public Long getExpiresIn() {
 			return expiresIn;
