@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -78,6 +79,7 @@ public class FireBaseMessagingService {
 
 
 
+	@Async("notificationExecutor")
 	public void notifyVehicles(TransferRequestDetails request) throws FirebaseMessagingException {
 
 		if (request.getSourceLatitude() == null || request.getSourceLongitude() == null  ) {

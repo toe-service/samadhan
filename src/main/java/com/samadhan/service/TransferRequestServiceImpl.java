@@ -286,6 +286,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		}
 		
+		if(vendorPickupVehicle != null) {
+			transferRequest.setVendorPickupVehicle(vendorPickupVehicle);
+		}
+		
 		transferRepo.save(transferRequest);
 		
 		fireBaseMessagingService.notifyVehicles(transferRequest);
@@ -687,9 +691,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	 	//}
 	 	 
 	 	
-	    
-		System.out.println("showRidestoVendors" + showRidestoVendors);
-		
+
 		return showRidestoVendors;
 	}
 
