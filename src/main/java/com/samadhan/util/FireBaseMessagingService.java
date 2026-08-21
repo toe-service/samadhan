@@ -87,7 +87,7 @@ public class FireBaseMessagingService {
 		    return;
 		}
 		
-		if(request.getVendorPickupVehicle() == null) {
+		if(request.getVendorPickupVehicle() == null && request.getUserType().equalsIgnoreCase("Vendor")) {
 			  return;
 		}
 
