@@ -399,9 +399,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE") || transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING") || (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE") && acceptedBy.equalsIgnoreCase("Vehicle"))) {
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+			 int otp = 1000 + SECURE_RANDOM.nextInt(9000);
 			 transferdetails.setVehicleId(vehicle);
 			 transferdetails.setVehicleAssignDateTime(dateTime);
 			 transferdetails.setRequestApprovalDate(dateTime);
+			 transferdetails.setOtp(otp);
 			 transferdetails.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 			 transferdetails.setTransferVendor(transferVendor);
 		
@@ -467,6 +469,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		LocalDateTime dateTime = LocalDateTime.now();
 		int otp = 1000 + SECURE_RANDOM.nextInt(9000);
 
+		//Agent Assignment
 		if (driverId != null) {
 			Driver driver = driverRepo.findById(driverId)
 					.orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + driverId));
@@ -497,10 +500,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			transfer.setVehicleId(vehicle);
 			transfer.setVehicleAssignDateTime(dateTime);
+			transfer.setOtp(otp);
 			transfer.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 			transferRepo.save(transfer);
 		}
  
+		//Ride start
 		if (rideStatus != null && rideStatus == 0) {
 			//long vehiId = (long) vehicleId;
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
