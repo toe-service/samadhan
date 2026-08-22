@@ -85,6 +85,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/pay/bookVehicleCostList").permitAll()
                 .antMatchers(HttpMethod.GET, "/pay/rideCostCalculation").permitAll()
                 .antMatchers(HttpMethod.POST, "/transfer/requestRideTransfer").permitAll()
+                .antMatchers(HttpMethod.POST, "/transferVendor/register-vendor").permitAll()
                // .antMatchers(HttpMethod.GET, "/transfer/rideCostCalculation").permitAll()
                 .antMatchers("/health").permitAll()
                 .antMatchers("/swagger-ui/**").permitAll()
