@@ -445,7 +445,7 @@ public class PaymentServiceImpl {
 		     // Distance Rate (Bulk Transportation)
 		     //-------------------------------------------------
 
-		     if (distanceInKm <= 50) {
+		     if (distanceInKm <= 100) {
 
 		         // Mirror /bookVehicleCost: pick the smallest vehicle that can
 		         // carry the chargeable weight and price it the same way

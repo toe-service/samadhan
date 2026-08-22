@@ -1,5 +1,7 @@
 package com.samadhan.util;
 
+import java.util.Objects;
+
 import com.google.auth.oauth2.GoogleCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +97,11 @@ public class FireBaseMessagingService {
 		// nearby can still take the load, so it is worth offering the ride to. A request
 		// that names no vehicle type is offered to every nearby vehicle.
 		VendorPickupVehicleEnum requiredVehicle = request.getVendorPickupVehicle();
+
+		if (Objects.isNull(requiredVehicle)) {
+		    log.warn("No vehicle found to notify for request {}", request.getId());
+		    return;
+		}
 
 		List<Integer> vehicleTypes =
 		        VendorPickupVehicleEnum.getRequestedAndLarger(requiredVehicle)
