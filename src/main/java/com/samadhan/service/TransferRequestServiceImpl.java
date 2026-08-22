@@ -102,11 +102,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferVendor vendor = null;
 		TransferRequestDetails transferRequest=new TransferRequestDetails();
 		
-//		if(serviceType == serviceTypeEnum.BOOKVEHICLE &&
-//				"Vendor".equalsIgnoreCase(userType)) {
-//
-//			throw new ResourceNotFoundException("Vendor cannot create Book Vehicle request.");
-//		}
+		if(serviceType == serviceTypeEnum.BOOKVEHICLE &&
+				"Vendor".equalsIgnoreCase(userType)) {
+
+			throw new ResourceNotFoundException("Vendor cannot create Book Vehicle request.");
+		}
 		
 		if(vendorId != null){
 		    vendor = transferVendorRepo.findById(vendorId)
@@ -417,11 +417,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferRepo.save(transferdetails);
 		
 		 // 👇 New: tell every other vehicle's app to stop ringing
-	    try {
-	        fireBaseMessagingService.notifyRideTaken(transferdetails);
-	    } catch (Exception e) {
-	       System.out.println("Failed to broadcast RIDE_TAKEN for transfer {}");
-	    }
+//	    try {
+//	        fireBaseMessagingService.notifyRideTaken(transferdetails);
+//	    } catch (Exception e) {
+//	       System.out.println("Failed to broadcast RIDE_TAKEN for transfer {}");
+//	    }
 
 		return transferdetails;
 		}
