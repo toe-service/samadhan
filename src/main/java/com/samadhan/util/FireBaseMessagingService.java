@@ -122,30 +122,22 @@ public class FireBaseMessagingService {
 	            continue;
 	        }
 
-//	        firebaseService.sendPushNotification(
-//	                vehicle.getFcmToken(),
-//	                "New Booking Available",
-//	                request.getSource() + " → " + request.getDestination(),
-//	                request.getId().toString());
-
-			Notification notification = Notification
-					.builder()
-					.setTitle("New Booking Available")
-				    .setBody(request.getSource() + " → " + request.getDestination())
-				//	.setImage(notificationMessage.getImage())
-					.build();
-			//Message message = Message.builder().setToken(notificationMessage.getRecipientToken()).setNotification(notification).putAllData(notificationMessage.getData()).build();
+			// Data-only message: no setNotification(...) block. This is required so the
+			// driver app's setBackgroundMessageHandler runs even when the app is killed,
+			// letting it display the full-screen "Accept / Decline" incoming-call UI via
+			// Notifee. If a notification block is included, FCM's native SDK intercepts
+			// it on killed-app state and only drops a tray notification (no JS runs).
 			Message message = Message
 					.builder()
 					.setToken(vehicle.getFcmToken())
-					.setNotification(notification)
 					.putData("type", "RIDE_REQUEST")
-					.putData("Ride Cost",  String.valueOf(request.getRideCost()))
+					.putData("rideCost",  String.valueOf(request.getRideCost()))
 				    .putData("requestId", request.getId().toString())
 	                .putData("serviceType", request.getServiceType().name())
 	                .putData("source", request.getSource())
                     .putData("destination", request.getDestination())
                     .putData("title", "New Booking Available")
+                    .putData("body", request.getSource() + " → " + request.getDestination())
 	                .setAndroidConfig(
                     AndroidConfig.builder()
                             .setPriority(AndroidConfig.Priority.HIGH) // wakes device even if backgrounded/killed
