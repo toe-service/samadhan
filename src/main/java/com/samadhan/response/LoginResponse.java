@@ -9,6 +9,7 @@ public class LoginResponse {
 	    private String token;
 	    private String refreshToken;
 	    private Long expiresIn;
+	    private String showUsername;
 
 
 		public String getToken() {
@@ -59,6 +60,12 @@ public class LoginResponse {
 		}
 		public void setDriverId(Long driverId) {
 			this.driverId = driverId;
+		}
+		public String getShowUsername() {
+			return showUsername;
+		}
+		public void setShowUsername(String showUsername) {
+			this.showUsername = showUsername;
 		}
 	    
 	    

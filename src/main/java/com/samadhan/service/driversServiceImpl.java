@@ -207,7 +207,7 @@ public class driversServiceImpl implements driversService {
 
 	    if (driver != null) {
 	        LoginResponse res = new LoginResponse();
-	        res.setUsername(driver.getDriverEmail());
+	        res.setUsername(driver.getDriverContactNumber());
 	        res.setDriverId(driver.getId());
 	        res.setUserType("driver");
 	        String token = tokenApi.generateToken(
@@ -217,6 +217,7 @@ public class driversServiceImpl implements driversService {
 	        res.setToken(token);
 	        res.setRefreshToken(refreshToken.getToken());
 	        res.setExpiresIn(900000L);
+	        res.setShowUsername(driver.getDriverContactNumber());
 	        return res;
 	    }
 
@@ -238,6 +239,7 @@ public class driversServiceImpl implements driversService {
 	        res.setToken(token);
 	        res.setRefreshToken(refreshToken.getToken());
 	        res.setExpiresIn(900000L);
+	        res.setShowUsername(vehicle.getVehicleNumber());
 	        return res;
 	    }
 
