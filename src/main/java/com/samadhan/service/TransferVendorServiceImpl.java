@@ -1,6 +1,7 @@
 package com.samadhan.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,13 +72,18 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	@Transactional
 	public TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber,
 			String vendorCity, String vendorAddress, String vendorLatitude, String vendorLongitude,
-			MultipartFile aadhaarFile, MultipartFile panFile, String gst, String services, Boolean isIndividual)
+			MultipartFile aadhaarFile, MultipartFile panFile, String gst, String services, Boolean isIndividual,
+			Boolean termsAccepted, String termsVersion, String termsText)
 			throws ConflictException {
 
 		  boolean hasAadhaar = aadhaarFile != null && !aadhaarFile.isEmpty();
 		  boolean hasPan = panFile != null && !panFile.isEmpty();
 		  if (!hasAadhaar && !hasPan) {
 			  throw new ConflictException("Please upload either Aadhaar Card or PAN Card");
+		  }
+
+		  if (termsAccepted == null || !termsAccepted) {
+			  throw new ConflictException("You must accept the Terms & Conditions to register");
 		  }
 
 		  TransferVendor vendor = new TransferVendor();
@@ -98,6 +104,12 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    vendor.setVendorLongitude(vendorLongitude);
 		    vendor.setGstNumber(gst);
 		    vendor.setIsIndividual(isIndividual != null && isIndividual);
+		    // Server-set timestamp, not the client's — a client-supplied clock isn't trustworthy
+		    // as evidence of when acceptance actually happened.
+		    vendor.setTermsAccepted(true);
+		    vendor.setTermsAcceptedAt(LocalDateTime.now());
+		    vendor.setTermsVersion(termsVersion);
+		    vendor.setTermsText(termsText);
 		    final TransferVendor finalVendor = vendor;
 		    if (services != null && !services.isBlank()) {
 		        List<VendorService> vendorServiceList = Arrays.stream(services.split(","))

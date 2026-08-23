@@ -14,7 +14,8 @@ public interface TransferVendorService {
 
 	TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber, String vendorCity,
 			String vendorAddress, String vendorLatitude, String vendorLongitude, MultipartFile aadhaarFile,
-			MultipartFile panFile, String gst, String services, Boolean isIndividual) throws ConflictException;
+			MultipartFile panFile, String gst, String services, Boolean isIndividual, Boolean termsAccepted,
+			String termsVersion, String termsText) throws ConflictException;
 
 	void deductLeadCost(Long vendorId, Long requestId, String userType);
 
