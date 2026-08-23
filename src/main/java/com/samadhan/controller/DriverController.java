@@ -10,6 +10,7 @@ import com.samadhan.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 //import com.kent.smartassist.constant.SmartAssistanceConstant;
 //import com.kent.smartassist.exception.SmartAssistanceException;
@@ -20,6 +21,8 @@ import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.enums.VehicleCategoryEnum;
+import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.service.VehicleService;
 import com.samadhan.service.driversService;
@@ -142,9 +145,20 @@ public class DriverController {
 	}
 	
 	@PostMapping(value = "/register-Vehicle")
-	public Vehicle createVehicle(@RequestBody Vehicle vehicle) {
-		
-		Vehicle resp = vehicleService.createVehicle(vehicle);
+	public Vehicle createVehicle(@RequestParam String vehicleNumber,
+			@RequestParam(required = false) String vehicleContactNumber,
+			@RequestParam(required = false) String currentLocation,
+			@RequestParam(required = false) VendorPickupVehicleEnum vendorVehicle,
+			@RequestParam(required = false) VehicleCategoryEnum vehicleCategory,
+			@RequestParam(required = false) String vehicleLatitude,
+			@RequestParam(required = false) String vehicleLongitude,
+			@RequestParam(required = false) String fcmToken,
+			@RequestParam(required = false) Long transferVendorId,
+			@RequestParam(required = false) MultipartFile rcFile) {
+
+		Vehicle resp = vehicleService.createVehicle(vehicleNumber, vehicleContactNumber, currentLocation,
+				vendorVehicle, vehicleCategory, vehicleLatitude, vehicleLongitude, fcmToken, transferVendorId,
+				rcFile);
 		return resp;
 	}
 	

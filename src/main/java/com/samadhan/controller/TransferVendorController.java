@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VendorWallet;
+import com.samadhan.exception.ConflictException;
 import com.samadhan.service.TransferVendorService;
 import com.samadhan.service.VehicleService;
 
@@ -36,10 +37,11 @@ public class TransferVendorController {
 	        @RequestParam String gst,
 	        @RequestParam(required = false) String services,
 	        @RequestParam(required = false) MultipartFile aadhaarFile,
-	        @RequestParam(required = false) MultipartFile panFile
-	) {
-		
-		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst, services );
+	        @RequestParam(required = false) MultipartFile panFile,
+	        @RequestParam(required = false) Boolean isIndividual
+	) throws ConflictException {
+
+		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst, services, isIndividual );
 		return resp;
 	}
 

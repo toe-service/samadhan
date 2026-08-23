@@ -18,6 +18,7 @@ import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.exception.ConflictException;
 import com.samadhan.repository.TransferMediaRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
@@ -70,7 +71,15 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	@Transactional
 	public TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber,
 			String vendorCity, String vendorAddress, String vendorLatitude, String vendorLongitude,
-			MultipartFile aadhaarFile, MultipartFile panFile, String gst, String services) {
+			MultipartFile aadhaarFile, MultipartFile panFile, String gst, String services, Boolean isIndividual)
+			throws ConflictException {
+
+		  boolean hasAadhaar = aadhaarFile != null && !aadhaarFile.isEmpty();
+		  boolean hasPan = panFile != null && !panFile.isEmpty();
+		  if (!hasAadhaar && !hasPan) {
+			  throw new ConflictException("Please upload either Aadhaar Card or PAN Card");
+		  }
+
 		  TransferVendor vendor = new TransferVendor();
 
 			if(vendorEmail != null) {
@@ -88,6 +97,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    vendor.setVendorLatitude(vendorLatitude);
 		    vendor.setVendorLongitude(vendorLongitude);
 		    vendor.setGstNumber(gst);
+		    vendor.setIsIndividual(isIndividual != null && isIndividual);
 		    final TransferVendor finalVendor = vendor;
 		    if (services != null && !services.isBlank()) {
 		        List<VendorService> vendorServiceList = Arrays.stream(services.split(","))
