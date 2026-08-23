@@ -64,10 +64,14 @@ public class PaymentServiceImpl {
 //    }
     
     public List<SubscriptionResponse> getAllSubscriptions() {
-//        return Arrays.stream(SubscriptionPrice.values())
-//                .map(obj -> new SubscriptionResponse(obj.getSubscriptionName(), obj.getPrice(), Collections.emptyList()))
-//                .collect(Collectors.toList());
-    	return null;
+    	// Prices/plans kept in sync with PaymentController.amountForPlan — same 4 plans, same
+    	// amounts, whether buying for the first time or renewing.
+    	return List.of(
+    			new SubscriptionResponse("MONTHLY", 1499.0, Collections.singletonList("1 month")),
+    			new SubscriptionResponse("THREE_MONTH", 4399.0, Collections.singletonList("3 months")),
+    			new SubscriptionResponse("SIX_MONTH", 8599.0, Collections.singletonList("6 months")),
+    			new SubscriptionResponse("TWELVE_MONTH", 16499.0, Collections.singletonList("12 months"))
+    	);
     }
 
 //	public RideCostSummary getrideCostCalculation(String pickuplatitude, String pickuplongitude,

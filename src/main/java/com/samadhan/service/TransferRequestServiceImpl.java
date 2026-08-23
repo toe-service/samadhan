@@ -349,7 +349,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
-	
+
+		// Only gate new acceptance — a suspended vendor can still decline(2)/cancel(3) work
+		// they're already holding, they just can't take on new rides.
+		if (transferApproval == 1 && transferVendor.getVendorStatus() != null
+				&& transferVendor.getVendorStatus().name().equals("SUSPENDED")) {
+			throw new SubscriptionSuspendedException(
+					"Your subscription is suspended. Please contact support or renew your subscription.");
+		}
+
 		if(transferApproval==1 && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
 		
@@ -664,6 +672,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 	@Override
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId) {
+		TransferVendor vendorForFeed = transferVendorRepo.findById(transferId).orElse(null);
+		if (vendorForFeed != null && vendorForFeed.getVendorStatus() != null
+				&& vendorForFeed.getVendorStatus().name().equals("SUSPENDED")) {
+			throw new SubscriptionSuspendedException(
+					"Your subscription is suspended. Please contact support or renew your subscription.");
+		}
+
 		List<TransferRequestDetails> showRidestoVendors = transferRepo.showRidestoVendors(transferId);
 		
 //		List<TransferRequestDetails> request =

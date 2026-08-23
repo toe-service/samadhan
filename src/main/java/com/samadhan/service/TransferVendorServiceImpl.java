@@ -1,6 +1,7 @@
 package com.samadhan.service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -11,15 +12,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VendorService;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.entity.WalletTransaction;
+import com.samadhan.enums.PaymentTypeEnum;
+import com.samadhan.enums.SubscriptionPeriodEnum;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.repository.PaymentRepository;
 import com.samadhan.repository.TransferMediaRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
@@ -41,7 +46,14 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	
 	@Autowired
 	TransferRequestRepository transferRequestRepo;
-	
+
+	@Autowired
+	PaymentRepository paymentRepo;
+
+	// Every new vendor starts here automatically — no button, no payment — matching the "trial
+	// starts on registration" flow rather than the old manual, paid "Free Subscription" button.
+	private static final int TRIAL_DAYS = 15;
+
 	private final StorageService storageService;
 	
 	  public TransferVendorServiceImpl( StorageService storageService) {
@@ -99,7 +111,11 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    vendor.setVendorContactNumber(vendorContactNumber);
 		    vendor.setVendorCity(vendorCity);
 		    vendor.setVendorAddress(vendorAddress);
-		    vendor.setVendorStatus(VendorStatusEnum.VERIFICATION_PENDING);
+		    // Vendor gets full access immediately via the 15-day trial created below — there's
+		    // no separate admin-verification step in this codebase today (VERIFICATION_PENDING
+		    // was previously only ever cleared by the old manual/paid "Free Subscription"
+		    // button, confirmed by grepping for any other place it's read or transitioned).
+		    vendor.setVendorStatus(VendorStatusEnum.Free_SUBSCRIPTION);
 		    vendor.setVendorLatitude(vendorLatitude);
 		    vendor.setVendorLongitude(vendorLongitude);
 		    vendor.setGstNumber(gst);
@@ -128,9 +144,16 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    }
 		    
 		    transferVendorRepo.save(vendor);
-		    
-		    
-		    
+
+		    // Automatic 15-day trial subscription — no button, no payment.
+		    Subscription trial = new Subscription();
+		    trial.setVendor(vendor);
+		    trial.setSubscriptionPeriod(SubscriptionPeriodEnum.TRIAL);
+		    trial.setPaymentType(PaymentTypeEnum.TRIAL);
+		    trial.setStartDate(LocalDate.now());
+		    trial.setEndDate(LocalDate.now().plusDays(TRIAL_DAYS));
+		    paymentRepo.save(trial);
+
 		 // Upload Aadhaar
 		    if (aadhaarFile != null && !aadhaarFile.isEmpty()) {
 

@@ -105,6 +105,50 @@ public class PaymentController {
 	 @Autowired
 	 PaymentRepository paymentRepo;
 
+	 // Confirms a payment-verification callback actually came from Razorpay (not a client
+	 // fabricating a "success" response without ever paying), using the SDK's own constant-time
+	 // HMAC comparison rather than hand-rolling it.
+	 private boolean isValidPaymentSignature(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature) {
+		 try {
+			 JSONObject attributes = new JSONObject();
+			 attributes.put("razorpay_order_id", razorpayOrderId);
+			 attributes.put("razorpay_payment_id", razorpayPaymentId);
+			 attributes.put("razorpay_signature", razorpaySignature);
+			 return com.razorpay.Utils.verifyPaymentSignature(attributes, "ClYfhcDqxmBDr3ZftMyzuxu1");
+		 } catch (Exception e) {
+			 return false;
+		 }
+	 }
+
+	 // Shared by first-purchase (createOrder/verifyPayment) and renew, so both offer the same
+	 // 1/3/6/12-month plans at the same price instead of first-purchase being a fixed 3-month deal.
+	 private int amountForPlan(String plan) {
+		 if (plan == null) return 439900;
+		 if (plan.equalsIgnoreCase("MONTHLY")) return 149900;
+		 if (plan.equalsIgnoreCase("THREE_MONTH")) return 439900;
+		 if (plan.equalsIgnoreCase("SIX_MONTH")) return 859900;
+		 if (plan.equalsIgnoreCase("TWELVE_MONTH")) return 1649900;
+		 return 439900;
+	 }
+
+	 private void applyPlanToSubscription(Subscription subscription, String plan, LocalDate startDate) {
+		 if ("MONTHLY".equalsIgnoreCase(plan)) {
+			 subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.MONTHLY);
+			 subscription.setEndDate(startDate.plusMonths(1));
+		 } else if ("SIX_MONTH".equalsIgnoreCase(plan)) {
+			 subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.HALFYEAR);
+			 subscription.setEndDate(startDate.plusMonths(6));
+		 } else if ("TWELVE_MONTH".equalsIgnoreCase(plan)) {
+			 subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.YEARLY);
+			 subscription.setEndDate(startDate.plusMonths(12));
+		 } else {
+			 subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
+			 subscription.setEndDate(startDate.plusMonths(3));
+		 }
+		 subscription.setPaymentType(PaymentTypeEnum.SILVER);
+		 subscription.setStartDate(startDate);
+	 }
+
 
 
 //	@PostMapping("/generate-new-invoice")
@@ -520,23 +564,12 @@ public class PaymentController {
 	        @RequestBody PaymentVerificationRequest req)
 	        throws Exception {
 
-	    String payload =
-	        req.getRazorpayOrderId()
-	        + "|"
-	        + req.getRazorpayPaymentId();
+	    if (!isValidPaymentSignature(req.getRazorpayOrderId(), req.getRazorpayPaymentId(), req.getRazorpaySignature())) {
+	        return ResponseEntity
+	                .badRequest()
+	                .body("Invalid Signature");
+	    }
 
-//	    String generatedSignature =
-//	            calculateHmacSHA256(
-//	                    payload,
-//	                    "ClYfhcDqxmBDr3ZftMyzuxu1");
-//
-//	    if(!generatedSignature.equals(
-//	            req.getRazorpaySignature())) {
-//
-//	        return ResponseEntity
-//	                .badRequest()
-//	                .body("Invalid Signature");
-//	    }
 	    LocalDate localDate = LocalDate.now();
 	    LocalDate oneMonthsLater = localDate.plusMonths(1);
 
@@ -569,11 +602,12 @@ public class PaymentController {
 	
 	@PostMapping("/subscription/createOrder")
 	public ResponseEntity<?> createOrder(
-	        @RequestParam Long vendorId) throws Exception {
+	        @RequestParam Long vendorId,
+	        @RequestParam(required = false) String plan) throws Exception {
 
 	    JSONObject options = new JSONObject();
 
-	    options.put("amount", 99900); // ₹999
+	    options.put("amount", amountForPlan(plan));
 	    options.put("currency", "INR");
 	    options.put("receipt", "subscription_" + vendorId);
 
@@ -591,46 +625,30 @@ public class PaymentController {
 	        @RequestBody PaymentVerificationRequest req)
 	        throws Exception {
 
-	    String payload =
-	        req.getRazorpayOrderId()
-	        + "|"
-	        + req.getRazorpayPaymentId();
+	    if (!isValidPaymentSignature(req.getRazorpayOrderId(), req.getRazorpayPaymentId(), req.getRazorpaySignature())) {
+	        return ResponseEntity
+	                .badRequest()
+	                .body("Invalid Signature");
+	    }
 
-//	    String generatedSignature =
-//	            calculateHmacSHA256(
-//	                    payload,
-//	                    "ClYfhcDqxmBDr3ZftMyzuxu1");
-//
-//	    if(!generatedSignature.equals(
-//	            req.getRazorpaySignature())) {
-//
-//	        return ResponseEntity
-//	                .badRequest()
-//	                .body("Invalid Signature");
-//	    }
 	    LocalDate localDate = LocalDate.now();
-	    LocalDate threeMonthsLater = localDate.plusMonths(3);
+	    String plan = req.getPlan();
 
-//	    Date date = Date.from(
-//	        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-//	    );
-	    
-	    
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
 	    Subscription subscription=paymentRepo.findByVendorId(req.getVendorId());
-	    //subscription.setVendor(vendor.get());
-	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
-	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
-	    subscription.setStartDate(localDate);
-	    subscription.setEndDate(threeMonthsLater);
-	    
+	    if (subscription == null) {
+	        subscription = new Subscription();
+	        subscription.setVendor(vendor.get());
+	    }
+	    applyPlanToSubscription(subscription, plan, localDate);
+
 	    paymentRepo.save(subscription);
-	    
+
 	    transferVendorRepo.activateVendor(
 	            req.getVendorId(),3);
-	    
+
 	    WalletTransaction walletTransaction=new WalletTransaction();
-	    walletTransaction.setAmount(999.0);
+	    walletTransaction.setAmount(amountForPlan(plan) / 100.0);
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Purchased");
 
@@ -711,20 +729,9 @@ public class PaymentController {
 	        @RequestParam String plan) throws RazorpayException {
 		
 		  JSONObject options = new JSONObject();
-		  
-		  if(plan.equalsIgnoreCase("MONTHLY")) {
-			  options.put("amount", 149900); 
-		  }else if(plan.equalsIgnoreCase("THREE_MONTH")) {
-			  options.put("amount", 439900);
-		  }else if(plan.equalsIgnoreCase("SIX_MONTH")) {
-			  options.put("amount", 859900);
-		  }else {
-			  options.put("amount", 1649900);
-		  }
-		  
-		  
 
-//		    options.put("amount", 99900); // ₹999
+		  options.put("amount", amountForPlan(plan));
+
 		    options.put("currency", "INR");
 		    options.put("receipt", "subscription_" + vendorId);
 
@@ -747,55 +754,39 @@ public class PaymentController {
 	        @RequestBody PaymentVerificationRequest req)
 	        throws Exception {
 
-	    String payload =
-	        req.getRazorpayOrderId()
-	        + "|"
-	        + req.getRazorpayPaymentId();
-	    
+	    if (!isValidPaymentSignature(req.getRazorpayOrderId(), req.getRazorpayPaymentId(), req.getRazorpaySignature())) {
+	        return ResponseEntity
+	                .badRequest()
+	                .body("Invalid Signature");
+	    }
+
 	    LocalDate localDate = LocalDate.now();
-	    
+
 	    String plan = req.getPlan();
-	    
+
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
 	    Subscription subscription=paymentRepo.findByVendorId(req.getVendorId());
-	    
-	    LocalDate startDate=subscription.getEndDate().plusDays(1);
-	 //   LocalDate threeMonthsLater = startDate.plusMonths(3);
-	    
-	    if ("MONTHLY".equalsIgnoreCase(plan)) {
-	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.MONTHLY);
-	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
-	        subscription.setEndDate(startDate.plusMonths(1));
-
-	    } else if ("THREE_MONTH".equalsIgnoreCase(plan)) {
-	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
-	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
-	        subscription.setEndDate(startDate.plusMonths(3));
-
-	    } else if ("SIX_MONTH".equalsIgnoreCase(plan)) {
-	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.HALFYEAR);
-	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
-	        subscription.setEndDate(startDate.plusMonths(6));
-
-	    } else if ("TWELVE_MONTH".equalsIgnoreCase(plan)) {
-	        subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.YEARLY);
-	        subscription.setPaymentType(PaymentTypeEnum.SILVER);
-	        subscription.setEndDate(startDate.plusMonths(12));
+	    if (subscription == null) {
+	        subscription = new Subscription();
+	        subscription.setVendor(vendor.get());
 	    }
-	    
-	    //subscription.setVendor(vendor.get());
-//	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.QUARTER);
-//	    subscription.setPaymentType(PaymentTypeEnum.SILVER);
-	    subscription.setStartDate(startDate);
-	 //   subscription.setEndDate(threeMonthsLater);
-	    
+
+	    // If the old subscription already lapsed, renewing from oldEndDate+1 (in the past)
+	    // would silently shortchange the vendor by however many days it's been expired —
+	    // start from whichever is later: today, or the day after the old period ended.
+	    LocalDate startDate = (subscription.getEndDate() != null && subscription.getEndDate().plusDays(1).isAfter(localDate))
+	            ? subscription.getEndDate().plusDays(1)
+	            : localDate;
+
+	    applyPlanToSubscription(subscription, plan, startDate);
+
 	    paymentRepo.save(subscription);
-	    
+
 	    transferVendorRepo.activateVendor(
 	            req.getVendorId(),3);
-	    
+
 	    WalletTransaction walletTransaction=new WalletTransaction();
-	    walletTransaction.setAmount(999.0);
+	    walletTransaction.setAmount(amountForPlan(plan) / 100.0);
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Renewed Purchased");
 	    walletTransaction.setCreatedDate(localDate);
