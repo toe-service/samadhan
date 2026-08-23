@@ -60,7 +60,10 @@ public class Vehicle {
 	
 	@Column(name="vehicle_longitude")
 	private String vehicleLongitude;
-	
+
+	@Column(name="rc_storage_key")
+	private String rcStorageKey;
+
 
 	public VehicleCategoryEnum getVehicleCategory() {
 		return VehicleCategory;
@@ -165,7 +168,13 @@ public class Vehicle {
 	public void setVehicleLongitude(String vehicleLongitude) {
 		this.vehicleLongitude = vehicleLongitude;
 	}
-	
-	
+
+	public String getRcStorageKey() {
+		return rcStorageKey;
+	}
+
+	public void setRcStorageKey(String rcStorageKey) {
+		this.rcStorageKey = rcStorageKey;
+	}
 
 }

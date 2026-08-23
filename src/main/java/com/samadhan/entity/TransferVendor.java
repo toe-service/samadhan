@@ -79,7 +79,10 @@ public class TransferVendor {
 
 	 @Column(name = "pan_storage_key")
 	 private String panStorageKey;
-	 
+
+	 @Column(name = "is_individual")
+	 private Boolean isIndividual;
+
 	 @OneToOne(mappedBy = "vendor", fetch = FetchType.LAZY)
 	 @JsonManagedReference
 	 private Subscription subscription;
@@ -223,7 +226,13 @@ public class TransferVendor {
 	public void setGstNumber(String gstNumber) {
 		this.gstNumber = gstNumber;
 	}
-	
-	
+
+	public Boolean getIsIndividual() {
+		return isIndividual;
+	}
+
+	public void setIsIndividual(Boolean isIndividual) {
+		this.isIndividual = isIndividual;
+	}
 
 }
