@@ -711,11 +711,36 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 //		    if (vehicleLatitude == null || vehicleLongitude == null) {
 //		        throw new IllegalStateException("Vehicle location not available for id: " + vehicleId);
 //		    }
-		
+
 		List<TransferRequestDetails> getRidesByVehicle = transferRepo.getVehicleFeed(vehicleId);
 		System.out.println("getRidesByVehicle" + getRidesByVehicle);
-		
-		return getRidesByVehicle;
+
+		// Rides already assigned to this vehicle (transfer_status IN (5,6,7,8), see
+		// TransferRequestRepository.getVehicleFeed) pass through unchanged. Unassigned/pending
+		// rides are additionally filtered to the same eligibility rules used when a ride is
+		// first notified out (FireBaseMessagingService.notifyVehicles): matching vehicle type
+		// (requested type plus the next larger interchangeable ones), the vehicle currently
+		// available (not mid-job) and holding an FCM token — so a vehicle only sees a pending
+		// ride in its feed if it would actually have been notified about it.
+		boolean vehicleEligibleForNewRides = !vehicle.getOngoingStatus()
+				&& vehicle.getFcmToken() != null
+				&& !vehicle.getFcmToken().isEmpty();
+
+		return getRidesByVehicle.stream()
+				.filter(ride -> {
+					if (ride.getVehicleId() != null) {
+						return true; // already assigned to this vehicle — unchanged
+					}
+
+					VendorPickupVehicleEnum requestedType = ride.getVendorPickupVehicle();
+					if (requestedType == null || !vehicleEligibleForNewRides) {
+						return false;
+					}
+
+					return VendorPickupVehicleEnum.getRequestedAndLarger(requestedType)
+							.contains(vehicle.getVendorVehicle());
+				})
+				.collect(Collectors.toList());
 	}
 
 	@Override
