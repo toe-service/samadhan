@@ -38,10 +38,13 @@ public class TransferVendorController {
 	        @RequestParam(required = false) String services,
 	        @RequestParam(required = false) MultipartFile aadhaarFile,
 	        @RequestParam(required = false) MultipartFile panFile,
-	        @RequestParam(required = false) Boolean isIndividual
+	        @RequestParam(required = false) Boolean isIndividual,
+	        @RequestParam(required = false) Boolean termsAccepted,
+	        @RequestParam(required = false) String termsVersion,
+	        @RequestParam(required = false) String termsText
 	) throws ConflictException {
 
-		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst, services, isIndividual );
+		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst, services, isIndividual, termsAccepted, termsVersion, termsText );
 		return resp;
 	}
 

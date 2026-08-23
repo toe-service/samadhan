@@ -12,6 +12,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -82,6 +83,24 @@ public class TransferVendor {
 
 	 @Column(name = "is_individual")
 	 private Boolean isIndividual;
+
+	 // Legal record of Terms & Conditions acceptance at registration time. termsText is a full
+	 // snapshot of the exact wording shown to the vendor (not just a version number) so that if
+	 // the Terms are edited later, there is still an immutable record of what was actually
+	 // agreed to — a version string alone would rely on the app's source history not changing
+	 // retroactively, which isn't a safe assumption for a legal record.
+	 @Column(name = "terms_accepted")
+	 private Boolean termsAccepted;
+
+	 @Column(name = "terms_accepted_at")
+	 private LocalDateTime termsAcceptedAt;
+
+	 @Column(name = "terms_version")
+	 private String termsVersion;
+
+	 @Lob
+	 @Column(name = "terms_text", columnDefinition = "LONGTEXT")
+	 private String termsText;
 
 	 @OneToOne(mappedBy = "vendor", fetch = FetchType.LAZY)
 	 @JsonManagedReference
@@ -233,6 +252,38 @@ public class TransferVendor {
 
 	public void setIsIndividual(Boolean isIndividual) {
 		this.isIndividual = isIndividual;
+	}
+
+	public Boolean getTermsAccepted() {
+		return termsAccepted;
+	}
+
+	public void setTermsAccepted(Boolean termsAccepted) {
+		this.termsAccepted = termsAccepted;
+	}
+
+	public LocalDateTime getTermsAcceptedAt() {
+		return termsAcceptedAt;
+	}
+
+	public void setTermsAcceptedAt(LocalDateTime termsAcceptedAt) {
+		this.termsAcceptedAt = termsAcceptedAt;
+	}
+
+	public String getTermsVersion() {
+		return termsVersion;
+	}
+
+	public void setTermsVersion(String termsVersion) {
+		this.termsVersion = termsVersion;
+	}
+
+	public String getTermsText() {
+		return termsText;
+	}
+
+	public void setTermsText(String termsText) {
+		this.termsText = termsText;
 	}
 
 }
