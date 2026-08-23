@@ -22,6 +22,7 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	@Query(value =
 	        "SELECT v.* " +
 	        "FROM vehicle v " +
+	        "LEFT JOIN transfer_vendor tv ON tv.id = v.transfer_id " +
 	        "WHERE v.fcm_token IS NOT NULL " +
 	        "AND v.ongoing_status = false " +
 	        // vendor_vehicle_type holds the enum ordinal (Vehicle.vendorVehicle has no
@@ -35,6 +36,11 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	        "AND ( :anyVehicleType = 1 OR v.vendor_vehicle_type IN (:vehicleTypes) ) " +
 	        "AND v.vehicle_latitude IS NOT NULL " +
 	        "AND v.vehicle_longitude IS NOT NULL " +
+	        // Long-haul rides (over 100km) are only offered to vendor/fleet vehicles, not
+	        // individual (single-vehicle owner-operator) registrants. COALESCE treats a
+	        // missing vendor link or an unset is_individual (legacy vendors predating this
+	        // flag) as "not individual", so existing vendors keep getting long rides as before.
+	        "AND ( :rideDistanceKm <= 100 OR COALESCE(tv.is_individual, false) = false ) " +
 	        // Same radius rule as TransferRequestRepository.getVehicleFeed, so a vehicle is
 	        // only notified about a ride it would also see in its feed. How near counts as
 	        // "nearby" scales with the length of the ride itself: a short local trip is only
