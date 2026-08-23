@@ -51,9 +51,8 @@ public class TransferMediaServiceImpl implements TransferMediaService {
 
         try {
             storageService.uploadFile(storageKey, file.getInputStream(), file.getSize(), file.getContentType());
-        } catch (IOException e) {
-            log.error("Failed to upload file to storage", e);
-            throw new RuntimeException("Could not upload file: " + originalFilename);
+        } catch (Exception e) {
+            log.error("Failed to upload file to storage, saving media record without file", e);
         }
 
         TransferMedia transferMedia = new TransferMedia();
