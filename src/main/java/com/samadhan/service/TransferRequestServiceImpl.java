@@ -339,8 +339,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
 		
 		TransferVendor existingVendor=transferdetails.getTransferVendor();
-		
-		if (existingVendor != null) {
+
+		// Cancelling (transferApproval==3) is expected to run on a request that already has a
+		// vendor attached — that's exactly what "already accepted" means. The guard only makes
+		// sense for accept(1)/decline(2), otherwise cancel could never reach its own logic below.
+		if (existingVendor != null && transferApproval != 3) {
 		    throw new RuntimeException("This request is already accepted.");
 		}
 
@@ -391,7 +394,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setTransferStatus(rideStatusEnum.PENDING);
 			transferdetails.setRequestApprovalDate(null);
 			transferdetails.setTransferVendor(null);
+			transferdetails.setVehicleId(null);
+			transferdetails.setVehicleAssignDateTime(null);
+			transferdetails.setOtp(null);
 			transferRepo.save(transferdetails);
+
+			try {
+				fireBaseMessagingService.notifyVehicles(transferdetails);
+			} catch (Exception e) {
+				System.out.println("Failed to re-notify vehicles after cancelling request " + transferId + ": " + e.getMessage());
+			}
+
 			return transferdetails;
 		}
 		else {
@@ -726,6 +739,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				&& vehicle.getFcmToken() != null
 				&& !vehicle.getFcmToken().isEmpty();
 
+		// Long-haul rides (over 100km) are only offered to vendor/fleet vehicles, not
+		// individual (single-vehicle owner-operator) registrants. A missing vendor link or an
+		// unset isIndividual (legacy vendors predating this flag) is treated as "not
+		// individual", so existing vendors keep seeing long rides as before.
+		boolean vehicleIsIndividual = vehicle.getTransferVendor() != null
+				&& Boolean.TRUE.equals(vehicle.getTransferVendor().getIsIndividual());
+
 		return getRidesByVehicle.stream()
 				.filter(ride -> {
 					if (ride.getVehicleId() != null) {
@@ -734,6 +754,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 					VendorPickupVehicleEnum requestedType = ride.getVendorPickupVehicle();
 					if (requestedType == null || !vehicleEligibleForNewRides) {
+						return false;
+					}
+
+					if (vehicleIsIndividual && ride.getDistanceKm() != null && ride.getDistanceKm() > 100) {
 						return false;
 					}
 
