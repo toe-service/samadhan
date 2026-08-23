@@ -6,7 +6,8 @@ public enum PaymentTypeEnum {
 	Free(0,"Free"),
 	SILVER(1,"SILVER"),
 	GOLD(2,"GOLD"),
-	PLATINUM(3,"PLATINUM");
+	PLATINUM(3,"PLATINUM"),
+	TRIAL(4,"TRIAL");
 	
 	
 	int id;
