@@ -157,7 +157,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 		String originalFilename = file.getOriginalFilename();
 
-		String storageKey = String.format("vendors/%d/%s/%d_%s", vendorId, folderName, System.currentTimeMillis(),
+		String storageKey = String.format("transfer-vendors/%d/%s/%d_%s", vendorId, folderName, System.currentTimeMillis(),
 				originalFilename);
 
 		try {
@@ -166,7 +166,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 			return storageKey;
 
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Failed to upload " + folderName, e);
 		}
 	}
