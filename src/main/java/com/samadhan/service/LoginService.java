@@ -13,6 +13,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -35,6 +36,9 @@ public class LoginService {
     
     @Autowired
     private TransferVendorRepository transferVendorRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public UserDetails isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         UserDetails userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
@@ -130,12 +134,34 @@ public class LoginService {
 
     }
 
+	// Passwords used to be stored (and compared, via findByUserAndPassword's raw SQL "=") in
+	// plaintext. This looks up by email only, then verifies in Java so a bcrypt hash can be
+	// checked properly. Existing vendors still have their old plaintext password stored — the
+	// legacy-plaintext branch below verifies against that once, then immediately re-hashes and
+	// saves it, so every vendor is transparently migrated to a hashed password the next time
+	// they log in, with no bulk migration and no forced password reset.
 	public TransferVendor loginTransfervendor(String userName, String password) {
 
-		TransferVendor transferv=transferVendorRepository.findByUserAndPassword(userName,password);
+		TransferVendor transferv = transferVendorRepository.findByVendorEmail(userName);
 
-		if (transferv == null) {
+		if (transferv == null || transferv.getVendorPassword() == null) {
 			throw new RuntimeException("Invalid credentials");
+		}
+
+		String storedPassword = transferv.getVendorPassword();
+		boolean isHashed = storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$")
+				|| storedPassword.startsWith("$2y$");
+
+		if (isHashed) {
+			if (!passwordEncoder.matches(password, storedPassword)) {
+				throw new RuntimeException("Invalid credentials");
+			}
+		} else {
+			if (!storedPassword.equals(password)) {
+				throw new RuntimeException("Invalid credentials");
+			}
+			transferv.setVendorPassword(passwordEncoder.encode(password));
+			transferVendorRepository.save(transferv);
 		}
 
 		return transferv;

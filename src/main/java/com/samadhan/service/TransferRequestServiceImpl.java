@@ -350,13 +350,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 
-		// Only gate new acceptance — a suspended vendor can still decline(2)/cancel(3) work
-		// they're already holding, they just can't take on new rides.
-//		if (transferApproval == 1 && transferVendor.getVendorStatus() != null
-//				&& transferVendor.getVendorStatus().name().equals("SUSPENDED")) {
-//			throw new SubscriptionSuspendedException(
-//					"Your subscription is suspended. Please contact support or renew your subscription.");
-//		}
+		// Gate on wallet balance, not subscription status — a vendor with a low/negative wallet
+		// can't take on new rides, but can still decline(2)/cancel(3) work they're already
+		// holding. Only checked here for the general case; the User/WebUser branch just below
+		// does its own wallet lookup already (tied to the acceptance-fee deduction), so this
+		// only needs to additionally cover accept paths that branch doesn't run for.
+		if (transferApproval == 1) {
+			VendorWallet vendorWalletForGate = walletRepository.findByVendor(vendorId);
+			if (vendorWalletForGate != null && vendorWalletForGate.getBalance() < -200) {
+				throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
+			}
+		}
 
 		if(transferApproval==1 && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
@@ -457,7 +461,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 //		System.out.println("TransferRidesByUserId" + transferRidesByUserId);
 //		return transferRidesByUserId;
 //	}
-	
+
 	private double calculateAcceptanceFee(TransferRequestDetails transferdetails) {
 
 		double rideCost=transferdetails.getRideCost();

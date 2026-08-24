@@ -577,13 +577,20 @@ public class PaymentController {
 //	        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
 //	    );
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
-	    Subscription subscription=new Subscription();
-	    subscription.setVendor(vendor.get());
+	    // Reuse the existing subscription row if one already exists (e.g. the trial created
+	    // automatically at registration) rather than always inserting a new one — Subscription
+	    // is meant to be one-per-vendor (@OneToOne), and a second row makes every subsequent
+	    // findByVendorId() call (buy/renew/view) throw IncorrectResultSizeDataAccessException.
+	    Subscription subscription = paymentRepo.findByVendorId(req.getVendorId());
+	    if (subscription == null) {
+	        subscription = new Subscription();
+	        subscription.setVendor(vendor.get());
+	    }
 	    subscription.setSubscriptionPeriod(SubscriptionPeriodEnum.Free);
 	    subscription.setPaymentType(PaymentTypeEnum.Free);
 	    subscription.setStartDate(localDate);
 	    subscription.setEndDate(oneMonthsLater);
-	    
+
 	    paymentRepo.save(subscription);
 	    
 	    transferVendorRepo.activateVendor(
@@ -651,6 +658,7 @@ public class PaymentController {
 	    walletTransaction.setAmount(amountForPlan(plan) / 100.0);
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Purchased");
+	    walletTransactionRepository.save(walletTransaction);
 
 	    return ResponseEntity.ok(
 	            "Subscription Activated");
@@ -790,7 +798,8 @@ public class PaymentController {
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Renewed Purchased");
 	    walletTransaction.setCreatedDate(localDate);
-	    
+	    walletTransactionRepository.save(walletTransaction);
+
 
 	    return ResponseEntity.ok(
 	            "Subscription Renewed");
