@@ -673,11 +673,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	@Override
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId) {
 		TransferVendor vendorForFeed = transferVendorRepo.findById(transferId).orElse(null);
-		if (vendorForFeed != null && vendorForFeed.getVendorStatus() != null
-				&& vendorForFeed.getVendorStatus().name().equals("SUSPENDED")) {
-			throw new SubscriptionSuspendedException(
-					"Your subscription is suspended. Please contact support or renew your subscription.");
-		}
+//		if (vendorForFeed != null && vendorForFeed.getVendorStatus() != null
+//				&& vendorForFeed.getVendorStatus().name().equals("SUSPENDED")) {
+//			throw new SubscriptionSuspendedException(
+//					"Your subscription is suspended. Please contact support or renew your subscription.");
+//		}
 
 		List<TransferRequestDetails> showRidestoVendors = transferRepo.showRidestoVendors(transferId);
 		
