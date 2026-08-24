@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,6 +50,9 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 	@Autowired
 	PaymentRepository paymentRepo;
+
+	@Autowired
+	PasswordEncoder passwordEncoder;
 
 	// Every new vendor starts here automatically — no button, no payment — matching the "trial
 	// starts on registration" flow rather than the old manual, paid "Free Subscription" button.
@@ -101,9 +105,14 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		  TransferVendor vendor = new TransferVendor();
 
 			if(vendorEmail != null) {
-			
-			String password = vendorEmail.replace("@gmail.com", "");
-			vendor.setVendorPassword(password);
+
+			// Generalizes the old "@gmail.com"-only stripping (which left the FULL email as
+			// the password for any non-Gmail address) to any domain: local-part before '@'.
+			// Hashed before storage — see LoginService for the matching verification side and
+			// why it also transparently upgrades any pre-existing plaintext passwords.
+			int atIndex = vendorEmail.indexOf('@');
+			String password = atIndex > 0 ? vendorEmail.substring(0, atIndex) : vendorEmail;
+			vendor.setVendorPassword(passwordEncoder.encode(password));
 			}
 		 
 		    vendor.setVendorName(vendorName);

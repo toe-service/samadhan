@@ -7,6 +7,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -16,7 +17,10 @@ import java.util.function.Function;
 
 @Component
 public class TokenApi {
-    private final String encryptedSecurityKey = "Vhl//LHYRuRrqv5F7qmtYdo2Fjpejt03DJ5DFXWy4oYTXIVia2TvMg==";
+    // Was a hardcoded literal (matching jwt.secret.key's value by coincidence) — rotating the
+    // property in application.properties silently did nothing, since this field never read it.
+    @Value("${jwt.secret.key}")
+    private String encryptedSecurityKey;
     private final String encryptedClaimData = "KF76XOQqJ5qLeh2h7mOCX+/Ez0e3uQwwB8GMDdp3sL0TOw18qUYrhQ==";
 
     private final String alg_claim_field = "alg";
