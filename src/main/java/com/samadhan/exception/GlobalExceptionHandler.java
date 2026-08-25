@@ -108,6 +108,31 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Object> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "401",
+                        new Error("Auth", ex.getMessage())
+                )
+        );
+    }
+
+    // Thrown when a request's own JWT identity doesn't match the resource it's trying to act on
+    // (e.g. changing another vendor's password) — see TransferVendorController#changePassword.
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "403",
+                        new Error("Auth", ex.getMessage())
+                )
+        );
+    }
+
     // Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex) {

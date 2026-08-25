@@ -102,6 +102,44 @@ public class TransferVendor {
 	 @Column(name = "terms_text", columnDefinition = "LONGTEXT")
 	 private String termsText;
 
+	 // Forgot-password OTP state — never serialized to the frontend. reset_otp_hash is a bcrypt
+	 // hash of the OTP (see LoginService), not the OTP itself.
+	 @JsonIgnore
+	 @Column(name = "reset_otp_hash")
+	 private String resetOtpHash;
+
+	 @JsonIgnore
+	 @Column(name = "reset_otp_expiry")
+	 private LocalDateTime resetOtpExpiry;
+
+	 @JsonIgnore
+	 @Column(name = "reset_otp_attempts")
+	 private Integer resetOtpAttempts;
+
+	 public String getResetOtpHash() {
+		 return resetOtpHash;
+	 }
+
+	 public void setResetOtpHash(String resetOtpHash) {
+		 this.resetOtpHash = resetOtpHash;
+	 }
+
+	 public LocalDateTime getResetOtpExpiry() {
+		 return resetOtpExpiry;
+	 }
+
+	 public void setResetOtpExpiry(LocalDateTime resetOtpExpiry) {
+		 this.resetOtpExpiry = resetOtpExpiry;
+	 }
+
+	 public Integer getResetOtpAttempts() {
+		 return resetOtpAttempts;
+	 }
+
+	 public void setResetOtpAttempts(Integer resetOtpAttempts) {
+		 this.resetOtpAttempts = resetOtpAttempts;
+	 }
+
 	 @OneToOne(mappedBy = "vendor", fetch = FetchType.LAZY)
 	 @JsonManagedReference
 	 private Subscription subscription;
