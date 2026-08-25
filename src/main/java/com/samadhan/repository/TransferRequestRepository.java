@@ -108,8 +108,8 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 
 	        "OR ( " +
 
-	        // Only unassigned rides
-	        "trd.transfer_id IS NULL " +
+	        // Only pending rides
+	        "trd.transfer_status = 0 " +
 
 	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
