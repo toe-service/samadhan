@@ -365,9 +365,23 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			}
 		}
 
-		if(transferApproval==1 && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
+		// The acceptance fee is only charged when a specific vehicle is actually being
+		// committed right now — same condition as the vehicle-assignment branch below.
+		// A vendor's own generic accept (TRANSFER_SERVICE + acceptedBy=="Vendor", no vehicle
+		// picked yet) is free; assigning a vehicle afterwards via requestTransferUpdate is
+		// also free (it only gates on balance, never deducts) — the fee only applies once a
+		// vehicle itself accepts (acceptedBy=="Vehicle"), or for service types where a vehicle
+		// is always attached at accept time (BOOK_VEHICLE / HOME_SHIFTING).
+		boolean vehicleCommittedNow = transferdetails.getServiceType() != null && (
+				transferdetails.getServiceType().getType().equals("BOOK_VEHICLE")
+				|| transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING")
+				|| (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE")
+						&& "Vehicle".equalsIgnoreCase(acceptedBy))
+		);
+
+		if(transferApproval==1 && vehicleCommittedNow && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
-		
+
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
 		
 		if(wallet.getBalance() < -200){
@@ -559,7 +573,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
 			
 			double acceptanceFee = calculateAcceptanceFee(transfer);
-			
+
 //			if(wallet.getBalance() < -200){
 //			    throw new RuntimeException(
 //			        "Insufficient wallet balance. Please recharge."
@@ -569,9 +583,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			wallet.setBalance(
 				    wallet.getBalance() - acceptanceFee
 				);
-			
+
 			walletRepository.save(wallet);
-			
+
 			WalletTransaction walletTransaction=new WalletTransaction();
 			walletTransaction.setAmount(acceptanceFee);
 			walletTransaction.setTransactionType("Ride Start Fee");
@@ -629,7 +643,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 					.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 			
 			double acceptanceFee = calculateCompletioneFee(transferdetails);
-			
+
 //			if(wallet.getBalance() < -100){
 //			    throw new RuntimeException(
 //			        "Insufficient wallet balance. Please recharge."
@@ -639,9 +653,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			wallet.setBalance(
 				    wallet.getBalance() - acceptanceFee
 				);
-			
+
 			walletRepository.save(wallet);
-			
+
 			WalletTransaction walletTransaction=new WalletTransaction();
 			walletTransaction.setAmount(acceptanceFee);
 			walletTransaction.setTransactionType("Ride Completion Fee");
