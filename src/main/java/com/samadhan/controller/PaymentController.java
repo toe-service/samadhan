@@ -489,13 +489,14 @@ public class PaymentController {
             @RequestParam(required = false) Double width,
             @RequestParam(required = false) Double heigth,
             @RequestParam(required = false) String cc,
-            @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit) {
+            @RequestParam(required = false, defaultValue = "INCH") DimensionUnit dimensionUnit,
+            @RequestParam(required = false, defaultValue = "true") Boolean isMovable) {
 
 	    try {
 
 			RideCostSummary rideCostCalculation = paymentService.getrideCostCalculation(pickuplatitude, pickuplongitude,
 					destinationlatitude, destinationlongitude, parcelType, carModel, bikeModel, parcelWeight, cc,
-					length, width, heigth, dimensionUnit);
+					length, width, heigth, dimensionUnit, isMovable);
 
 	        return ResponseEntity.ok(
 	                ResponseUtil.populateResponseObject(

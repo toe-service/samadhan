@@ -56,6 +56,20 @@ public class ParcelDetails {
 	 @Column(name="dimension_unit")
 	 private DimensionUnit dimensionUnit;
 
+	// Car/Bike only — whether the vehicle can be driven onto the transport vehicle under its own
+	// power. false means it needs a winch/crane/ramp to load, which carries a real extra cost
+	// (see the non-running surcharge in PaymentServiceImpl#getrideCostCalculation).
+	@Column(name="is_movable")
+	private Boolean isMovable = true;
+
+	public Boolean getIsMovable() {
+		return isMovable;
+	}
+
+	public void setIsMovable(Boolean isMovable) {
+		this.isMovable = isMovable;
+	}
+
 	public Double getLength() {
 		return length;
 	}

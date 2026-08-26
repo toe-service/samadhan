@@ -96,7 +96,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				String packageDescription, Long vendorId, String userType, String userName, String userContact, Double gstCost, Double rideWithoutTaxCalculation,
 				Double loadingUnloading, Double packagingCost, DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
 				VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory,  Boolean instantBooking,
-				String homeType, String packingType, String goodsType, Integer fromFloor, Boolean liftAvailable, String receiverName, String receiverContact, Double distanceInKm) throws FirebaseMessagingException {	
+				String homeType, String packingType, String goodsType, Integer fromFloor, Boolean liftAvailable, String receiverName, String receiverContact, Double distanceInKm,
+				Boolean isMovable) throws FirebaseMessagingException {
 		
 		
 		TransferVendor vendor = null;
@@ -133,18 +134,20 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		
 		if(parcelType.getType().equalsIgnoreCase("Car")) {
-			
+
 		packageWeight = carModel.getAverageWeightKg();
 		parcelDetails.setCarModel(carModel);
 		parcelDetails.setParcelWeight(packageWeight);
 		parcelDetails.setCarNumber(carNumber);
+		parcelDetails.setIsMovable(isMovable != null ? isMovable : true);
 		}
-		
+
 		if(parcelType.getType().equalsIgnoreCase("Bike")) {
 		packageWeight = bikeModel.getAverageWeightKg();
 		parcelDetails.setBikeModel(bikeModel);
 		parcelDetails.setParcelWeight(packageWeight);
 		parcelDetails.setBikeNumber(bikeNumber);
+		parcelDetails.setIsMovable(isMovable != null ? isMovable : true);
 		}
 		
 		if(parcelType.getType().equalsIgnoreCase("Package")) {

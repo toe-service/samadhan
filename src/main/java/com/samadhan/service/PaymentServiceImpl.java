@@ -309,9 +309,17 @@ public class PaymentServiceImpl {
     
     
     
+	// Flat surcharge added when isMovable is false (Car/Bike only) — a vehicle that can't be
+	// driven on/off under its own power needs a winch/crane/ramp to load, which is a real extra
+	// cost. Kept as its own named constant rather than folded into the CC-tier tables below so
+	// it stays visible and easy to tune independent of vehicle size.
+	private static final double BIKE_NON_RUNNING_SURCHARGE = 800;
+	private static final double CAR_NON_RUNNING_SURCHARGE = 2500;
+
 	public RideCostSummary getrideCostCalculation(String pickuplatitude, String pickuplongitude,
 			String destinationlatitude, String destinationlongitude, ParcelTypeEnum parcelType, CarModelEnum carModel,
-			BikeModelEnum bikeModel, Double parcelWeight, String cc, Double length, Double width, Double heigth, DimensionUnit dimensionUnit) 
+			BikeModelEnum bikeModel, Double parcelWeight, String cc, Double length, Double width, Double heigth, DimensionUnit dimensionUnit,
+			Boolean isMovable)
 					throws JsonMappingException, JsonProcessingException {
 
 		String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + pickuplatitude + ","
@@ -1057,12 +1065,24 @@ public class PaymentServiceImpl {
 		    }
 		 
 		  double rideCalculation=0.0;
+		  double nonRunningCharge = 0.0;
 		 if(parcelType == ParcelTypeEnum.Car || parcelType == ParcelTypeEnum.Bike) {
 		    //---------------------------------------------------------
 		    // FINAL PRICE CALCULATION
 		    //---------------------------------------------------------
 
 		     rideCalculation = fixedCharge + distanceCharge;
+
+		    //---------------------------------------------------------
+		    // NON-RUNNING SURCHARGE (vehicle can't be driven on/off unassisted)
+		    //---------------------------------------------------------
+
+		    if (Boolean.FALSE.equals(isMovable)) {
+		        nonRunningCharge = (parcelType == ParcelTypeEnum.Car)
+		                ? CAR_NON_RUNNING_SURCHARGE
+		                : BIKE_NON_RUNNING_SURCHARGE;
+		        rideCalculation += nonRunningCharge;
+		    }
 
 		    //---------------------------------------------------------
 		    // LONG DISTANCE SURCHARGE
@@ -1115,6 +1135,7 @@ public class PaymentServiceImpl {
 		    packaging = Math.round(packaging);
 		    loadingUnloading = Math.round(loadingUnloading);
 		    totalCost = Math.round(totalCost);
+		    nonRunningCharge = Math.round(nonRunningCharge);
 
 		    //---------------------------------------------------------
 		    // RESPONSE
@@ -1131,6 +1152,8 @@ public class PaymentServiceImpl {
 		    rideSummary.setGst(gst);
 
 		    rideSummary.setTotalCost(totalCost);
+
+		    rideSummary.setNonRunningCharge(nonRunningCharge);
 
 		    return rideSummary;
 

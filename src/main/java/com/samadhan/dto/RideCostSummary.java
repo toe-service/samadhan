@@ -10,6 +10,7 @@ public class RideCostSummary {
 	double pickupCost;
 	String vendorVehicleType;
 	double distanceInKm;
+	double nonRunningCharge;
 	public double getDistanceInKm() {
 		return distanceInKm;
 	}
@@ -57,6 +58,12 @@ public class RideCostSummary {
 	}
 	public void setRideCost(double rideCost) {
 		this.rideCost = rideCost;
+	}
+	public double getNonRunningCharge() {
+		return nonRunningCharge;
+	}
+	public void setNonRunningCharge(double nonRunningCharge) {
+		this.nonRunningCharge = nonRunningCharge;
 	}
 	
 	

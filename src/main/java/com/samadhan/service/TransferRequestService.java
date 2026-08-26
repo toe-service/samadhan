@@ -51,7 +51,7 @@ public interface TransferRequestService{
 			DimensionUnit dimensionUnit, Double length, Double width, Double heigth, serviceTypeEnum serviceType,
 			VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory, 
 			Boolean instantBooking, String homeType, String packingType, String goodsType, Integer fromFloor, Boolean liftAvailable,
-			String receiverName, String receiverContact, Double distanceInKm) throws FirebaseMessagingException;
+			String receiverName, String receiverContact, Double distanceInKm, Boolean isMovable) throws FirebaseMessagingException;
 	
 
 }
