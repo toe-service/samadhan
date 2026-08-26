@@ -7,9 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,17 +36,21 @@ import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.security.TokenApi;
 import com.samadhan.service.TransferRequestService;
 
 @RestController
 @RequestMapping("/transfer")
 public class V1TransferRequestController {
-	
+
 
 @Autowired
 TransferRequestService transferRequestService;
-	
-	
+
+@Autowired
+TokenApi tokenApi;
+
+
 	  @PostMapping(value = "/requestRideTransfer")
 	  public TransferRequestDetails requestRideTransfer(@RequestParam(required = false) ParcelTypeEnum parcelType,
 	                                               @RequestParam(required = false) CarModelEnum carModel,
@@ -109,8 +116,13 @@ TransferRequestService transferRequestService;
 	        return rideTransfer;
 	  }
 	  
+	  // Customer-tracking endpoint. Requires a valid JWT (default security rule), and the token's
+	  // own userId must match the path userId — otherwise any logged-in customer could browse
+	  // another customer's ride history (names, phone numbers, addresses) just by changing the ID.
 	  @GetMapping(value = "/rideTransferbyUser/{userId}")
-	    public ResponseEntity<List<TransferRequestDetails>> getRidesTransferByuser(@PathVariable Long userId) {
+	    public ResponseEntity<List<TransferRequestDetails>> getRidesTransferByuser(@PathVariable Long userId, HttpServletRequest httpRequest) {
+			requireOwnUserId(userId, httpRequest);
+
 			List<TransferRequestDetails> ridesByUser = transferRequestService.getTransferRidesByuser(userId);
 		    if (ridesByUser.isEmpty()) {
 		        return ResponseEntity.noContent().build(); // 204
@@ -118,12 +130,28 @@ TransferRequestService transferRequestService;
 
 			return ResponseEntity.ok(ridesByUser);
 	    }
-	  
+
+	  // Same ownership rule as above, checked against the ride's own linked user rather than a
+	  // path userId.
 	  @GetMapping(value = "/rideTransfer/{transferId}")
-	    public ResponseEntity<TransferRequestDetails> getRidesByTransferId(@PathVariable Long transferId) {
+	    public ResponseEntity<TransferRequestDetails> getRidesByTransferId(@PathVariable Long transferId, HttpServletRequest httpRequest) {
 			TransferRequestDetails ridesByTransferId = transferRequestService.getRidesByTransferId(transferId);
+
+			Long rideUserId = ridesByTransferId.getUserDetails() != null ? ridesByTransferId.getUserDetails().getId() : null;
+			requireOwnUserId(rideUserId, httpRequest);
+
 			return ResponseEntity.ok(ridesByTransferId);
 	    }
+
+	  private void requireOwnUserId(Long ownerUserId, HttpServletRequest httpRequest) {
+		  String authHeader = httpRequest.getHeader("Authorization");
+		  String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+		  Long tokenUserId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+		  if (ownerUserId == null || tokenUserId == null || !tokenUserId.equals(ownerUserId)) {
+			  throw new AccessDeniedException("You are not authorized to view this request");
+		  }
+	  }
 	  
 	  @GetMapping(value = "/showRidestoVendors/{transferId}")
 	    public ResponseEntity<List<TransferRequestDetails>> showRidestoVendors(@PathVariable Long transferId) {
