@@ -11,6 +11,8 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name="user_details")
@@ -55,6 +57,20 @@ public class UserDetails {
 
 	@Column(name = "last_login")
 	private Long lastLogin;
+
+	// Forgot-password OTP state — never serialized to the frontend. reset_otp_hash is a bcrypt
+	// hash of the OTP (see LoginService), not the OTP itself.
+	@JsonIgnore
+	@Column(name = "reset_otp_hash")
+	private String resetOtpHash;
+
+	@JsonIgnore
+	@Column(name = "reset_otp_expiry")
+	private LocalDateTime resetOtpExpiry;
+
+	@JsonIgnore
+	@Column(name = "reset_otp_attempts")
+	private Integer resetOtpAttempts;
 
 	public Long getId() {
 		return id;

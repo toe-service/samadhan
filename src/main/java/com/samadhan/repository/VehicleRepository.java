@@ -18,7 +18,13 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 
 	@Query(value="select * from vehicle where user_name=:userName and password=:password",nativeQuery=true)
 	Vehicle findByUserNamePassword(String userName, String password);
-	
+
+	// LIMIT 1 guards against pre-existing duplicate user_name rows throwing
+	// NonUniqueResultException — see the same fix applied to TransferVendorRepository.
+	@Query(value="select * from vehicle where user_name=:userName ORDER BY id ASC LIMIT 1",nativeQuery=true)
+	Vehicle findByUserName(@Param("userName") String userName);
+
+
 	@Query(value =
 	        "SELECT v.* " +
 	        "FROM vehicle v " +

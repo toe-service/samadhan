@@ -102,6 +102,13 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 			  throw new ConflictException("You must accept the Terms & Conditions to register");
 		  }
 
+		  // Nothing enforced this before, which is how duplicate vendor_email rows ended up in
+		  // the database — findByVendorEmail (login, forgot-password) then throws
+		  // NonUniqueResultException the moment 2+ rows share an email.
+		  if (vendorEmail != null && transferVendorRepo.findByVendorEmail(vendorEmail) != null) {
+			  throw new ConflictException("A vendor is already registered with this email");
+		  }
+
 		  TransferVendor vendor = new TransferVendor();
 
 			if(vendorEmail != null) {

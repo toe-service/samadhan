@@ -55,6 +55,9 @@ public class driversServiceImpl implements driversService {
     @Autowired
 	VehicleRepository vehicleRepo;
 
+    @Autowired
+    org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @Override
     public Driver getById(Long id) {
 
@@ -193,8 +196,26 @@ public class driversServiceImpl implements driversService {
 	@Override
 	public Driver loginDriver(String userName, String password) {
 
-		Driver driver = driverRepo.findByUserNamePassword(userName,password);
-		
+		Driver driver = driverRepo.findByDriverContactNumber(userName);
+
+		if (driver == null || driver.getPassword() == null) {
+			return null;
+		}
+
+		String storedPassword = driver.getPassword();
+
+		if (com.samadhan.util.PasswordUtil.isBcryptHash(storedPassword)) {
+			return passwordEncoder.matches(password, storedPassword) ? driver : null;
+		}
+
+		if (!storedPassword.equals(password)) {
+			return null;
+		}
+
+		// Legacy plaintext password — transparently migrate to a bcrypt hash on successful login,
+		// same as TransferVendor login (see LoginService#loginTransfervendor).
+		driver.setPassword(passwordEncoder.encode(password));
+		driverRepo.save(driver);
 		return driver;
 	}
 

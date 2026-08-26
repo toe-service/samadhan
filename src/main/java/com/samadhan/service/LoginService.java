@@ -1,15 +1,20 @@
 package com.samadhan.service;
 
+import com.samadhan.entity.Driver;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
+import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.InvalidCredentialsException;
 import com.samadhan.exception.OtpMismatchException;
+import com.samadhan.repository.DriverRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
+import com.samadhan.repository.VehicleRepository;
 import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
+import com.samadhan.util.PasswordUtil;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,9 +40,15 @@ public class LoginService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private TransferVendorRepository transferVendorRepository;
+
+    @Autowired
+    private DriverRepository driverRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -156,7 +167,7 @@ public class LoginService {
 
 		String storedPassword = transferv.getVendorPassword();
 
-		if (isBcryptHash(storedPassword)) {
+		if (PasswordUtil.isBcryptHash(storedPassword)) {
 			if (!passwordEncoder.matches(password, storedPassword)) {
 				throw new RuntimeException("Invalid credentials");
 			}
@@ -169,10 +180,6 @@ public class LoginService {
 		}
 
 		return transferv;
-	}
-
-	private boolean isBcryptHash(String value) {
-		return value != null && (value.startsWith("$2a$") || value.startsWith("$2b$") || value.startsWith("$2y$"));
 	}
 
 	private static final int RESET_OTP_VALID_MINUTES = 10;
@@ -247,7 +254,7 @@ public class LoginService {
 				.orElseThrow(() -> new InvalidCredentialsException("Vendor not found"));
 
 		String storedPassword = vendor.getVendorPassword();
-		boolean matches = isBcryptHash(storedPassword)
+		boolean matches = PasswordUtil.isBcryptHash(storedPassword)
 				? passwordEncoder.matches(currentPassword, storedPassword)
 				: storedPassword != null && storedPassword.equals(currentPassword);
 
@@ -257,6 +264,184 @@ public class LoginService {
 
 		vendor.setVendorPassword(passwordEncoder.encode(newPassword));
 		transferVendorRepository.save(vendor);
+	}
+
+	// ---------------------------------------------------------------------------------------
+	// User / Driver / Vehicle forgot-password — same shape as the vendor flow above, just keyed
+	// by whichever field that account type logs in with (user email, driver contact number,
+	// vehicle username) instead of vendor email.
+	// ---------------------------------------------------------------------------------------
+
+	public void requestUserPasswordReset(String userEmail) {
+		if (userEmail == null || userEmail.isBlank()) {
+			return;
+		}
+
+		UserDetails user = userRepository.findByUserEmail(userEmail);
+		if (user == null || user.getUserContactNumber() == null) {
+			return;
+		}
+
+		Integer otp = generateOtp();
+		user.setResetOtpHash(passwordEncoder.encode(String.valueOf(otp)));
+		user.setResetOtpExpiry(LocalDateTime.now().plusMinutes(RESET_OTP_VALID_MINUTES));
+		user.setResetOtpAttempts(0);
+		userRepository.save(user);
+
+		sendOtpSms(user.getUserContactNumber(),
+				"Your OTP to reset your TransferEaze password is " + otp + ". It is valid for "
+						+ RESET_OTP_VALID_MINUTES + " minutes.");
+	}
+
+	public void resetUserPassword(String userEmail, Integer otp, String newPassword) throws OtpMismatchException {
+		if (newPassword == null || newPassword.length() < 6) {
+			throw new IllegalArgumentException("New password must be at least 6 characters long");
+		}
+
+		UserDetails user = userRepository.findByUserEmail(userEmail);
+		if (user == null || user.getResetOtpHash() == null || user.getResetOtpExpiry() == null) {
+			throw new OtpMismatchException("Invalid or expired OTP");
+		}
+
+		if (user.getResetOtpExpiry().isBefore(LocalDateTime.now())) {
+			user.setResetOtpHash(null);
+			user.setResetOtpExpiry(null);
+			user.setResetOtpAttempts(0);
+			userRepository.save(user);
+			throw new OtpMismatchException("OTP has expired. Please request a new one");
+		}
+
+		int attempts = user.getResetOtpAttempts() == null ? 0 : user.getResetOtpAttempts();
+		if (attempts >= RESET_OTP_MAX_ATTEMPTS) {
+			throw new OtpMismatchException("Too many incorrect attempts. Please request a new OTP");
+		}
+
+		if (otp == null || !passwordEncoder.matches(String.valueOf(otp), user.getResetOtpHash())) {
+			user.setResetOtpAttempts(attempts + 1);
+			userRepository.save(user);
+			throw new OtpMismatchException("Invalid OTP");
+		}
+
+		user.setUserPassword(passwordEncoder.encode(newPassword));
+		user.setResetOtpHash(null);
+		user.setResetOtpExpiry(null);
+		user.setResetOtpAttempts(0);
+		userRepository.save(user);
+	}
+
+	public void requestDriverPasswordReset(String driverContactNumber) {
+		if (driverContactNumber == null || driverContactNumber.isBlank()) {
+			return;
+		}
+
+		Driver driver = driverRepository.findByDriverContactNumber(driverContactNumber);
+		if (driver == null) {
+			return;
+		}
+
+		Integer otp = generateOtp();
+		driver.setResetOtpHash(passwordEncoder.encode(String.valueOf(otp)));
+		driver.setResetOtpExpiry(LocalDateTime.now().plusMinutes(RESET_OTP_VALID_MINUTES));
+		driver.setResetOtpAttempts(0);
+		driverRepository.save(driver);
+
+		sendOtpSms(driver.getDriverContactNumber(),
+				"Your OTP to reset your TransferEaze agent password is " + otp + ". It is valid for "
+						+ RESET_OTP_VALID_MINUTES + " minutes.");
+	}
+
+	public void resetDriverPassword(String driverContactNumber, Integer otp, String newPassword)
+			throws OtpMismatchException {
+		if (newPassword == null || newPassword.length() < 6) {
+			throw new IllegalArgumentException("New password must be at least 6 characters long");
+		}
+
+		Driver driver = driverRepository.findByDriverContactNumber(driverContactNumber);
+		if (driver == null || driver.getResetOtpHash() == null || driver.getResetOtpExpiry() == null) {
+			throw new OtpMismatchException("Invalid or expired OTP");
+		}
+
+		if (driver.getResetOtpExpiry().isBefore(LocalDateTime.now())) {
+			driver.setResetOtpHash(null);
+			driver.setResetOtpExpiry(null);
+			driver.setResetOtpAttempts(0);
+			driverRepository.save(driver);
+			throw new OtpMismatchException("OTP has expired. Please request a new one");
+		}
+
+		int attempts = driver.getResetOtpAttempts() == null ? 0 : driver.getResetOtpAttempts();
+		if (attempts >= RESET_OTP_MAX_ATTEMPTS) {
+			throw new OtpMismatchException("Too many incorrect attempts. Please request a new OTP");
+		}
+
+		if (otp == null || !passwordEncoder.matches(String.valueOf(otp), driver.getResetOtpHash())) {
+			driver.setResetOtpAttempts(attempts + 1);
+			driverRepository.save(driver);
+			throw new OtpMismatchException("Invalid OTP");
+		}
+
+		driver.setPassword(passwordEncoder.encode(newPassword));
+		driver.setResetOtpHash(null);
+		driver.setResetOtpExpiry(null);
+		driver.setResetOtpAttempts(0);
+		driverRepository.save(driver);
+	}
+
+	public void requestVehiclePasswordReset(String userName) {
+		if (userName == null || userName.isBlank()) {
+			return;
+		}
+
+		Vehicle vehicle = vehicleRepository.findByUserName(userName);
+		if (vehicle == null || vehicle.getVehicleContactNumber() == null) {
+			return;
+		}
+
+		Integer otp = generateOtp();
+		vehicle.setResetOtpHash(passwordEncoder.encode(String.valueOf(otp)));
+		vehicle.setResetOtpExpiry(LocalDateTime.now().plusMinutes(RESET_OTP_VALID_MINUTES));
+		vehicle.setResetOtpAttempts(0);
+		vehicleRepository.save(vehicle);
+
+		sendOtpSms(vehicle.getVehicleContactNumber(),
+				"Your OTP to reset your TransferEaze vehicle password is " + otp + ". It is valid for "
+						+ RESET_OTP_VALID_MINUTES + " minutes.");
+	}
+
+	public void resetVehiclePassword(String userName, Integer otp, String newPassword) throws OtpMismatchException {
+		if (newPassword == null || newPassword.length() < 6) {
+			throw new IllegalArgumentException("New password must be at least 6 characters long");
+		}
+
+		Vehicle vehicle = vehicleRepository.findByUserName(userName);
+		if (vehicle == null || vehicle.getResetOtpHash() == null || vehicle.getResetOtpExpiry() == null) {
+			throw new OtpMismatchException("Invalid or expired OTP");
+		}
+
+		if (vehicle.getResetOtpExpiry().isBefore(LocalDateTime.now())) {
+			vehicle.setResetOtpHash(null);
+			vehicle.setResetOtpExpiry(null);
+			vehicle.setResetOtpAttempts(0);
+			vehicleRepository.save(vehicle);
+			throw new OtpMismatchException("OTP has expired. Please request a new one");
+		}
+
+		int attempts = vehicle.getResetOtpAttempts() == null ? 0 : vehicle.getResetOtpAttempts();
+		if (attempts >= RESET_OTP_MAX_ATTEMPTS) {
+			throw new OtpMismatchException("Too many incorrect attempts. Please request a new OTP");
+		}
+
+		if (otp == null || !passwordEncoder.matches(String.valueOf(otp), vehicle.getResetOtpHash())) {
+			vehicle.setResetOtpAttempts(attempts + 1);
+			vehicleRepository.save(vehicle);
+			throw new OtpMismatchException("Invalid OTP");
+		}
+
+		vehicle.setPassword(passwordEncoder.encode(newPassword));
+		vehicle.setResetOtpHash(null);
+		vehicle.setResetOtpExpiry(null);
+		vehicle.setResetOtpAttempts(0);
+		vehicleRepository.save(vehicle);
 	}
 
 }

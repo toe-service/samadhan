@@ -21,6 +21,9 @@ public class VehicleServiceImpl implements VehicleService{
 	@Autowired
 	VehicleRepository vehicleRepo;
 
+	@Autowired
+	org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
 	private final StorageService storageService;
 
 	public VehicleServiceImpl(StorageService storageService) {
@@ -102,7 +105,26 @@ public class VehicleServiceImpl implements VehicleService{
 
 	@Override
 	public Vehicle loginVehicle(String userName, String password) {
-		Vehicle vehicle=vehicleRepo.findByUserNamePassword(userName, password);
+		Vehicle vehicle = vehicleRepo.findByUserName(userName);
+
+		if (vehicle == null || vehicle.getPassword() == null) {
+			return null;
+		}
+
+		String storedPassword = vehicle.getPassword();
+
+		if (com.samadhan.util.PasswordUtil.isBcryptHash(storedPassword)) {
+			return passwordEncoder.matches(password, storedPassword) ? vehicle : null;
+		}
+
+		if (!storedPassword.equals(password)) {
+			return null;
+		}
+
+		// Legacy plaintext password — transparently migrate to a bcrypt hash on successful login,
+		// same as TransferVendor login (see LoginService#loginTransfervendor).
+		vehicle.setPassword(passwordEncoder.encode(password));
+		vehicleRepo.save(vehicle);
 		return vehicle;
 	}
 
