@@ -55,16 +55,31 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 
 import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.LineSeparator;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.canvas.draw.SolidLine;
+
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.access.AccessDeniedException;
+import com.samadhan.exception.ResourceNotFoundException;
+import com.samadhan.security.TokenApi;
+
+import java.text.DecimalFormat;
 
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -104,6 +119,9 @@ public class PaymentController {
 	 
 	 @Autowired
 	 PaymentRepository paymentRepo;
+
+	 @Autowired
+	 TokenApi tokenApi;
 
 	 // Confirms a payment-verification callback actually came from Razorpay (not a client
 	 // fabricating a "success" response without ever paying), using the SDK's own constant-time
@@ -236,134 +254,177 @@ public class PaymentController {
 	 
 	 @GetMapping("/generateInvoice")
 	 public ResponseEntity<byte[]> generateInvoice(
-	         @RequestParam Long transferId) throws Exception {
+	         @RequestParam Long transferId, HttpServletRequest httpRequest) throws Exception {
 
 	     TransferRequestDetails transfer = transferRepository.findById(transferId)
-	             .orElseThrow(() -> new RuntimeException("Transfer not found"));
+	             .orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
+
+	     TransferVendor sellerVendor = transfer.getTransferVendor();
+	     if (sellerVendor == null) {
+	         throw new ResourceNotFoundException(
+	                 "This request has no vendor assigned yet — an invoice can only be generated once a vendor has taken this ride.");
+	     }
+
+	     // Only the vendor who actually fulfilled this ride can pull its invoice — otherwise any
+	     // authenticated vendor could download any other vendor's customer/revenue data by ID.
+	     String authHeader = httpRequest.getHeader("Authorization");
+	     String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+	     Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+	     if (tokenVendorId == null || !tokenVendorId.equals(sellerVendor.getId())) {
+	         throw new AccessDeniedException("You are not authorized to view this invoice");
+	     }
 
 	     ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 	     PdfWriter writer = new PdfWriter(baos);
 	     PdfDocument pdf = new PdfDocument(writer);
-	     Document document = new Document(pdf);
+	     Document document = new Document(pdf, PageSize.A4);
+	     document.setMargins(30, 36, 30, 36);
 
 	     PdfFont bold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
 	     PdfFont normal = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-	     
-	     String vendorName=transfer.getTransferVendor().getVendorName();
-	     String vendorAddress=transfer.getTransferVendor().getVendorAddress();
-	     String vendorGst=transfer.getTransferVendor().getGstNumber();
+	     DeviceRgb brand = new DeviceRgb(37, 99, 235);
+	     DeviceRgb lightBand = new DeviceRgb(245, 247, 250);
+	     DecimalFormat money = new DecimalFormat("#,##0.00");
 
-	     //================ HEADER ===================
+	     String vendorName = sellerVendor.getVendorName();
+	     String vendorAddress = sellerVendor.getVendorAddress();
+	     String vendorGst = sellerVendor.getGstNumber();
+	     String vendorContact = sellerVendor.getVendorContactNumber();
+	     boolean vendorGstRegistered = vendorGst != null && !vendorGst.isBlank();
 
-	     Paragraph title = new Paragraph(vendorName)
-	             .setFont(bold)
-	             .setFontSize(24)
-	             .setTextAlignment(TextAlignment.CENTER);
+	     //================ HEADER BAND ===================
 
-	     Paragraph invoiceTitle = new Paragraph("TAX INVOICE")
-	             .setFont(bold)
-	             .setFontSize(16)
-	             .setTextAlignment(TextAlignment.CENTER);
+	     Table headerBand = new Table(UnitValue.createPercentArray(new float[]{60, 40}));
+	     headerBand.setWidth(UnitValue.createPercentValue(100));
 
-	     document.add(title);
-	     document.add(invoiceTitle);
+	     Cell headerLeft = new Cell().setBorder(Border.NO_BORDER);
+	     headerLeft.add(new Paragraph(safeText(vendorName)).setFont(bold).setFontSize(20).setFontColor(brand));
+	     headerLeft.add(new Paragraph(safeText(vendorAddress)).setFont(normal).setFontSize(9).setFontColor(ColorConstants.DARK_GRAY));
+	     if (vendorContact != null && !vendorContact.isBlank()) {
+	         headerLeft.add(new Paragraph("Contact: " + vendorContact).setFont(normal).setFontSize(9).setFontColor(ColorConstants.DARK_GRAY));
+	     }
 
-	     document.add(new Paragraph("\n"));
+	     Cell headerRight = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT);
+	     headerRight.add(new Paragraph("TAX INVOICE").setFont(bold).setFontSize(18).setFontColor(brand));
+	     headerRight.add(new Paragraph("Invoice No: INV-" + transfer.getId()).setFont(normal).setFontSize(9));
+	     headerRight.add(new Paragraph("Invoice Date: " + LocalDate.now()).setFont(normal).setFontSize(9));
 
-	     //================ COMPANY & CUSTOMER =================
+	     headerBand.addCell(headerLeft);
+	     headerBand.addCell(headerRight);
+	     document.add(headerBand);
 
-	     Table top = new Table(UnitValue.createPercentArray(new float[]{50,50}));
+	     document.add(new LineSeparator(new SolidLine(1.2f))
+	             .setMarginTop(6).setMarginBottom(12).setStrokeColor(brand));
+
+	     //================ SELLER / BUYER =================
+
+	     Table top = new Table(UnitValue.createPercentArray(new float[]{50, 50}));
 	     top.setWidth(UnitValue.createPercentValue(100));
 
-	     Cell seller = new Cell();
+	     Cell seller = new Cell().setBackgroundColor(lightBand).setPadding(10).setBorder(Border.NO_BORDER);
+	     seller.add(new Paragraph("Service Provider (Seller)").setFont(bold).setFontSize(10));
+	     seller.add(new Paragraph(safeText(vendorName)).setFont(normal).setFontSize(9));
+	     seller.add(new Paragraph(safeText(vendorAddress)).setFont(normal).setFontSize(9));
+	     seller.add(new Paragraph("GSTIN: " + (vendorGstRegistered ? vendorGst : "Not Registered")).setFont(normal).setFontSize(9));
+	     seller.add(new Paragraph("SAC Code: 9965 (Goods Transport by Road)").setFont(normal).setFontSize(9));
 
-	     seller.add(new Paragraph("Service Provider").setFont(bold));
-	     seller.add(new Paragraph(vendorName));
-	     seller.add(new Paragraph(vendorAddress));
-	     seller.add(new Paragraph(vendorGst));
-	  //   seller.add(new Paragraph("PAN : ABCDE1234F"));
-
-	     Cell buyer = new Cell();
-
-	     buyer.add(new Paragraph("Customer Details").setFont(bold));
-	     buyer.add(new Paragraph("Customer : " + transfer.getUserDetails().getUserName()));
-	     buyer.add(new Paragraph("Mobile : " + transfer.getUserDetails().getUserContactNumber()));
-	     buyer.add(new Paragraph("Pickup : " + transfer.getSource()));
-	     buyer.add(new Paragraph("Destination : " + transfer.getDestination()));
+	     Cell buyer = new Cell().setBackgroundColor(lightBand).setPadding(10).setBorder(Border.NO_BORDER);
+	     buyer.add(new Paragraph("Billed To (Customer)").setFont(bold).setFontSize(10));
+	     buyer.add(new Paragraph("Name: " + safeText(transfer.getUserDetails() != null ? transfer.getUserDetails().getUserName() : null)).setFont(normal).setFontSize(9));
+	     buyer.add(new Paragraph("Mobile: " + safeText(transfer.getUserDetails() != null ? transfer.getUserDetails().getUserContactNumber() : null)).setFont(normal).setFontSize(9));
+	     buyer.add(new Paragraph("Pickup: " + safeText(transfer.getSource())).setFont(normal).setFontSize(9));
+	     buyer.add(new Paragraph("Destination: " + safeText(transfer.getDestination())).setFont(normal).setFontSize(9));
 
 	     top.addCell(seller);
 	     top.addCell(buyer);
-
 	     document.add(top);
 
 	     document.add(new Paragraph("\n"));
 
-	     //================ INVOICE DETAILS =================
+	     //================ SUPPLY DETAILS =================
 
-	     Table invoiceInfo = new Table(UnitValue.createPercentArray(new float[]{50,50}));
+	     Table invoiceInfo = new Table(UnitValue.createPercentArray(new float[]{50, 50}));
 	     invoiceInfo.setWidth(UnitValue.createPercentValue(100));
-
-	     invoiceInfo.addCell(new Cell().add(new Paragraph("Invoice No : INV-" + transfer.getId())));
-	     invoiceInfo.addCell(new Cell().add(new Paragraph("Invoice Date : " + LocalDate.now())));
-
-	     invoiceInfo.addCell(new Cell().add(new Paragraph("Pickup Date : " + transfer.getPickupDate())));
-	     invoiceInfo.addCell(new Cell().add(new Paragraph("Pickup Slot : " + transfer.getPickupSchedule())));
-
+	     invoiceInfo.addCell(plainCell("Pickup Date: " + safeText(transfer.getPickupDate() != null ? transfer.getPickupDate().toString() : null), normal));
+	     invoiceInfo.addCell(plainCell("Pickup Slot: " + safeText(transfer.getPickupSchedule()), normal));
+	     invoiceInfo.addCell(plainCell("Place of Supply: " + safeText(vendorAddress), normal));
+	     invoiceInfo.addCell(plainCell("Reverse Charge Applicable: No", normal));
 	     document.add(invoiceInfo);
 
 	     document.add(new Paragraph("\n"));
 
 	     //================ ITEM TABLE =================
 
-	     Table table = new Table(UnitValue.createPercentArray(new float[]{1,5,2}));
+	     double rideCharges = nz(transfer.getRideWithoutTaxCalculation());
+	     double packaging = nz(transfer.getPackagingCost());
+	     double loadingUnloading = nz(transfer.getLoadingUnloading());
+	     double taxableValue = rideCharges + packaging + loadingUnloading;
+	     double totalGst = nz(transfer.getGstCost());
+	     double cgst = totalGst / 2.0;
+	     double sgst = totalGst / 2.0;
+	     double grandTotal = transfer.getRideCost();
+
+	     Table table = new Table(UnitValue.createPercentArray(new float[]{6, 40, 12, 18}));
 	     table.setWidth(UnitValue.createPercentValue(100));
 
-	     table.addHeaderCell(new Cell().add(new Paragraph("S.No").setFont(bold)));
-	     table.addHeaderCell(new Cell().add(new Paragraph("Description").setFont(bold)));
-	     table.addHeaderCell(new Cell().add(new Paragraph("Amount").setFont(bold)));
+	     table.addHeaderCell(headerCell("S.No", bold, brand));
+	     table.addHeaderCell(headerCell("Description", bold, brand));
+	     table.addHeaderCell(headerCell("SAC", bold, brand));
+	     table.addHeaderCell(headerCell("Amount (Rs.)", bold, brand));
 
-	     table.addCell("1");
-	     table.addCell("Ride Charges");
-	     table.addCell("₹" + transfer.getRideWithoutTaxCalculation());
+	     int sno = 1;
+	     table.addCell(dataCell(String.valueOf(sno++), normal, TextAlignment.CENTER));
+	     table.addCell(dataCell("Ride Charges", normal, TextAlignment.LEFT));
+	     table.addCell(dataCell("9965", normal, TextAlignment.CENTER));
+	     table.addCell(dataCell(money.format(rideCharges), normal, TextAlignment.RIGHT));
 
-	     table.addCell("2");
-	     table.addCell("Packaging Charges");
-	     table.addCell("₹" + transfer.getPackagingCost());
+	     if (packaging > 0) {
+	         table.addCell(dataCell(String.valueOf(sno++), normal, TextAlignment.CENTER));
+	         table.addCell(dataCell("Packaging Charges", normal, TextAlignment.LEFT));
+	         table.addCell(dataCell("9965", normal, TextAlignment.CENTER));
+	         table.addCell(dataCell(money.format(packaging), normal, TextAlignment.RIGHT));
+	     }
 
-	     table.addCell("3");
-	     table.addCell("Loading / Unloading");
-	     table.addCell("₹" + transfer.getLoadingUnloading());
-
-	     table.addCell("4");
-	     table.addCell("GST (18%)");
-	     table.addCell("₹" + transfer.getGstCost());
+	     if (loadingUnloading > 0) {
+	         table.addCell(dataCell(String.valueOf(sno++), normal, TextAlignment.CENTER));
+	         table.addCell(dataCell("Loading / Unloading", normal, TextAlignment.LEFT));
+	         table.addCell(dataCell("9965", normal, TextAlignment.CENTER));
+	         table.addCell(dataCell(money.format(loadingUnloading), normal, TextAlignment.RIGHT));
+	     }
 
 	     document.add(table);
 
 	     document.add(new Paragraph("\n"));
 
-	     //================ TOTAL =================
+	     //================ TAX SUMMARY =================
 
-	     Table total = new Table(UnitValue.createPercentArray(new float[]{70,30}));
-	     total.setWidth(UnitValue.createPercentValue(100));
+	     Table totals = new Table(UnitValue.createPercentArray(new float[]{70, 30}));
+	     totals.setWidth(UnitValue.createPercentValue(100));
+	     totals.setHorizontalAlignment(HorizontalAlignment.RIGHT);
 
-	     total.addCell(new Cell().add(new Paragraph("Grand Total").setFont(bold)));
-	     total.addCell(new Cell().add(new Paragraph("₹" + transfer.getRideCost()).setFont(bold)));
+	     totals.addCell(totalsCell("Taxable Value", normal, false));
+	     totals.addCell(totalsCell(money.format(taxableValue), normal, false));
 
-	     document.add(total);
+	     totals.addCell(totalsCell("CGST @ 9%", normal, false));
+	     totals.addCell(totalsCell(money.format(cgst), normal, false));
 
-	     document.add(new Paragraph("\n"));
+	     totals.addCell(totalsCell("SGST @ 9%", normal, false));
+	     totals.addCell(totalsCell(money.format(sgst), normal, false));
 
-	  
+	     totals.addCell(totalsCell("Grand Total", bold, true));
+	     totals.addCell(totalsCell(money.format(grandTotal), bold, true));
 
-	//     document.add(new Paragraph(convertAmountToWords(transfer.getRideCost()) + " Only"));
+	     document.add(totals);
+
+	     document.add(new Paragraph("\nNote: Tax shown as CGST + SGST, assuming intra-state supply.")
+	             .setFont(normal).setFontSize(8).setFontColor(ColorConstants.GRAY));
 
 	     document.add(new Paragraph("\n\n"));
 
 	     //================ FOOTER =================
 
-	     Paragraph sign = new Paragraph("For "+vendorName)
+	     Paragraph sign = new Paragraph("For " + safeText(vendorName))
 	             .setFont(bold)
 	             .setTextAlignment(TextAlignment.RIGHT);
 
@@ -372,7 +433,13 @@ public class PaymentController {
 	     document.add(new Paragraph("\n\n"));
 
 	     document.add(new Paragraph("Authorized Signatory")
+	             .setFont(normal)
+	             .setFontSize(9)
 	             .setTextAlignment(TextAlignment.RIGHT));
+
+	     document.add(new Paragraph("\nThis is a system-generated invoice.")
+	             .setFont(normal).setFontSize(7).setFontColor(ColorConstants.GRAY)
+	             .setTextAlignment(TextAlignment.CENTER));
 
 	     document.close();
 
@@ -388,7 +455,43 @@ public class PaymentController {
 	             .headers(headers)
 	             .body(baos.toByteArray());
 	 }
-	 
+
+	 private double nz(Double value) {
+	     return value == null ? 0.0 : value;
+	 }
+
+	 private String safeText(String value) {
+	     return value == null || value.isBlank() ? "-" : value;
+	 }
+
+	 private Cell plainCell(String text, PdfFont font) {
+	     return new Cell().setBorder(Border.NO_BORDER).add(new Paragraph(text).setFont(font).setFontSize(9));
+	 }
+
+	 private Cell headerCell(String text, PdfFont bold, DeviceRgb color) {
+	     return new Cell()
+	             .setBackgroundColor(color)
+	             .add(new Paragraph(text).setFont(bold).setFontColor(ColorConstants.WHITE).setFontSize(9));
+	 }
+
+	 private Cell dataCell(String text, PdfFont font, TextAlignment align) {
+	     return new Cell()
+	             .setBorder(new SolidBorder(ColorConstants.LIGHT_GRAY, 0.5f))
+	             .setTextAlignment(align)
+	             .add(new Paragraph(text).setFont(font).setFontSize(9));
+	 }
+
+	 private Cell totalsCell(String text, PdfFont font, boolean emphasized) {
+	     Cell cell = new Cell()
+	             .setBorder(Border.NO_BORDER)
+	             .setTextAlignment(TextAlignment.RIGHT)
+	             .add(new Paragraph(text).setFont(font).setFontSize(emphasized ? 11 : 9));
+	     if (emphasized) {
+	         cell.setBorderTop(new SolidBorder(ColorConstants.BLACK, 0.75f));
+	     }
+	     return cell;
+	 }
+
 
 
 //	private JSONObject getRequest(PaymentInvoiceRequest request) {
