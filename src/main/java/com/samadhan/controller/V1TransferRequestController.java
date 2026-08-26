@@ -86,7 +86,8 @@ TransferRequestService transferRequestService;
 	                                               @RequestParam(required = false) String goodsType,
 		                                   	       @RequestParam(required = false, defaultValue = "0") Integer fromFloor,
 		                                	       @RequestParam(required = false, defaultValue = "false") Boolean liftAvailable,
-		                                	       @RequestParam(name = "distanceKm", required = false, defaultValue = "0") Double distanceInKm) throws JsonProcessingException, FirebaseMessagingException {
+		                                	       @RequestParam(name = "distanceKm", required = false, defaultValue = "0") Double distanceInKm,
+		                                	       @RequestParam(required = false, defaultValue = "true") Boolean isMovable) throws JsonProcessingException, FirebaseMessagingException {
 	        if (serviceType == serviceTypeEnum.TRANSFERSERVICE) {
 
 	            if (parcelType == null) {
@@ -104,7 +105,7 @@ TransferRequestService transferRequestService;
 	                , packageWeight, packageDescription, vendorId, userType, userName, userContact, gstCost, 
 	                rideWithoutTaxCalculation, loadingUnloading, packagingCost, dimensionUnit, length, width, 
 	                height, serviceType, vendorPickupVehicle, helperRequired, helperCount, vehicleCategory, 
-	                instantBooking, homeType, packingType, goodsType, fromFloor, liftAvailable, receiverName, receiverContact, distanceInKm);
+	                instantBooking, homeType, packingType, goodsType, fromFloor, liftAvailable, receiverName, receiverContact, distanceInKm, isMovable);
 	        return rideTransfer;
 	  }
 	  
