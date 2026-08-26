@@ -26,6 +26,11 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 
 	@Query(value="SELECT * FROM driver WHERE driver_contact_number=:userName AND password=:password" ,nativeQuery = true)
 	Driver findByUserNamePassword(String userName, String password);
-	
+
+	// LIMIT 1 guards against pre-existing duplicate driver_contact_number rows throwing
+	// NonUniqueResultException — see the same fix applied to TransferVendorRepository.
+	@Query(value="SELECT * FROM driver WHERE driver_contact_number=:driverContactNumber ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
+	Driver findByDriverContactNumber(String driverContactNumber);
+
 }
 

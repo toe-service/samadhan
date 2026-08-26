@@ -38,7 +38,45 @@ public class Driver {
 	@JsonIgnore
 	@Column(name="password")
 	private String password;
-	
+
+	// Forgot-password OTP state — never serialized to the frontend. reset_otp_hash is a bcrypt
+	// hash of the OTP (see LoginService), not the OTP itself.
+	@JsonIgnore
+	@Column(name = "reset_otp_hash")
+	private String resetOtpHash;
+
+	@JsonIgnore
+	@Column(name = "reset_otp_expiry")
+	private java.time.LocalDateTime resetOtpExpiry;
+
+	@JsonIgnore
+	@Column(name = "reset_otp_attempts")
+	private Integer resetOtpAttempts;
+
+	public String getResetOtpHash() {
+		return resetOtpHash;
+	}
+
+	public void setResetOtpHash(String resetOtpHash) {
+		this.resetOtpHash = resetOtpHash;
+	}
+
+	public java.time.LocalDateTime getResetOtpExpiry() {
+		return resetOtpExpiry;
+	}
+
+	public void setResetOtpExpiry(java.time.LocalDateTime resetOtpExpiry) {
+		this.resetOtpExpiry = resetOtpExpiry;
+	}
+
+	public Integer getResetOtpAttempts() {
+		return resetOtpAttempts;
+	}
+
+	public void setResetOtpAttempts(Integer resetOtpAttempts) {
+		this.resetOtpAttempts = resetOtpAttempts;
+	}
+
 	@Column(name="current_location")
 	private String currentLocation;
 	

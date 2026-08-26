@@ -9,6 +9,8 @@ import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.UserRole;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
+import com.samadhan.request.IdentifierForgotPasswordRequest;
+import com.samadhan.request.IdentifierResetPasswordRequest;
 import com.samadhan.request.RefreshTokenRequest;
 import com.samadhan.request.UserLoginRequest;
 import com.samadhan.request.UserOtpRequest;
@@ -148,13 +150,73 @@ public class V1UserLoginAndRegistrationController {
 	) throws ConflictException {
 
 		Driver driver = driverservice.loginDriver(UserName, password);
-      
+
 		ResponseObject<Driver> success = ResponseUtil.populateResponseObject(driver, "SUCCESS", null);
 
 		return ResponseEntity.ok(success);
 
 	}
-    
+
+	// Public — same generic-response, non-enumerable pattern as
+	// TransferVendorController#forgotPassword. identifier = user's registered email.
+	@PostMapping("/user-password/forgot")
+	public ResponseEntity<ResponseObject<?>> forgotUserPassword(@RequestBody IdentifierForgotPasswordRequest request) {
+		loginService.requestUserPasswordReset(request.getIdentifier());
+		ResponseObject<String> success = ResponseUtil.populateResponseObject(
+				"If this email is registered, an OTP has been sent to the registered mobile number.",
+				"SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
+	@PostMapping("/user-password/reset")
+	public ResponseEntity<ResponseObject<?>> resetUserPassword(@RequestBody IdentifierResetPasswordRequest request)
+			throws OtpMismatchException {
+		loginService.resetUserPassword(request.getIdentifier(), request.getOtp(), request.getNewPassword());
+		ResponseObject<String> success = ResponseUtil.populateResponseObject(
+				"Password reset successfully. You can now log in with your new password.", "SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
+	// identifier = driver's registered contact number (also the OTP's destination).
+	@PostMapping("/driver-password/forgot")
+	public ResponseEntity<ResponseObject<?>> forgotDriverPassword(
+			@RequestBody IdentifierForgotPasswordRequest request) {
+		loginService.requestDriverPasswordReset(request.getIdentifier());
+		ResponseObject<String> success = ResponseUtil.populateResponseObject(
+				"If this contact number is registered, an OTP has been sent to it.", "SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
+	@PostMapping("/driver-password/reset")
+	public ResponseEntity<ResponseObject<?>> resetDriverPassword(@RequestBody IdentifierResetPasswordRequest request)
+			throws OtpMismatchException {
+		loginService.resetDriverPassword(request.getIdentifier(), request.getOtp(), request.getNewPassword());
+		ResponseObject<String> success = ResponseUtil.populateResponseObject(
+				"Password reset successfully. You can now log in with your new password.", "SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
+	// identifier = vehicle's login username (OTP is sent to that vehicle's own registered
+	// contact number, not to whatever the caller supplies).
+	@PostMapping("/vehicle-password/forgot")
+	public ResponseEntity<ResponseObject<?>> forgotVehiclePassword(
+			@RequestBody IdentifierForgotPasswordRequest request) {
+		loginService.requestVehiclePasswordReset(request.getIdentifier());
+		ResponseObject<String> success = ResponseUtil.populateResponseObject(
+				"If this username is registered, an OTP has been sent to the registered mobile number.",
+				"SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
+	@PostMapping("/vehicle-password/reset")
+	public ResponseEntity<ResponseObject<?>> resetVehiclePassword(@RequestBody IdentifierResetPasswordRequest request)
+			throws OtpMismatchException {
+		loginService.resetVehiclePassword(request.getIdentifier(), request.getOtp(), request.getNewPassword());
+		ResponseObject<String> success = ResponseUtil.populateResponseObject(
+				"Password reset successfully. You can now log in with your new password.", "SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
     @PostMapping("/role-login")
     public ResponseEntity<?> loginRole(@RequestParam String UserName, @RequestParam String password,@RequestParam(required = false) String fcmToken
 	) throws ConflictException {

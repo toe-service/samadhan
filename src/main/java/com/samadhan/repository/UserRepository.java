@@ -29,6 +29,11 @@ public interface UserRepository extends JpaRepository<UserDetails, Long> {
 
     @Query(value = "Select * from user_details where user_email = :userName AND user_password =:password", nativeQuery = true)
 	UserDetails findByUserNamePassword(String userName, String password);
+
+    // LIMIT 1 guards against pre-existing duplicate user_email rows throwing
+    // NonUniqueResultException — see the same fix applied to TransferVendorRepository.
+    @Query(value = "Select * from user_details where user_email = :userEmail ORDER BY id ASC LIMIT 1", nativeQuery = true)
+    UserDetails findByUserEmail(@Param("userEmail") String userEmail);
 }
 
 
