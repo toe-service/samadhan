@@ -3,6 +3,7 @@ package com.samadhan.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -527,7 +528,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if (vehicleId != null && vehicleId != 0) {
 //			long vehiId =(long) transfer.getVehicleId();
 //			Optional<Vehicle> vehicleopt=vehicleRepo.findById(vehicleId);
-			if (userType != null && userType.equalsIgnoreCase("User")) {
+			if (userType != null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
 				long vendorId = transfer.getTransferVendor().getId();
 
 				VendorWallet wallet = walletRepository.findByVendor(vendorId);
@@ -562,16 +563,16 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setTransferStatus(rideStatusEnum.ONGOING);
 			transferRepo.save(transfer);
 			
-			if(userType!=null && userType.equalsIgnoreCase("User")) {
-			
+			if(userType!=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
+
 			long vendorId=transfer.getTransferVendor().getId();
-			
+
 			TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 					.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
-		
-			
+
+
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
-			
+
 			double acceptanceFee = calculateAcceptanceFee(transfer);
 
 //			if(wallet.getBalance() < -200){
@@ -633,15 +634,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
 			
-			if(userType!=null && userType.equalsIgnoreCase("User")) {
-			
+			if(userType!=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
+
 			long vendorId=transferdetails.getTransferVendor().getId();
-			
+
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
-			
+
 			TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 					.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
-			
+
 			double acceptanceFee = calculateCompletioneFee(transferdetails);
 
 //			if(wallet.getBalance() < -100){
@@ -699,6 +700,18 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 //			throw new SubscriptionSuspendedException(
 //					"Your subscription is suspended. Please contact support or renew your subscription.");
 //		}
+
+		// An individual account is a single owner-operator vehicle, not a fleet — so their feed
+		// should be exactly what their one vehicle would see (vehicle type/location/eligibility
+		// matched, see getrideTransferByVehicle), not the vendor-level feed below, which is built
+		// around a vendor's business address/radius that individual accounts often don't have set.
+		if (vendorForFeed != null && Boolean.TRUE.equals(vendorForFeed.getIsIndividual())) {
+			List<Vehicle> vendorVehicles = vehicleRepo.findByVendorId(transferId);
+			if (vendorVehicles.isEmpty()) {
+				return new ArrayList<>();
+			}
+			return getrideTransferByVehicle(vendorVehicles.get(0).getId());
+		}
 
 		List<TransferRequestDetails> showRidestoVendors = transferRepo.showRidestoVendors(transferId);
 		
