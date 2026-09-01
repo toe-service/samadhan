@@ -101,7 +101,12 @@ public class WalletTransaction {
 	public void setCreatedDate(LocalDate createdDate) {
 		this.createdDate = createdDate;
 	}
-	
-	
-    
+
+	@PrePersist
+	public void prePersist() {
+		if (createdDate == null) {
+			createdDate = LocalDate.now();
+		}
+	}
+
 }

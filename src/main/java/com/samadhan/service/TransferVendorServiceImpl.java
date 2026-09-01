@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
@@ -82,6 +83,24 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		VendorWallet walletByVendor=VendorWalletRepo.findByVendor(vendorId);
 
 		return walletByVendor;
+	}
+
+	@Override
+	public List<WalletTransactionDto> getWalletTransactions(Long vendorId) {
+		return walletTransactionRepo.findByVendor_IdOrderByIdDesc(vendorId)
+				.stream()
+				.map(t -> {
+					WalletTransactionDto dto = new WalletTransactionDto();
+					dto.setId(t.getId());
+					dto.setAmount(t.getAmount());
+					dto.setTransactionType(t.getTransactionType());
+					dto.setDescription(t.getDescription());
+					dto.setCreatedDate(t.getCreatedDate());
+					dto.setTransferRequestId(
+							t.getTransferRequestDetail() != null ? t.getTransferRequestDetail().getId() : null);
+					return dto;
+				})
+				.collect(Collectors.toList());
 	}
 
 	@Override

@@ -1,5 +1,7 @@
 package com.samadhan.controller;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.OtpMismatchException;
@@ -67,11 +70,29 @@ public class TransferVendorController {
 
 	@GetMapping(value = "/wallet-vendor/{vendorId}")
 	public VendorWallet walletByVendor(@PathVariable Long vendorId) {
-		
+
 		VendorWallet walletByVendor = transferVendorService.walletByVendor(vendorId);
 		return walletByVendor;
 	}
-	
+
+	// Ownership-checked — wallet transaction history is financial data, so the JWT's own
+	// vendorId must match the vendorId being queried (same pattern as password/change).
+	@GetMapping(value = "/wallet/transactions/{vendorId}")
+	public ResponseEntity<List<WalletTransactionDto>> getWalletTransactions(
+			@PathVariable Long vendorId, HttpServletRequest httpRequest) {
+
+		String authHeader = httpRequest.getHeader("Authorization");
+		String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+		Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+		if (tokenVendorId == null || !tokenVendorId.equals(vendorId)) {
+			throw new AccessDeniedException("You are not authorized to view this vendor's wallet transactions");
+		}
+
+		return ResponseEntity.ok(transferVendorService.getWalletTransactions(vendorId));
+	}
+
+
 	@PostMapping("/wallet/deduct-lead-cost/{vendorId}/{requestId}/{userType}")
 	public ResponseEntity<?> deductLeadCost(
 	        @PathVariable Long vendorId,

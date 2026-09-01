@@ -1,5 +1,7 @@
 package com.samadhan.repository;
 
+import java.util.List;
+
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +16,8 @@ public interface WalletTransactionRepo  extends JpaRepository<WalletTransaction,
 
     @Query(value = "Select * from wallet_transaction where transfer_request_id = :requestId AND vendor_id =:vendorId AND transaction_type=:transactionType", nativeQuery = true)
 	WalletTransaction findByVendorANDRequest(Long requestId, Long vendorId, String transactionType);
+
+    List<WalletTransaction> findByVendor_IdOrderByIdDesc(Long vendorId);
 
     @Modifying
     @Transactional
