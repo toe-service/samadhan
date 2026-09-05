@@ -183,6 +183,12 @@ public class Vehicle {
 		this.vendorVehicle = vendorVehicle;
 	}
 
+	// Human-readable vehicle type ("Tata Ace", "14ft Closed", ...) alongside the raw
+	// vendorVehicle enum constant, for clients that just want a display label.
+	public String getVehicleType() {
+		return vendorVehicle != null ? vendorVehicle.getDisplayName() : null;
+	}
+
 	public String getVehicleLatitude() {
 		return vehicleLatitude;
 	}
