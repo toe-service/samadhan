@@ -218,7 +218,20 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="receiver_number")
 	 private String receiverNumber;
-	 
+
+	 // Snapshot of Vehicle.currentLocation taken at ride completion, so a completed ride keeps
+	 // showing where it ended even after the vehicle moves on to its next job.
+	 @Column(name="vehicle_last_location")
+	 private String vehicleLastLocation;
+
+	 public String getVehicleLastLocation() {
+		return vehicleLastLocation;
+	 }
+
+	 public void setVehicleLastLocation(String vehicleLastLocation) {
+		this.vehicleLastLocation = vehicleLastLocation;
+	 }
+
 	public Integer getFromFloor() {
 		return fromFloor;
 	}

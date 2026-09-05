@@ -606,6 +606,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			vehicle.setOngoingStatus(true);
 			vehicleRepo.save(vehicle);
 			transfer.setRideendTime(dateTime);
+			transfer.setVehicleLastLocation(vehicle.getCurrentLocation());
 			transfer.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transfer);
 		}
@@ -631,6 +632,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			if(flag) {
 			if(transferdetails.getClosureotp() !=null && transferdetails.getClosureotp()==otp) {
 			transferdetails.setRideendTime(dateTime);
+			if (transferdetails.getVehicleId() != null) {
+				transferdetails.setVehicleLastLocation(transferdetails.getVehicleId().getCurrentLocation());
+			}
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
 			
