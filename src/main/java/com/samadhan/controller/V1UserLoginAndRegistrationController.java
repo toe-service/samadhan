@@ -311,4 +311,28 @@ public class V1UserLoginAndRegistrationController {
         return ResponseEntity.ok(success);
     }
 
+    // Authenticated (default security rule — see SecurityConfig). Soft delete: marks the
+    // vehicle inactive instead of removing the row, same pattern as #deleteUser above — the
+    // JWT's own userId claim (set from vehicle.getId() at vehicle-login/role-login) must match
+    // the vehicleId being deactivated, so one vehicle's token can't deactivate another vehicle.
+    // Deactivated vehicles keep showing up on the vendor's "All Vehicle" page — the response
+    // now carries isActive so the frontend can flag them instead of silently dropping them.
+    @DeleteMapping("/vehicle/{vehicleId}")
+    public ResponseEntity<ResponseObject<?>> deleteVehicle(
+            @PathVariable Long vehicleId, HttpServletRequest httpRequest) {
+
+        String authHeader = httpRequest.getHeader("Authorization");
+        String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        Long tokenVehicleId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+        if (tokenVehicleId == null || !tokenVehicleId.equals(vehicleId)) {
+            throw new AccessDeniedException("You are not authorized to delete this vehicle");
+        }
+
+        vehicleService.deactivateVehicle(vehicleId);
+        ResponseObject<String> success = ResponseUtil.populateResponseObject(
+                "Vehicle deactivated successfully.", "SUCCESS", null);
+        return ResponseEntity.ok(success);
+    }
+
 }

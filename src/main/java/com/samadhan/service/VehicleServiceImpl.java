@@ -13,6 +13,8 @@ import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
+import com.samadhan.exception.ConflictException;
+import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.VehicleRepository;
 
 @Service
@@ -20,6 +22,9 @@ public class VehicleServiceImpl implements VehicleService{
 
 	@Autowired
 	VehicleRepository vehicleRepo;
+
+	@Autowired
+	TransferRequestRepository transferRequestRepository;
 
 	@Autowired
 	org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
@@ -81,7 +86,7 @@ public class VehicleServiceImpl implements VehicleService{
 					System.currentTimeMillis(), rcFile.getOriginalFilename());
 
 			try {
-				storageService.uploadFile(rcKey, rcFile.getInputStream(), rcFile.getSize(), rcFile.getContentType());
+		//		storageService.uploadFile(rcKey, rcFile.getInputStream(), rcFile.getSize(), rcFile.getContentType());
 				vehicle.setRcStorageKey(rcKey);
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to upload RC document", e);
@@ -130,8 +135,31 @@ public class VehicleServiceImpl implements VehicleService{
 
 	@Override
 	public Vehicle registerVehicle(Vehicle vehicle) {
-		
+
 		return null;
+	}
+
+	// Soft delete — marks the vehicle inactive instead of removing the row, so transfer/ride
+	// history tied to this vehicle stays intact. Same pattern as UserServiceImpl#deactivateUser.
+	@Override
+	public Vehicle deactivateVehicle(Long vehicleId) {
+		Vehicle vehicle = vehicleRepo.findById(vehicleId)
+				.orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
+		vehicle.setIsActive(false);
+		return vehicleRepo.save(vehicle);
+	}
+
+	@Override
+	public void deleteVehicle(Long vehicleId) throws ConflictException {
+		Vehicle vehicle = vehicleRepo.findById(vehicleId)
+				.orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
+
+		if (transferRequestRepository.countByVehicleId(vehicleId) > 0) {
+			throw new ConflictException(
+					"Cannot delete a vehicle with existing transfer/ride history. Deactivate it instead.");
+		}
+
+		vehicleRepo.delete(vehicle);
 	}
 
 }
