@@ -8,6 +8,7 @@ import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.UserRole;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.InvalidCredentialsException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.IdentifierForgotPasswordRequest;
 import com.samadhan.request.IdentifierResetPasswordRequest;
@@ -332,6 +333,26 @@ public class V1UserLoginAndRegistrationController {
         vehicleService.deactivateVehicle(vehicleId);
         ResponseObject<String> success = ResponseUtil.populateResponseObject(
                 "Vehicle deactivated successfully.", "SUCCESS", null);
+        return ResponseEntity.ok(success);
+    }
+
+    // Public (see SecurityConfig — no JWT available here) — for the vendor website's "delete my
+    // vehicle" page. Since there's no token to prove ownership, the vehicle's own login
+    // username/password stand in as the credential, verified the same way vehicle-login does.
+    // Hard delete, same as VehicleController#deleteVehicle: rejected with a ConflictException if
+    // the vehicle has transfer/ride history.
+    @PostMapping("/vehicle-delete")
+    public ResponseEntity<ResponseObject<?>> deleteVehiclePublic(
+            @RequestParam String UserName, @RequestParam String password) throws ConflictException {
+
+        Vehicle vehicle = vehicleService.loginVehicle(UserName, password);
+        if (vehicle == null) {
+            throw new InvalidCredentialsException("Invalid username or password");
+        }
+
+        vehicleService.deleteVehicle(vehicle.getId());
+        ResponseObject<String> success = ResponseUtil.populateResponseObject(
+                "Vehicle deleted successfully.", "SUCCESS", null);
         return ResponseEntity.ok(success);
     }
 
