@@ -1,6 +1,7 @@
 package com.samadhan.service;
 
 import com.samadhan.entity.UserDetails;
+import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,5 +54,15 @@ public class UserServiceImpl implements UserService{
 		user.setUserPassword(passwordEncoder.encode(password));
 		userrepo.save(user);
 		return user;
+	}
+
+	// Soft delete — marks the account inactive instead of removing the row, so ride/wallet
+	// history tied to this user stays intact.
+	@Override
+	public UserDetails deactivateUser(Long userId) {
+		UserDetails user = userrepo.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+		user.setIsActive(false);
+		return userrepo.save(user);
 	}
 }
