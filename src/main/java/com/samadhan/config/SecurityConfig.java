@@ -83,6 +83,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/v1/driver-password/reset").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/vehicle-password/forgot").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/vehicle-password/reset").permitAll()
+                .antMatchers(HttpMethod.POST, "/v1/vehicle-delete").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/refresh-token").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/logout").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/search").permitAll()
