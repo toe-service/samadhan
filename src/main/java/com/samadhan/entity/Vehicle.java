@@ -102,6 +102,9 @@ public class Vehicle {
 	@Column(name="rc_storage_key")
 	private String rcStorageKey;
 
+	@Column(name = "is_active")
+	private Boolean isActive = true;
+
 
 	public VehicleCategoryEnum getVehicleCategory() {
 		return VehicleCategory;
@@ -219,6 +222,14 @@ public class Vehicle {
 
 	public void setRcStorageKey(String rcStorageKey) {
 		this.rcStorageKey = rcStorageKey;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
 	}
 
 }
