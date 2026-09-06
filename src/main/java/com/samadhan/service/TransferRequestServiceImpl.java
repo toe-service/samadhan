@@ -219,7 +219,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		  }
 		LocalDateTime currentDateTime=LocalDateTime.now();
 	//	transferRequest.setPickupDate(pickupDate);
-		transferRequest.setPickupSchedule(pickupSchedule);
+		// Backend is authoritative on this label, not the client: instantBooking already
+		// drives pickupDate above, so pickupSchedule must agree rather than rely on whatever
+		// string the caller happens to pass.
+		transferRequest.setPickupSchedule(
+				(instantBooking != null && instantBooking) ? "Immediate" : pickupSchedule);
 		transferRequest.setRideCost(rideCost);
 		transferRequest.setUserDetails(user);
 		transferRequest.setRequestCreatedDate(currentDateTime);
@@ -519,6 +523,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			transfer.setDriver(driver);
 			transfer.setDriverAssignDateTime(dateTime);
+			// Stamp the actual pickup time here: this is when a driver is assigned and the
+			// request becomes READYFORPICKUP, i.e. when the driver has picked up the order.
+			// Previously pickup_time was never populated for any booking (immediate or scheduled).
+			transfer.setPickupTime(dateTime.toLocalTime());
 			transfer.setOtp(otp);
 			transfer.setTransferStatus(rideStatusEnum.READYFORPICKUP);
 			transferRepo.save(transfer);
