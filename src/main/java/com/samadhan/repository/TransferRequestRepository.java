@@ -214,4 +214,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select * from transfer_request_details where id=:transferId AND transfer_id=:vendorId" ,nativeQuery = true)
 	Boolean IsExist(Long transferId, Long vendorId);
 
+	@Query(value="select count(*) from transfer_request_details where vehicle_id=:vehicleId", nativeQuery = true)
+	long countByVehicleId(@Param("vehicleId") Long vehicleId);
+
 }
