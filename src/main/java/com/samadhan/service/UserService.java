@@ -10,4 +10,6 @@ public interface UserService {
 
 	public UserDetails loginUser(String userName, String password);
 
+	public UserDetails deactivateUser(Long userId);
+
 }

@@ -33,8 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RestController
@@ -285,6 +287,28 @@ public class V1UserLoginAndRegistrationController {
         refreshTokenService.revokeToken(refreshTokenRequest.getRefreshToken());
         ResponseObject<?> response = ResponseUtil.populateResponseObject(null, "SUCCESS", null);
         return ResponseEntity.ok(response);
+    }
+
+    // Authenticated (default security rule — see SecurityConfig). Soft delete: marks the
+    // account inactive instead of removing the row, same pattern as
+    // TransferVendorController#changePassword — the JWT's own userId claim must match the
+    // userId being deactivated, so one user's token can't deactivate another user's account.
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<ResponseObject<?>> deleteUser(
+            @PathVariable Long userId, HttpServletRequest httpRequest) {
+
+        String authHeader = httpRequest.getHeader("Authorization");
+        String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        Long tokenUserId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+        if (tokenUserId == null || !tokenUserId.equals(userId)) {
+            throw new AccessDeniedException("You are not authorized to delete this user");
+        }
+
+        userService.deactivateUser(userId);
+        ResponseObject<String> success = ResponseUtil.populateResponseObject(
+                "User deactivated successfully.", "SUCCESS", null);
+        return ResponseEntity.ok(success);
     }
 
 }
