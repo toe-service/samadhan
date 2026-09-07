@@ -27,8 +27,14 @@ import com.samadhan.exception.WalletLowBalanceException;
 
 import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import com.samadhan.dto.RideFeedResponse;
 
 import com.google.api.client.util.Objects;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -446,6 +452,40 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE") || transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING") || (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE") && acceptedBy.equalsIgnoreCase("Vehicle"))) {
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+
+			 // A vehicle can only be assigned by its own vendor — closes the gap where the
+			 // dashboard's vehicle dropdown let a fleet vendor pick any of their vehicles
+			 // regardless of whose fleet it's actually in.
+			 if (vehicle.getTransferVendor() == null || !vendorId.equals(vehicle.getTransferVendor().getId())) {
+				 throw new AccessDeniedException("Vehicle " + vehicleId + " does not belong to vendor " + vendorId);
+			 }
+
+			 // "Assign only that vehicle" — a vehicle can only be assigned if it's actually near
+			 // the pickup, same distance-scales-with-ride-length rule as
+			 // TransferRequestRepository.getVehicleFeed / VehicleRepository.findNearbyVehicles,
+			 // so a fleet vendor can't assign a vehicle that's nowhere near the job just because
+			 // it's in the same fleet. Skipped (fail-open) when either location isn't recorded,
+			 // to avoid breaking assignment for vehicles/requests that predate location tracking.
+			 if (vehicle.getVehicleLatitude() != null && vehicle.getVehicleLongitude() != null
+					 && transferdetails.getSourceLatitude() != null && transferdetails.getSourceLongitude() != null) {
+				 double distanceKm = PaymentServiceImpl.calculateDistance(
+						 Double.parseDouble(vehicle.getVehicleLatitude().trim()),
+						 Double.parseDouble(vehicle.getVehicleLongitude().trim()),
+						 Double.parseDouble(transferdetails.getSourceLatitude().trim()),
+						 Double.parseDouble(transferdetails.getSourceLongitude().trim()));
+				 Double rideDistanceKm = transferdetails.getDistanceKm();
+				 double allowedKm = rideDistanceKm == null ? 30
+						 : rideDistanceKm < 20 ? 3
+						 : rideDistanceKm <= 50 ? 10
+						 : rideDistanceKm < 100 ? 25
+						 : 30;
+				 if (distanceKm > allowedKm) {
+					 throw new IllegalStateException(
+							 "Vehicle " + vehicleId + " is " + Math.round(distanceKm)
+							 + "km from the pickup point, outside the " + allowedKm + "km limit for this ride.");
+				 }
+			 }
+
 			 int otp = 1000 + SECURE_RANDOM.nextInt(9000);
 			 transferdetails.setVehicleId(vehicle);
 			 transferdetails.setVehicleAssignDateTime(dateTime);
@@ -772,6 +812,90 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	 	
 
 		return showRidestoVendors;
+	}
+
+	@Override
+	public RideFeedResponse showRidestoVendorsPaged(Long vendorId, String statusFilter, int page, int size) {
+		String normalizedStatus = (statusFilter == null || statusFilter.isBlank())
+				? "ALL" : statusFilter.trim().toUpperCase();
+		int safePage = Math.max(page, 0);
+		int safeSize = Math.max(size, 1);
+
+		TransferVendor vendorForFeed = transferVendorRepo.findById(vendorId).orElse(null);
+
+		// Individual accounts get their single vehicle's feed (see showRidestoVendors above for
+		// why) — that list is small, so it's paginated/filtered in memory rather than needing
+		// its own native query.
+		if (vendorForFeed != null && Boolean.TRUE.equals(vendorForFeed.getIsIndividual())) {
+			List<Vehicle> vendorVehicles = vehicleRepo.findByVendorId(vendorId);
+			List<TransferRequestDetails> all = vendorVehicles.isEmpty()
+					? new ArrayList<>()
+					: getrideTransferByVehicle(vendorVehicles.get(0).getId());
+			return buildPagedResponseInMemory(all, normalizedStatus, safePage, safeSize);
+		}
+
+		Pageable pageable = PageRequest.of(safePage, safeSize);
+		Page<TransferRequestDetails> pageResult =
+				transferRepo.showRidestoVendorsPaged(vendorId, normalizedStatus, pageable);
+		RideStatusCounts counts = transferRepo.countRidesByStatusForVendor(vendorId);
+
+		RideFeedResponse response = new RideFeedResponse();
+		response.setRides(pageResult.getContent());
+		response.setTotalElements(pageResult.getTotalElements());
+		response.setTotalPages(pageResult.getTotalPages());
+		response.setPage(safePage);
+		response.setSize(safeSize);
+		response.setTotalCount(counts != null && counts.getTotal() != null ? counts.getTotal() : 0);
+		response.setPendingCount(counts != null && counts.getPending() != null ? counts.getPending() : 0);
+		response.setAcceptedCount(counts != null && counts.getAccepted() != null ? counts.getAccepted() : 0);
+		response.setOngoingCount(counts != null && counts.getOngoing() != null ? counts.getOngoing() : 0);
+		return response;
+	}
+
+	private RideFeedResponse buildPagedResponseInMemory(
+			List<TransferRequestDetails> all, String statusFilter, int page, int size) {
+
+		long pending = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.PENDING).count();
+		long accepted = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.ACCEPTED).count();
+		long ongoing = all.stream().filter(r ->
+				r.getTransferStatus() == rideStatusEnum.ONGOING
+				|| r.getTransferStatus() == rideStatusEnum.READYFORPICKUP
+				|| r.getTransferStatus() == rideStatusEnum.VEHICLEASSIGNED
+		).count();
+
+		List<TransferRequestDetails> filtered;
+		switch (statusFilter) {
+			case "PENDING":
+				filtered = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.PENDING).collect(Collectors.toList());
+				break;
+			case "ACCEPTED":
+				filtered = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.ACCEPTED).collect(Collectors.toList());
+				break;
+			case "ONGOING":
+				filtered = all.stream().filter(r ->
+						r.getTransferStatus() == rideStatusEnum.ONGOING
+						|| r.getTransferStatus() == rideStatusEnum.READYFORPICKUP
+						|| r.getTransferStatus() == rideStatusEnum.VEHICLEASSIGNED
+				).collect(Collectors.toList());
+				break;
+			default:
+				filtered = all;
+		}
+
+		int fromIndex = Math.min(page * size, filtered.size());
+		int toIndex = Math.min(fromIndex + size, filtered.size());
+
+		RideFeedResponse response = new RideFeedResponse();
+		response.setRides(filtered.subList(fromIndex, toIndex));
+		response.setTotalElements(filtered.size());
+		response.setTotalPages((int) Math.ceil(filtered.size() / (double) size));
+		response.setPage(page);
+		response.setSize(size);
+		response.setTotalCount(all.size());
+		response.setPendingCount(pending);
+		response.setAcceptedCount(accepted);
+		response.setOngoingCount(ongoing);
+		return response;
 	}
 
 	@Override
