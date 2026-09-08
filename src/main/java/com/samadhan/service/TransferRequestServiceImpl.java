@@ -343,6 +343,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
+	@Transactional
 	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason,String userType, serviceTypeEnum serviceType, Integer vehicleId, String acceptedBy) {
 
 		LocalDateTime dateTime = LocalDateTime.now();
@@ -366,11 +367,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		// Gate on wallet balance, not subscription status — a vendor with a low/negative wallet
 		// can't take on new rides, but can still decline(2)/cancel(3) work they're already
-		// holding. Only checked here for the general case; the User/WebUser branch just below
-		// does its own wallet lookup already (tied to the acceptance-fee deduction), so this
-		// only needs to additionally cover accept paths that branch doesn't run for.
+		// holding. Fetched once here and reused below for the fee deduction (same vendor, same
+		// row) instead of querying the wallet twice on the same accept call.
+		VendorWallet vendorWalletForGate = null;
 		if (transferApproval == 1) {
-			VendorWallet vendorWalletForGate = walletRepository.findByVendor(vendorId);
+			vendorWalletForGate = walletRepository.findByVendor(vendorId);
 			if (vendorWalletForGate != null && vendorWalletForGate.getBalance() < -200) {
 				throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
 			}
@@ -384,7 +385,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		boolean vehicleCommittedNow = transferdetails.getServiceType() != null;
 
 		if(transferApproval==1 && vehicleCommittedNow && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
-		VendorWallet wallet = walletRepository.findByVendor(vendorId);
+		VendorWallet wallet = vendorWalletForGate;
 
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
 		
