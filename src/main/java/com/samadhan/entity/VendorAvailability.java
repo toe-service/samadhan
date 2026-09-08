@@ -50,6 +50,9 @@ public class VendorAvailability {
 	@Column(name = "vehicle_type")
 	private String vehicleType;
 
+	@Column(name = "vehicle_category")
+	private String vehicleCategory;
+
 	@Column(name = "vehicle_number")
 	private String vehicleNumber;
 
@@ -121,6 +124,14 @@ public class VendorAvailability {
 
 	public void setVehicleType(String vehicleType) {
 		this.vehicleType = vehicleType;
+	}
+
+	public String getVehicleCategory() {
+		return vehicleCategory;
+	}
+
+	public void setVehicleCategory(String vehicleCategory) {
+		this.vehicleCategory = vehicleCategory;
 	}
 
 	public String getVehicleNumber() {

@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.exception.ResourceNotFoundException;
+import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VendorAvailabilityRepository;
 import com.samadhan.request.VendorAvailabilityRequest;
@@ -22,6 +24,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 	@Autowired
 	TransferVendorRepository transferVendorRepository;
+
+	@Autowired
+	TransferRequestRepository transferRequestRepository;
 
 	@Override
 	public VendorAvailability postAvailability(VendorAvailabilityRequest request) {
@@ -46,6 +51,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		availability.setToLongitude(request.toLongitude);
 		availability.setExpectedDate(request.expectedDate);
 		availability.setVehicleType(request.vehicleType);
+		availability.setVehicleCategory(request.vehicleCategory);
 		availability.setVehicleNumber(request.vehicleNumber);
 		availability.setActive(true);
 		availability.setCreatedAt(LocalDateTime.now());
@@ -69,5 +75,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		availability.setActive(false);
 		vendorAvailabilityRepository.save(availability);
+	}
+
+	@Override
+	public List<TransferRequestDetails> getRequestsMatchingAvailability(Long vendorId) {
+		return transferRequestRepository.getRequestsMatchingVendorAvailability(vendorId);
 	}
 }
