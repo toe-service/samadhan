@@ -520,15 +520,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	private double calculateAcceptanceFee(TransferRequestDetails transferdetails) {
 
 		double rideCost=transferdetails.getRideCost();
-		
-		return Math.round(rideCost * 0.020 * 100.0) / 100.0;
+
+		return Math.round(rideCost * 0.025 * 100.0) / 100.0;
 	}
-	
+
 	private double calculateCompletioneFee(TransferRequestDetails transferdetails) {
 
 		double rideCost=transferdetails.getRideCost();
-		
-		return Math.round(rideCost * 0.040 * 100.0) / 100.0;
+
+		return Math.round(rideCost * 0.050 * 100.0) / 100.0;
 	}
 
 	@Override
