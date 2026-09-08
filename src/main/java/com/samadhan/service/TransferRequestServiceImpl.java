@@ -376,19 +376,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			}
 		}
 
-		// The acceptance fee is only charged when a specific vehicle is actually being
-		// committed right now — same condition as the vehicle-assignment branch below.
-		// A vendor's own generic accept (TRANSFER_SERVICE + acceptedBy=="Vendor", no vehicle
-		// picked yet) is free; assigning a vehicle afterwards via requestTransferUpdate is
-		// also free (it only gates on balance, never deducts) — the fee only applies once a
-		// vehicle itself accepts (acceptedBy=="Vehicle"), or for service types where a vehicle
-		// is always attached at accept time (BOOK_VEHICLE / HOME_SHIFTING).
-		boolean vehicleCommittedNow = transferdetails.getServiceType() != null && (
-				transferdetails.getServiceType().getType().equals("BOOK_VEHICLE")
-				|| transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING")
-				|| (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE")
-						&& "Vehicle".equalsIgnoreCase(acceptedBy))
-		);
+		// The acceptance fee is charged whenever a vehicle is being committed right now —
+		// same condition as the vehicle-assignment branch below. Every service type
+		// (BOOK_VEHICLE / HOME_SHIFTING / TRANSFER_SERVICE — Car, Bike, Package alike)
+		// commits a vehicle in the same accept call, whether the vendor or the vehicle
+		// itself is the one accepting, so all of them charge the fee at accept.
+		boolean vehicleCommittedNow = transferdetails.getServiceType() != null;
 
 		if(transferApproval==1 && vehicleCommittedNow && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
 		VendorWallet wallet = walletRepository.findByVendor(vendorId);
@@ -449,7 +442,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 		else {
 			
-		if (transferdetails.getServiceType().getType().equals("BOOK_VEHICLE") || transferdetails.getServiceType().getType().equalsIgnoreCase("HOME SHIFTING") || (transferdetails.getServiceType().getType().equalsIgnoreCase("TRANSFER_SERVICE") && acceptedBy.equalsIgnoreCase("Vehicle"))) {
+		if (vehicleCommittedNow) {
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		              .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 
