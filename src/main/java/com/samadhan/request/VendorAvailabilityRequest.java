@@ -18,5 +18,6 @@ public class VendorAvailabilityRequest {
 	public String toLongitude;
 	public LocalDate expectedDate;
 	public String vehicleType;
+	public String vehicleCategory;
 	public String vehicleNumber;
 }

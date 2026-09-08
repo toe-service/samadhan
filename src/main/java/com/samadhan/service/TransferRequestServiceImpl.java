@@ -93,9 +93,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	//private static final Logger logger = LoggerFactory.logger(TransferRequestService.class);
 	
 	@Override
+	@Transactional
 //	public TransferRequestDetails requestRideTransfer(int vehicleType, int vehicleModel,  String pickuplatitude, String pickuplongitude,
 //			String destinationlatitude, String destinationlongitude, Long userId, double rideCost,LocalDate pickupDate, String pickupSchedule,String source, String destination) {
-	
+
 		public TransferRequestDetails requestRideTransfer(ParcelTypeEnum parcelType, CarModelEnum carModel,
 				String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,
 				Long userId, double rideCost, LocalDate pickupDate, String pickupSchedule, String source,
@@ -596,13 +597,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
  
 		//Ride start
 		if (rideStatus != null && rideStatus == 0) {
-			//long vehiId = (long) vehicleId;
-			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
-		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
-			
-		//	vehicle.setOngoingStatus(true);
-			vehicleRepo.save(vehicle);
-			
+			if (!vehicleRepo.existsById(Long.valueOf(vehicleId))) {
+				throw new ResourceNotFoundException("Vehicle not found with id: " + vehicleId);
+			}
+
 			transfer.setRidestartTime(dateTime);
 			transfer.setClosureotp(otp);
 			
@@ -611,11 +609,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 			if(userType!=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
 
-			long vendorId=transfer.getTransferVendor().getId();
-
-			TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
-					.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
-
+			// Already have this loaded on transfer — no need to re-fetch the same vendor by
+			// the ID we just read off it.
+			TransferVendor transferVendor = transfer.getTransferVendor();
+			long vendorId = transferVendor.getId();
 
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
 
@@ -664,6 +661,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
+	@Transactional
 	public boolean otpVerify(Long transferId, int otp, boolean flag, String userType) {
 
 		  TransferRequestDetails transferdetails = transferRepo.findById(transferId)
@@ -686,12 +684,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 			if(userType!=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
 
-			long vendorId=transferdetails.getTransferVendor().getId();
+			// Already have this loaded on transferdetails — no need to re-fetch the same
+			// vendor by the ID we just read off it.
+			TransferVendor transferVendor = transferdetails.getTransferVendor();
+			long vendorId = transferVendor.getId();
 
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
-
-			TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
-					.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 
 			double acceptanceFee = calculateCompletioneFee(transferdetails);
 
