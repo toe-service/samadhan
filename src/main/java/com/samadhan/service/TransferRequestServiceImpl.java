@@ -381,8 +381,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		// same condition as the vehicle-assignment branch below. Every service type
 		// (BOOK_VEHICLE / HOME_SHIFTING / TRANSFER_SERVICE — Car, Bike, Package alike)
 		// commits a vehicle in the same accept call, whether the vendor or the vehicle
-		// itself is the one accepting, so all of them charge the fee at accept.
-		boolean vehicleCommittedNow = transferdetails.getServiceType() != null;
+		// itself is the one accepting, so all of them charge the fee at accept — but only
+		// when a vehicleId actually came in. A vendor can still claim a TRANSFER_SERVICE
+		// request without picking a vehicle yet (acceptedBy=="Vendor", vehicle assigned
+		// later via requestTransferUpdate, fee-free); requiring vehicleId here avoids
+		// NPEing on that path (vehicleId is a boxed Integer — unboxing null blows up).
+		boolean vehicleCommittedNow = transferdetails.getServiceType() != null && vehicleId != null;
 
 		if(transferApproval==1 && vehicleCommittedNow && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
 		VendorWallet wallet = vendorWalletForGate;
