@@ -153,9 +153,18 @@ TokenApi tokenApi;
 		  }
 	  }
 	  
+	  // Paginated: returns only `size` rides (default 10, latest first) for the requested
+	  // page/status, but the total/pending/accepted/ongoing counts always cover every ride
+	  // visible to the vendor, so the dashboard's summary cards stay accurate regardless of
+	  // which page is loaded.
 	  @GetMapping(value = "/showRidestoVendors/{transferId}")
-	    public ResponseEntity<List<TransferRequestDetails>> showRidestoVendors(@PathVariable Long transferId) {
-		  List<TransferRequestDetails> showRidestoVendors = transferRequestService.showRidestoVendors(transferId);		 
+	    public ResponseEntity<com.samadhan.dto.RideFeedResponse> showRidestoVendors(
+	    		@PathVariable Long transferId,
+	    		@RequestParam(defaultValue = "ALL") String status,
+	    		@RequestParam(defaultValue = "0") int page,
+	    		@RequestParam(defaultValue = "10") int size) {
+		  com.samadhan.dto.RideFeedResponse showRidestoVendors =
+				  transferRequestService.showRidestoVendorsPaged(transferId, status, page, size);
 		  return ResponseEntity.ok(showRidestoVendors);
 	    }
 	  

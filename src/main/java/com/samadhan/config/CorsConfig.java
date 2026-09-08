@@ -15,6 +15,7 @@ public class CorsConfig implements WebMvcConfigurer {
                     "http://localhost:8081",
                     "http://localhost:8080",
                     "https://transfer-vendor-production.up.railway.app",
+                    "https://transfer-vendor-test.up.railway.app",
                     "https://transfereaze.in",
                     "https://www.transfereaze.in"
                 )
