@@ -44,7 +44,33 @@ public class TransferRequestDetails {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
+	// Not persisted — populated only when this ride is returned from the vendor-availability
+	// matching endpoint, to say why it matched (POSTING_ROUTE vs RETURN_TRIP) without changing
+	// the response shape every other consumer of this entity already relies on.
+	@javax.persistence.Transient
+	private String matchType;
+
+	@javax.persistence.Transient
+	private Double matchDistanceKm;
+
+	public String getMatchType() {
+		return matchType;
+	}
+
+	public void setMatchType(String matchType) {
+		this.matchType = matchType;
+	}
+
+	public Double getMatchDistanceKm() {
+		return matchDistanceKm;
+	}
+
+	public void setMatchDistanceKm(Double matchDistanceKm) {
+		this.matchDistanceKm = matchDistanceKm;
+	}
+
+
 	@Column(name="ride_start_time")
 	 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	 private LocalDateTime ridestartTime;
