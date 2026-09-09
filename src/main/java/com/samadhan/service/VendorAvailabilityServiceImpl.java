@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import com.samadhan.dto.GeoPoint;
 import com.samadhan.dto.RouteRequest;
 import com.samadhan.dto.RouteResponse;
-import com.samadhan.dto.VendorAvailabilityMatchResponse;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorAvailability;
@@ -125,11 +124,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// matched. A request matching more than one posting/reason keeps its closest (smallest
 	// distance) match.
 	@Override
-	public List<VendorAvailabilityMatchResponse> getRequestsMatchingAvailability(Long vendorId) {
+	public List<TransferRequestDetails> getRequestsMatchingAvailability(Long vendorId) {
 		List<VendorAvailability> postings =
 				vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
 
-		Map<Long, VendorAvailabilityMatchResponse> bestMatches = new LinkedHashMap<>();
+		Map<Long, TransferRequestDetails> bestMatches = new LinkedHashMap<>();
 
 		for (VendorAvailability posting : postings) {
 			Double toLat = GeoUtils.parseCoord(posting.getToLatitude());
@@ -179,14 +178,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				String matchType = nearSource ? "RETURN_TRIP" : "POSTING_ROUTE";
 				double distanceKm = nearSource ? distToSource : (onRoute ? distToRoute : distToDest);
 
-				VendorAvailabilityMatchResponse existing = bestMatches.get(candidate.getId());
+				TransferRequestDetails existing = bestMatches.get(candidate.getId());
 				if (existing == null || distanceKm < existing.getMatchDistanceKm()) {
-					VendorAvailabilityMatchResponse match = new VendorAvailabilityMatchResponse();
-					match.setRequest(candidate);
-					match.setAvailabilityId(posting.getId());
-					match.setMatchType(matchType);
-					match.setMatchDistanceKm(Math.round(distanceKm * 10) / 10.0);
-					bestMatches.put(candidate.getId(), match);
+					candidate.setMatchType(matchType);
+					candidate.setMatchDistanceKm(Math.round(distanceKm * 10) / 10.0);
+					bestMatches.put(candidate.getId(), candidate);
 				}
 			}
 		}
