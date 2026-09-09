@@ -13,6 +13,8 @@ public class VendorAvailabilityRequest {
 	public Long vendorId;
 	public String userContact;
 	public String fromLocation;
+	public String fromLatitude;
+	public String fromLongitude;
 	public String toLocation;
 	public String toLatitude;
 	public String toLongitude;
