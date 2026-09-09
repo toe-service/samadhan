@@ -499,7 +499,27 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transferdetails.setTransferStatus(rideStatusEnum.values()[transferApproval]);
 		transferdetails.setRequestApprovalDate(dateTime);
 		transferdetails.setTransferVendor(transferVendor);
-		
+
+		// TRANSFER_SERVICE claimed by a vendor with no vehicle yet skips the
+		// vehicleCommittedNow branch above, so it needs its own acceptance-fee charge here —
+		// same fee/rate as BOOKVEHICLE/HOMESHIFTING, just charged on this path instead.
+		if (userType != null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
+			VendorWallet wallet = vendorWalletForGate;
+
+			double acceptanceFee = calculateAcceptanceFee(transferdetails);
+
+			wallet.setBalance(wallet.getBalance() - acceptanceFee);
+			walletRepository.save(wallet);
+
+			WalletTransaction walletTransaction = new WalletTransaction();
+			walletTransaction.setAmount(acceptanceFee);
+			walletTransaction.setTransactionType("Ride Acceptance Fee");
+			walletTransaction.setVendor(transferVendor);
+			walletTransaction.setTransferRequestDetail(transferdetails);
+
+			walletTransactionRepo.save(walletTransaction);
+		}
+
 		}
 
 		transferRepo.save(transferdetails);
@@ -584,8 +604,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 					throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
 				}
 			}
-			
-			
+
+
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 			transfer.setVehicleId(vehicle);
