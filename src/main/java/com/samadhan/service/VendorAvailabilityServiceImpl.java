@@ -19,6 +19,7 @@ import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.exception.ResourceNotFoundException;
+import com.samadhan.exception.SubscriptionSuspendedException;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VendorAvailabilityRepository;
@@ -63,6 +64,15 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		TransferVendor vendor = transferVendorRepository.findById(request.vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found: " + request.vendorId));
+
+		// Same subscription gate TransferRequestServiceImpl.requestRideTransfer applies before
+		// letting a vendor take on new rides — an expired/suspended vendor shouldn't be able to
+		// post availability either, since that's just another way of soliciting new rides.
+		if (vendor.getVendorStatus().name().equals("SUSPENDED")) {
+			throw new SubscriptionSuspendedException("Your subscription is suspended. Please contact support or renew your subscription.");
+		} else if (vendor.getVendorStatus().name().equals("SUBSCRIPTION_PENDING")) {
+			throw new SubscriptionSuspendedException("Your free subscription Period is over. Buy your subscription.");
+		}
 
 		VendorAvailability availability = new VendorAvailability();
 		availability.setTransferVendor(vendor);
