@@ -35,6 +35,12 @@ public class VendorAvailability {
 	@Column(name = "from_location")
 	private String fromLocation;
 
+	@Column(name = "from_latitude")
+	private String fromLatitude;
+
+	@Column(name = "from_longitude")
+	private String fromLongitude;
+
 	@Column(name = "to_location")
 	private String toLocation;
 
@@ -43,6 +49,11 @@ public class VendorAvailability {
 
 	@Column(name = "to_longitude")
 	private String toLongitude;
+
+	// Encoded polyline for the from->to driving route, fetched once from RouteService at
+	// posting time and cached here so matching doesn't re-call the Maps API per request lookup.
+	@Column(name = "route_polyline", columnDefinition = "TEXT")
+	private String routePolyline;
 
 	@Column(name = "expected_date", nullable = false)
 	private LocalDate expectedDate;
@@ -86,6 +97,22 @@ public class VendorAvailability {
 		this.fromLocation = fromLocation;
 	}
 
+	public String getFromLatitude() {
+		return fromLatitude;
+	}
+
+	public void setFromLatitude(String fromLatitude) {
+		this.fromLatitude = fromLatitude;
+	}
+
+	public String getFromLongitude() {
+		return fromLongitude;
+	}
+
+	public void setFromLongitude(String fromLongitude) {
+		this.fromLongitude = fromLongitude;
+	}
+
 	public String getToLocation() {
 		return toLocation;
 	}
@@ -108,6 +135,14 @@ public class VendorAvailability {
 
 	public void setToLongitude(String toLongitude) {
 		this.toLongitude = toLongitude;
+	}
+
+	public String getRoutePolyline() {
+		return routePolyline;
+	}
+
+	public void setRoutePolyline(String routePolyline) {
+		this.routePolyline = routePolyline;
 	}
 
 	public LocalDate getExpectedDate() {

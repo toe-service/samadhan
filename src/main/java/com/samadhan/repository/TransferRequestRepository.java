@@ -1,5 +1,6 @@
 package com.samadhan.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -419,28 +420,25 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select count(*) from transfer_request_details where vehicle_id=:vehicleId", nativeQuery = true)
 	long countByVehicleId(@Param("vehicleId") Long vehicleId);
 
-	// Backhaul matching: a vendor who has posted "I'll be near <toLocation> on <expectedDate>"
-	// (VendorAvailability) should also see PENDING requests whose pickup is near that posted
-	// location on that same date, even though none of their vehicles are physically there yet —
-	// same distance-check pattern as getVehicleFeed, but a flat 40km radius (matching
-	// VendorAvailabilityRepository.findMatchingAvailability, the mirror-direction query this
-	// reuses the same threshold from) and an exact date match rather than distance-scaled radius,
-	// since "I'll be there on that day" is a hard commitment, not a rough proximity signal.
-	// Purely additive — does not touch or replace the existing vendor/vehicle feeds above.
+	// Backhaul matching candidates: PENDING, unassigned requests picking up on the given date
+	// within a coarse lat/lng bounding box around a vendor availability posting's from/to points
+	// (plus buffer). This is a cheap SQL prefilter only — VendorAvailabilityServiceImpl does the
+	// precise endpoint-radius and route-corridor distance checks in Java against these candidates,
+	// since neither straight-line-vs-driving-route matching nor polyline distance can be expressed
+	// in a native query.
 	@Query(value =
-	        "SELECT DISTINCT trd.* FROM transfer_request_details trd " +
-	        "JOIN vendor_availability va ON va.vendor_id = :vendorId AND va.is_active = 1 " +
+	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
+	        "AND trd.pickup_date = :pickupDate " +
 	        "AND trd.source_latitude IS NOT NULL AND trd.source_longitude IS NOT NULL " +
-	        "AND va.to_latitude IS NOT NULL AND va.to_longitude IS NOT NULL " +
-	        "AND trd.pickup_date = va.expected_date " +
-	        "AND ST_Distance_Sphere( " +
-	        "    POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
-	        "    POINT(CAST(TRIM(va.to_longitude) AS DECIMAL(12,8)), CAST(TRIM(va.to_latitude) AS DECIMAL(12,8))) " +
-	        ") <= 40000 " +
+	        "AND CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8)) BETWEEN :minLat AND :maxLat " +
+	        "AND CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)) BETWEEN :minLng AND :maxLng " +
 	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
-	List<TransferRequestDetails> getRequestsMatchingVendorAvailability(@Param("vendorId") Long vendorId);
+	List<TransferRequestDetails> findPendingUnassignedInBoundingBox(
+	        @Param("pickupDate") LocalDate pickupDate,
+	        @Param("minLat") double minLat, @Param("maxLat") double maxLat,
+	        @Param("minLng") double minLng, @Param("maxLng") double maxLng);
 
 }

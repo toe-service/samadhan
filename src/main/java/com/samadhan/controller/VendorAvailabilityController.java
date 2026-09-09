@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.dto.VendorAvailabilityMatchResponse;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.request.VendorAvailabilityRequest;
 import com.samadhan.response.ResponseObject;
@@ -73,10 +73,11 @@ public class VendorAvailabilityController {
 	}
 
 	// Backhaul matches: PENDING requests whose pickup lands near one of this vendor's active
-	// availability postings, on that posting's expected date. Purely additive — doesn't touch
-	// or replace the vendor's normal incoming-requests feed.
+	// availability postings — at the posting's destination, along its from->to driving route, or
+	// at the posting's own starting point (tagged RETURN_TRIP vs POSTING_ROUTE). Purely additive —
+	// doesn't touch or replace the vendor's normal incoming-requests feed.
 	@GetMapping(value = "/availability/{vendorId}/matching-requests")
-	public ResponseEntity<ResponseObject<List<TransferRequestDetails>>> getMatchingRequests(
+	public ResponseEntity<ResponseObject<List<VendorAvailabilityMatchResponse>>> getMatchingRequests(
 			@PathVariable Long vendorId, HttpServletRequest httpRequest) {
 
 		Long tokenVendorId = extractVendorId(httpRequest);
@@ -84,8 +85,8 @@ public class VendorAvailabilityController {
 			throw new AccessDeniedException("You are not authorized to view this vendor's matching requests");
 		}
 
-		List<TransferRequestDetails> matches = vendorAvailabilityService.getRequestsMatchingAvailability(vendorId);
-		ResponseObject<List<TransferRequestDetails>> success = ResponseUtil.populateResponseObject(
+		List<VendorAvailabilityMatchResponse> matches = vendorAvailabilityService.getRequestsMatchingAvailability(vendorId);
+		ResponseObject<List<VendorAvailabilityMatchResponse>> success = ResponseUtil.populateResponseObject(
 				matches, "success", null);
 		return ResponseEntity.ok(success);
 	}
