@@ -115,6 +115,14 @@
 			<artifactId>jackson-datatype-jsr310</artifactId>
 		</dependency>
 
+		<!-- Needed now that TransferRequestDetails' associations are lazy: without this, Jackson
+		     can't serialize a Hibernate lazy proxy (ByteBuddyInterceptor has no serializer) and
+		     throws InvalidDefinitionException on any entity with an uninitialized association. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-hibernate5</artifactId>
+		</dependency>
+
 
 
 		<dependency>
