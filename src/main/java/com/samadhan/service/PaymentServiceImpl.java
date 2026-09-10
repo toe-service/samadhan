@@ -1801,41 +1801,41 @@ public class PaymentServiceImpl {
 	        // ---------- Small Vehicle ----------
 	        case SCOOTER:
 	        case TWO_WHEELER:
-	            return new VehicleRateConfig(60, 2, 8, 6, 5);
+	            return new VehicleRateConfig(50, 2, 8, 6, 5);
 
 	        case E_LOADER:
-	            return new VehicleRateConfig(100, 1, 12, 10, 8);
+	            return new VehicleRateConfig(70, 1, 10, 8, 7);
 
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(110, 1, 15, 13, 11);
+	            return new VehicleRateConfig(80, 1, 13, 11, 9);
 
 	        case EECO:
-	            return new VehicleRateConfig(250, 2, 20, 18, 16);
+	            return new VehicleRateConfig(200, 2, 18, 15, 13);
 
 	        case TATA_ACE:
-	            return new VehicleRateConfig(300, 2, 22, 20, 18);
+	            return new VehicleRateConfig(300, 2, 20, 18, 15);
 
 	        // ---------- Open Body Truck ----------
 	        case PICKUP_8FT:
-	            return new VehicleRateConfig(400, 2, 32, 28, 24);
+	            return new VehicleRateConfig(350, 2, 25, 23, 20);
 
 	        case TRUCK_10FT:
-	            return new VehicleRateConfig(450, 2, 38, 34, 30);
+	            return new VehicleRateConfig(400, 2, 32, 30, 28);
 
 	        case TRUCK_14FT_OPEN:
-	            return new VehicleRateConfig(500, 2, 48, 42, 36);
+	            return new VehicleRateConfig(450, 2, 40, 36, 32);
 
 	        case TRUCK_15FT_OPEN:
-	            return new VehicleRateConfig(550, 2, 50, 44, 38);
+	            return new VehicleRateConfig(500, 2, 45, 40, 35);
 
 	        case TRUCK_17FT_OPEN:
-	            return new VehicleRateConfig(600, 2, 55, 48, 42);
+	            return new VehicleRateConfig(550, 2, 48, 45, 40);
 
 	        case TRUCK_19FT_OPEN:
-	            return new VehicleRateConfig(650, 2, 65, 58, 50);
+	            return new VehicleRateConfig(600, 2, 55, 52, 48);
 
 	        case TRUCK_20FT_OPEN:
-	            return new VehicleRateConfig(750, 2, 68, 60, 52);
+	            return new VehicleRateConfig(700, 2, 60, 55, 50);
 
 	        case TRUCK_22FT_OPEN:
 	            return new VehicleRateConfig(800, 2, 72, 64, 56);
@@ -1858,17 +1858,17 @@ public class PaymentServiceImpl {
 	        // ---------- Closed Container ----------
 	        case TRUCK_14FT:
 	        case TRUCK_14FT_CLOSED:
-	            return new VehicleRateConfig(500, 2, 50, 44, 38);
+	            return new VehicleRateConfig(500, 2, 40, 36, 32);
 
 	        case TRUCK_17FT:
 	        case TRUCK_17FT_CLOSED:
-	            return new VehicleRateConfig(600, 2, 58, 50, 44);
+	            return new VehicleRateConfig(550, 2, 58, 50, 44);
 
 	        case TRUCK_19FT:
-	            return new VehicleRateConfig(650, 2, 65, 58, 50);
+	            return new VehicleRateConfig(650, 2, 48, 45, 40);
 
 	        case CONTAINER_7FT:
-	            return new VehicleRateConfig(4350, 2, 20, 18, 16);
+	            return new VehicleRateConfig(400, 2, 20, 18, 16);
 
 	        case CONTAINER_8FT:
 	            return new VehicleRateConfig(400, 2, 22, 20, 18);
