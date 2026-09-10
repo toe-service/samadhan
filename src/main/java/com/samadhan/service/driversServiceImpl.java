@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.exception.InvalidCredentialsException;
 import com.samadhan.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -265,7 +266,7 @@ public class driversServiceImpl implements driversService {
 	    }
 
 	    // ❌ Not found
-	    throw new RuntimeException("Invalid credentials");
+	    throw new InvalidCredentialsException("Invalid credentials");
 	}
 
 

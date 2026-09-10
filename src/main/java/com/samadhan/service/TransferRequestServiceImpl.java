@@ -21,8 +21,10 @@ import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.exception.RequestAlreadyAcceptedException;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
+import com.samadhan.exception.VehicleTooFarException;
 import com.samadhan.exception.WalletLowBalanceException;
 
 import org.hibernate.annotations.common.util.impl.LoggerFactory;
@@ -360,7 +362,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		// vendor attached — that's exactly what "already accepted" means. The guard only makes
 		// sense for accept(1)/decline(2), otherwise cancel could never reach its own logic below.
 		if (existingVendor != null && transferApproval != 3) {
-		    throw new RuntimeException("This request is already accepted.");
+		    throw new RequestAlreadyAcceptedException("This request is already accepted.");
 		}
 
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
@@ -479,7 +481,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 						 : rideDistanceKm < 100 ? 25
 						 : 30;
 				 if (distanceKm > allowedKm) {
-					 throw new IllegalStateException(
+					 throw new VehicleTooFarException(
 							 "Vehicle " + vehicleId + " is " + Math.round(distanceKm)
 							 + "km from the pickup point, outside the " + allowedKm + "km limit for this ride.");
 				 }

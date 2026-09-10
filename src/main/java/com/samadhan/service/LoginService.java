@@ -162,18 +162,18 @@ public class LoginService {
 		TransferVendor transferv = transferVendorRepository.findByVendorEmail(userName);
 
 		if (transferv == null || transferv.getVendorPassword() == null) {
-			throw new RuntimeException("Invalid credentials");
+			throw new InvalidCredentialsException("Invalid credentials");
 		}
 
 		String storedPassword = transferv.getVendorPassword();
 
 		if (PasswordUtil.isBcryptHash(storedPassword)) {
 			if (!passwordEncoder.matches(password, storedPassword)) {
-				throw new RuntimeException("Invalid credentials");
+				throw new InvalidCredentialsException("Invalid credentials");
 			}
 		} else {
 			if (!storedPassword.equals(password)) {
-				throw new RuntimeException("Invalid credentials");
+				throw new InvalidCredentialsException("Invalid credentials");
 			}
 			transferv.setVendorPassword(passwordEncoder.encode(password));
 			transferVendorRepository.save(transferv);
