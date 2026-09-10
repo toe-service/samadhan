@@ -8,6 +8,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -110,16 +111,16 @@ public class TransferRequestDetails {
 	 private VendorPickupVehicleEnum VendorPickupVehicle;
 	 
 
-	 @OneToOne(cascade = CascadeType.MERGE)
+	 @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
 	// @JsonIgnore
 	 private UserDetails userDetails;
-	 
-	 @OneToOne(cascade = CascadeType.ALL)
+
+	 @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	 @JoinColumn(name = "parcel_details_id", referencedColumnName = "id")
 	 private ParcelDetails parcelDetails;
-	 
-	 @OneToOne(cascade = CascadeType.MERGE)
+
+	 @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
 	 @JoinColumn(name = "driver_id", referencedColumnName = "id")
 	// @JsonIgnore
 	 private Driver driver;
@@ -142,7 +143,7 @@ public class TransferRequestDetails {
 		this.walletTransactions = walletTransactions;
 	}
 
-	@ManyToOne(cascade = CascadeType.MERGE)
+	@ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
 	 @JoinColumn(name = "transfer_id", referencedColumnName = "id")
 	 @JsonIgnoreProperties({ "transferRequests","drivers", "vehicles",
 		    "vendorPassword"})
@@ -175,7 +176,7 @@ public class TransferRequestDetails {
 	 @Column(name="closure_otp")
 	 private Integer  closureotp;
 	 
-	 @OneToOne(cascade = CascadeType.MERGE)
+	 @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
 	 @JoinColumn(name = "vehicle_id", referencedColumnName = "id")
 	 private Vehicle vehicleId;
 	 
