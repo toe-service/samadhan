@@ -70,9 +70,64 @@ public class GlobalExceptionHandler {
                  ResponseUtil.populateResponseObject(
                          null,
                          "403",
-                         new Error("Wallet", ex.getMessage()) 
+                         new Error("Wallet", ex.getMessage())
                  )
          );
+    }
+
+    // The vendor picked a vehicle that's too far from the pickup point to be assigned to this
+    // ride — a specific, expected rejection (not a server fault), so the client can show
+    // "pick a closer vehicle" instead of a generic error.
+    @ExceptionHandler(VehicleTooFarException.class)
+    public ResponseEntity<Object> handleVehicleTooFar(VehicleTooFarException ex) {
+        return ResponseEntity.status(409).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "409",
+                        new Error("VehicleTooFar", ex.getMessage())
+                )
+        );
+    }
+
+    // Someone else already accepted/claimed this request before this call landed — a normal
+    // race in a broadcast-then-first-accept model, not a server fault.
+    @ExceptionHandler(RequestAlreadyAcceptedException.class)
+    public ResponseEntity<Object> handleRequestAlreadyAccepted(RequestAlreadyAcceptedException ex) {
+        return ResponseEntity.status(409).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "409",
+                        new Error("AlreadyAccepted", ex.getMessage())
+                )
+        );
+    }
+
+    // Bad/missing input (e.g. "Parcel Type is required.", "New password must be at least 6
+    // characters long") — a client mistake, not a server fault, so it belongs on 400 with the
+    // original message rather than falling through to the generic 500 handler below.
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "400",
+                        new Error("Validation", ex.getMessage())
+                )
+        );
+    }
+
+    // Catch-all for any other "the current state doesn't allow this action" business-rule
+    // rejection that doesn't yet have its own specific exception type — still not a server
+    // fault, so it gets 409 with the original message instead of a generic 500.
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Object> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(409).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "409",
+                        new Error("State", ex.getMessage())
+                )
+        );
     }
 
     @ExceptionHandler(NotFoundException.class)
