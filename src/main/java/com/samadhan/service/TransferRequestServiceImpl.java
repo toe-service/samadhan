@@ -376,7 +376,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if (transferApproval == 1) {
 			vendorWalletForGate = walletRepository.findByVendor(vendorId);
 			if (vendorWalletForGate != null && vendorWalletForGate.getBalance() < -200) {
-				throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
+				throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
 			}
 		}
 
@@ -395,23 +395,23 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		VendorWallet wallet = vendorWalletForGate;
 
 		double acceptanceFee = calculateAcceptanceFee(transferdetails);
-		
-		if(wallet.getBalance() < -200){
-		     throw new WalletLowBalanceException("Insufficient wallet balance. Please recharge.");
+
+		if(wallet.getBalance() - acceptanceFee < -200){
+		     throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
 		}
 
 		wallet.setBalance(
 			    wallet.getBalance() - acceptanceFee
 			);
-		
+
 		walletRepository.save(wallet);
-		
+
 		WalletTransaction walletTransaction=new WalletTransaction();
 		walletTransaction.setAmount(acceptanceFee);
 		walletTransaction.setTransactionType("Ride Acceptance Fee");
 		walletTransaction.setVendor(transferVendor);
 		walletTransaction.setTransferRequestDetail(transferdetails);
-		
+
 		walletTransactionRepo.save(walletTransaction);
 		}
 		
@@ -509,6 +509,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			VendorWallet wallet = vendorWalletForGate;
 
 			double acceptanceFee = calculateAcceptanceFee(transferdetails);
+
+			if (wallet.getBalance() - acceptanceFee < -200) {
+				throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
+			}
 
 			wallet.setBalance(wallet.getBalance() - acceptanceFee);
 			walletRepository.save(wallet);
@@ -640,11 +644,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			double acceptanceFee = calculateAcceptanceFee(transfer);
 
-//			if(wallet.getBalance() < -200){
-//			    throw new RuntimeException(
-//			        "Insufficient wallet balance. Please recharge."
-//			    );
-//			}
+			if (wallet.getBalance() - acceptanceFee < -200) {
+			    throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
+			}
 
 			wallet.setBalance(
 				    wallet.getBalance() - acceptanceFee
@@ -715,11 +717,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			double acceptanceFee = calculateCompletioneFee(transferdetails);
 
-//			if(wallet.getBalance() < -100){
-//			    throw new RuntimeException(
-//			        "Insufficient wallet balance. Please recharge."
-//			    );
-//			}
+			if (wallet.getBalance() - acceptanceFee < -200) {
+			    throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
+			}
 
 			wallet.setBalance(
 				    wallet.getBalance() - acceptanceFee
