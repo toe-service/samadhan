@@ -414,6 +414,62 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	List<TransferRequestDetails> getVehicleFeed(@Param("vehicleId") Long vehicleId);
 
+	// Pending-only half of getVehicleFeed above (unassigned + nearby, same distance-by-ride-length
+	// rule), used by the paginated /rideTransferByVehicle feed's PENDING bucket. Unpaged: the
+	// per-ride eligibility filter (vehicle type interchangeability, FCM/availability, individual
+	// >100km rule — see TransferRequestServiceImpl.isEligiblePendingRide) still has to run in Java
+	// after this query, so pagination on this bucket happens in memory, after filtering.
+	@Query(value =
+	        "SELECT trd.*, " +
+	        "ST_Distance_Sphere( " +
+	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
+	        "POINT(CAST(TRIM(v.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(v.vehicle_latitude) AS DECIMAL(12,8))) " +
+	        ") / 1000 AS vehicle_distance_km " +
+	        "FROM transfer_request_details trd " +
+	        "JOIN vehicle v ON v.id = :vehicleId " +
+	        "WHERE trd.vehicle_id IS NULL " +
+	        "AND trd.transfer_status = 0 " +
+	        "AND trd.source_latitude IS NOT NULL " +
+	        "AND trd.source_longitude IS NOT NULL " +
+	        "AND ST_Distance_Sphere( " +
+	        "    POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))), " +
+	        "    POINT(CAST(TRIM(v.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(v.vehicle_latitude) AS DECIMAL(12,8))) " +
+	        ") <= CASE " +
+	        "    WHEN trd.distance_km <  20  THEN  3000 " +
+	        "    WHEN trd.distance_km <= 50  THEN 10000 " +
+	        "    WHEN trd.distance_km <  100 THEN 25000 " +
+	        "    ELSE 30000 " +
+	        "END " +
+	        "ORDER BY trd.request_created_date DESC",
+	        nativeQuery = true)
+	List<TransferRequestDetails> getVehiclePendingFeed(@Param("vehicleId") Long vehicleId);
+
+	// COMPLETED/OTHER halves of the paginated /rideTransferByVehicle feed: rides already assigned
+	// to this vehicle, so (unlike the pending bucket above) no post-query eligibility filtering is
+	// needed and pagination can happen at the DB level via Pageable/LIMIT-OFFSET.
+	// statusFilter is 'COMPLETED' (transfer_status = 8) or 'OTHER' (transfer_status IN
+	// (5,6,7) = VEHICLEASSIGNED/ONGOING/YETTOBECOMPLETED — i.e. assigned-but-not-yet-completed).
+	@Query(value =
+	        "SELECT * FROM transfer_request_details trd " +
+	        "WHERE trd.vehicle_id = :vehicleId " +
+	        "AND ( " +
+	        "  (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
+	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status IN (5,6,7)) " +
+	        ") " +
+	        "ORDER BY trd.request_created_date DESC",
+	        countQuery =
+	        "SELECT COUNT(*) FROM transfer_request_details trd " +
+	        "WHERE trd.vehicle_id = :vehicleId " +
+	        "AND ( " +
+	        "  (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
+	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status IN (5,6,7)) " +
+	        ")",
+	        nativeQuery = true)
+	Page<TransferRequestDetails> getVehicleAssignedFeedPaged(
+	        @Param("vehicleId") Long vehicleId,
+	        @Param("statusFilter") String statusFilter,
+	        Pageable pageable);
+
 	@Query(value="select * from transfer_request_details where id=:transferId AND transfer_id=:vendorId" ,nativeQuery = true)
 	Boolean IsExist(Long transferId, Long vendorId);
 

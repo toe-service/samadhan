@@ -921,26 +921,30 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		 Vehicle vehicle = vehicleRepo.findById(vehicleId)
 		            .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 
-//		    String vehicleLatitude = vehicle.getVehicleLatitude();
-//		    String vehicleLongitude = vehicle.getVehicleLongitude();
-//
-//		    if (vehicleLatitude == null || vehicleLongitude == null) {
-//		        throw new IllegalStateException("Vehicle location not available for id: " + vehicleId);
-//		    }
-
 		List<TransferRequestDetails> getRidesByVehicle = transferRepo.getVehicleFeed(vehicleId);
 		System.out.println("getRidesByVehicle" + getRidesByVehicle);
 
 		// Rides already assigned to this vehicle (transfer_status IN (5,6,7,8), see
 		// TransferRequestRepository.getVehicleFeed) pass through unchanged. Unassigned/pending
-		// rides are additionally filtered to the same eligibility rules used when a ride is
-		// first notified out (FireBaseMessagingService.notifyVehicles): matching vehicle type
-		// (requested type plus the next larger interchangeable ones), the vehicle currently
-		// available (not mid-job) and holding an FCM token — so a vehicle only sees a pending
-		// ride in its feed if it would actually have been notified about it.
+		// rides go through isEligiblePendingRide below.
+		return getRidesByVehicle.stream()
+				.filter(ride -> ride.getVehicleId() != null || isEligiblePendingRide(vehicle, ride))
+				.collect(Collectors.toList());
+	}
+
+	// Same eligibility rules used when a ride is first notified out (FireBaseMessagingService.
+	// notifyVehicles): matching vehicle type (requested type plus the next larger interchangeable
+	// ones), the vehicle currently available (not mid-job) and holding an FCM token — so a vehicle
+	// only sees a pending ride in its feed if it would actually have been notified about it.
+	private boolean isEligiblePendingRide(Vehicle vehicle, TransferRequestDetails ride) {
 		boolean vehicleEligibleForNewRides = !vehicle.getOngoingStatus()
 				&& vehicle.getFcmToken() != null
 				&& !vehicle.getFcmToken().isEmpty();
+
+		VendorPickupVehicleEnum requestedType = ride.getVendorPickupVehicle();
+		if (requestedType == null || !vehicleEligibleForNewRides) {
+			return false;
+		}
 
 		// Long-haul rides (over 100km) are only offered to vendor/fleet vehicles, not
 		// individual (single-vehicle owner-operator) registrants. A missing vendor link or an
@@ -948,26 +952,56 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		// individual", so existing vendors keep seeing long rides as before.
 		boolean vehicleIsIndividual = vehicle.getTransferVendor() != null
 				&& Boolean.TRUE.equals(vehicle.getTransferVendor().getIsIndividual());
+		if (vehicleIsIndividual && ride.getDistanceKm() != null && ride.getDistanceKm() > 100) {
+			return false;
+		}
 
-		return getRidesByVehicle.stream()
-				.filter(ride -> {
-					if (ride.getVehicleId() != null) {
-						return true; // already assigned to this vehicle — unchanged
-					}
+		return VendorPickupVehicleEnum.getRequestedAndLarger(requestedType)
+				.contains(vehicle.getVendorVehicle());
+	}
 
-					VendorPickupVehicleEnum requestedType = ride.getVendorPickupVehicle();
-					if (requestedType == null || !vehicleEligibleForNewRides) {
-						return false;
-					}
+	// Single paginated feed backing GET /transfer/rideTransferByVehicle/{vehicleId}. status is
+	// PENDING (default), COMPLETED, or OTHER (assigned-but-not-yet-completed: VEHICLEASSIGNED/
+	// ONGOING/YETTOBECOMPLETED). PENDING has to filter eligibility in Java (see
+	// isEligiblePendingRide) before it can be paginated, so that bucket pages in memory; COMPLETED
+	// and OTHER are already-assigned rides needing no such filtering, so they page at the DB level.
+	@Override
+	public com.samadhan.dto.VehicleRideFeedResponse getRideTransferByVehiclePaged(
+			Long vehicleId, String status, int page, int size) {
+		String normalizedStatus = (status == null || status.isBlank())
+				? "PENDING" : status.trim().toUpperCase();
+		int safePage = Math.max(page, 0);
+		int safeSize = Math.max(size, 1);
 
-					if (vehicleIsIndividual && ride.getDistanceKm() != null && ride.getDistanceKm() > 100) {
-						return false;
-					}
+		com.samadhan.dto.VehicleRideFeedResponse response = new com.samadhan.dto.VehicleRideFeedResponse();
+		response.setPage(safePage);
+		response.setSize(safeSize);
 
-					return VendorPickupVehicleEnum.getRequestedAndLarger(requestedType)
-							.contains(vehicle.getVendorVehicle());
-				})
-				.collect(Collectors.toList());
+		if ("PENDING".equals(normalizedStatus)) {
+			Vehicle vehicle = vehicleRepo.findById(vehicleId)
+					.orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+
+			List<TransferRequestDetails> eligible = transferRepo.getVehiclePendingFeed(vehicleId).stream()
+					.filter(ride -> isEligiblePendingRide(vehicle, ride))
+					.collect(Collectors.toList());
+
+			int fromIndex = Math.min(safePage * safeSize, eligible.size());
+			int toIndex = Math.min(fromIndex + safeSize, eligible.size());
+
+			response.setRides(eligible.subList(fromIndex, toIndex));
+			response.setTotalElements(eligible.size());
+			response.setTotalPages((int) Math.ceil(eligible.size() / (double) safeSize));
+			return response;
+		}
+
+		Pageable pageable = PageRequest.of(safePage, safeSize);
+		Page<TransferRequestDetails> pageResult =
+				transferRepo.getVehicleAssignedFeedPaged(vehicleId, normalizedStatus, pageable);
+
+		response.setRides(pageResult.getContent());
+		response.setTotalElements(pageResult.getTotalElements());
+		response.setTotalPages(pageResult.getTotalPages());
+		return response;
 	}
 
 	@Override

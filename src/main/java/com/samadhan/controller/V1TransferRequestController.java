@@ -186,13 +186,18 @@ TokenApi tokenApi;
 		  return ResponseEntity.ok(ridesByDriverId);
 	    }
 	  
+	  // Paginated. status selects which bucket of the vehicle's feed to return:
+	  // PENDING (default) = unassigned nearby rides eligible for this vehicle,
+	  // COMPLETED = rides assigned to this vehicle with status COMPLETED,
+	  // OTHER = rides assigned to this vehicle that are VEHICLEASSIGNED/ONGOING/YETTOBECOMPLETED.
 	  @GetMapping(value = "/rideTransferByVehicle/{vehicleId}")
-	    public ResponseEntity< List<TransferRequestDetails>> getrideTransferByVehicle(@PathVariable Long vehicleId) {
-		  List<TransferRequestDetails> ridesByVehicle = transferRequestService.getrideTransferByVehicle(vehicleId);
-		  if (ridesByVehicle.isEmpty()) {
-		        return ResponseEntity.noContent().build(); // 204
-		    }
-		  
+	    public ResponseEntity<com.samadhan.dto.VehicleRideFeedResponse> getrideTransferByVehicle(
+	    		@PathVariable Long vehicleId,
+	    		@RequestParam(defaultValue = "PENDING") String status,
+	    		@RequestParam(defaultValue = "0") int page,
+	    		@RequestParam(defaultValue = "10") int size) {
+		  com.samadhan.dto.VehicleRideFeedResponse ridesByVehicle =
+				  transferRequestService.getRideTransferByVehiclePaged(vehicleId, status, page, size);
 		  return ResponseEntity.ok(ridesByVehicle);
 	    }
 	  
