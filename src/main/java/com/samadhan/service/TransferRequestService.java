@@ -42,6 +42,8 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getrideTransferByVehicle(Long vehicleId);
 
+	public com.samadhan.dto.VehicleRideFeedResponse getRideTransferByVehiclePaged(Long vehicleId, String status, int page, int size);
+
 	public TransferRequestDetails requestTransferDelete(Long transferId);
 
 	public TransferRequestDetails requestRideTransfer(ParcelTypeEnum parcelType, CarModelEnum carModel,
