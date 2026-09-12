@@ -58,7 +58,14 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 		    nativeQuery = true
 		)
 	List<TransferVendor> findAllActiveVendors();
-	
+
+	// Public profile lookup by name (used for the /vendor/<name> shareable page). Same
+	// LIMIT 1 + deterministic ORDER BY guard as findByVendorEmail — there's no DB-level unique
+	// constraint on vendor_name either, so a single-result native query would otherwise fail
+	// hard the moment 2+ vendors share a name.
+	@Query(value="select * from transfer_vendor where lower(vendor_name)=lower(:vendorName) ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
+	TransferVendor findByVendorNameIgnoreCase(String vendorName);
+
 }
 
 

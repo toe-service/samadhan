@@ -13,6 +13,8 @@ import com.samadhan.service.PaymentServiceImpl;
 import com.samadhan.util.ResponseUtil;
 import com.samadhan.util.Utils;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -99,6 +101,8 @@ import java.util.*;
 @RequestMapping(value = "/pay")
 public class PaymentController {
 
+	private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
+
 	@Autowired
 	private PaymentServiceImpl paymentService;
 
@@ -134,6 +138,7 @@ public class PaymentController {
 			 attributes.put("razorpay_signature", razorpaySignature);
 			 return com.razorpay.Utils.verifyPaymentSignature(attributes, "ClYfhcDqxmBDr3ZftMyzuxu1");
 		 } catch (Exception e) {
+			 logger.warn("Payment signature verification failed for order {}: {}", razorpayOrderId, e.getMessage());
 			 return false;
 		 }
 	 }
@@ -608,10 +613,11 @@ public class PaymentController {
 	                        null));
 
 	    } catch (Exception e) {
+	    	  logger.error("Ride cost calculation failed: {}", e.getMessage(), e);
 	    	  Error error=new Error("Server", e.getMessage());
 	    	    error.setIdentifier("Server");
 	    	    error.setMessage(e.getMessage());
-	    	
+
 	        return ResponseEntity.badRequest().body(
 	                ResponseUtil.populateResponseObject(
 	                        null,

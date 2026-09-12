@@ -3,7 +3,12 @@ package com.samadhan.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class GeoUtils {
+
+	private static final Logger logger = LoggerFactory.getLogger(GeoUtils.class);
 
 	private static final double EARTH_RADIUS_KM = 6371.0;
 
@@ -17,6 +22,7 @@ public final class GeoUtils {
 		try {
 			return Double.parseDouble(value.trim());
 		} catch (NumberFormatException e) {
+			logger.warn("Invalid coordinate value: {}", value);
 			return null;
 		}
 	}

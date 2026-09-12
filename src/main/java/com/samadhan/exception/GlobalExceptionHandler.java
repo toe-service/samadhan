@@ -2,6 +2,8 @@ package com.samadhan.exception;
 
 import com.samadhan.response.Error;
 import com.samadhan.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +18,12 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     // For duplicate key / unique constraint violations
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        logger.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         return ResponseEntity.badRequest().body(ResponseUtil.populateResponseObject(
                 null,
                 "400",
@@ -30,6 +35,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<Object> handleDataIntegrityViolation(ConflictException ex) {
+        logger.warn("Conflict: {}", ex.getMessage());
         return ResponseEntity.badRequest().body(ResponseUtil.populateResponseObject(
                 null,
                 "409",
@@ -40,6 +46,7 @@ public class GlobalExceptionHandler {
     // For your custom exceptions
     @ExceptionHandler(SamadhanException.class)
     public ResponseEntity<Object> handleSamadhanException(SamadhanException ex) {
+        logger.error("SamadhanException: {}", ex.getMessage(), ex);
         return ResponseEntity.internalServerError().body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -53,6 +60,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleSubscriptionSuspended(
             SubscriptionSuspendedException ex) {
 
+    	 logger.warn("Subscription suspended: {}", ex.getMessage());
     	 return ResponseEntity.status(403).body(
                  ResponseUtil.populateResponseObject(
                          null,
@@ -66,6 +74,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleSubscriptionSuspended(
     		WalletLowBalanceException ex) {
 
+    	 logger.warn("Wallet low balance: {}", ex.getMessage());
     	 return ResponseEntity.status(403).body(
                  ResponseUtil.populateResponseObject(
                          null,
@@ -80,6 +89,7 @@ public class GlobalExceptionHandler {
     // "pick a closer vehicle" instead of a generic error.
     @ExceptionHandler(VehicleTooFarException.class)
     public ResponseEntity<Object> handleVehicleTooFar(VehicleTooFarException ex) {
+        logger.warn("Vehicle too far: {}", ex.getMessage());
         return ResponseEntity.status(409).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -93,6 +103,7 @@ public class GlobalExceptionHandler {
     // race in a broadcast-then-first-accept model, not a server fault.
     @ExceptionHandler(RequestAlreadyAcceptedException.class)
     public ResponseEntity<Object> handleRequestAlreadyAccepted(RequestAlreadyAcceptedException ex) {
+        logger.warn("Request already accepted: {}", ex.getMessage());
         return ResponseEntity.status(409).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -107,6 +118,7 @@ public class GlobalExceptionHandler {
     // original message rather than falling through to the generic 500 handler below.
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex) {
+        logger.warn("Bad request: {}", ex.getMessage());
         return ResponseEntity.badRequest().body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -121,6 +133,7 @@ public class GlobalExceptionHandler {
     // fault, so it gets 409 with the original message instead of a generic 500.
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Object> handleIllegalState(IllegalStateException ex) {
+        logger.warn("Illegal state: {}", ex.getMessage());
         return ResponseEntity.status(409).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -132,6 +145,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Object> notFoundException(NotFoundException ex) {
+        logger.warn("Not found: {}", ex.getMessage());
         return ResponseEntity.status(404).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -143,6 +157,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RefreshTokenException.class)
     public ResponseEntity<Object> handleRefreshTokenException(RefreshTokenException ex) {
+        logger.warn("Refresh token error: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -154,6 +169,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(OtpMismatchException.class)
     public ResponseEntity<Object> handleOtpMismatchException(OtpMismatchException ex) {
+        logger.warn("OTP mismatch: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -165,6 +181,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Object> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        logger.warn("Invalid credentials: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -179,6 +196,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(
             org.springframework.security.access.AccessDeniedException ex) {
+        logger.warn("Access denied: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -191,6 +209,7 @@ public class GlobalExceptionHandler {
     // Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex) {
+        logger.error("Unhandled exception: {}", ex.getMessage(), ex);
         return ResponseEntity.internalServerError().body(
                 ResponseUtil.populateResponseObject(
                         null,
@@ -203,6 +222,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
+        logger.warn("Resource not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ex.getMessage());
     }

@@ -12,12 +12,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LocationService {
-	
+
+	private static final Logger logger = LoggerFactory.getLogger(LocationService.class);
+
 	private String apiKey="AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
 
 	@Cacheable(value = "LatLongCache", key = "#lat + '-' + #lng")
@@ -51,6 +55,7 @@ public class LocationService {
             }
 
         } catch (Exception e) {
+            logger.warn("Failed to resolve address for lat={}, lng={}: {}", lat, lng, e.getMessage());
             result.put("error", "Address not found");
         }
 

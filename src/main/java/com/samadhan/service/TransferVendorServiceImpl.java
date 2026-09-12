@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.samadhan.dto.PublicVendorProfileDto;
 import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
@@ -26,6 +27,8 @@ import com.samadhan.enums.SubscriptionPeriodEnum;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.NotFoundException;
+import com.samadhan.exception.WalletLowBalanceException;
 import com.samadhan.repository.PaymentRepository;
 import com.samadhan.repository.TransferMediaRepository;
 import com.samadhan.repository.TransferRequestRepository;
@@ -229,6 +232,46 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    return vendor;
 	}
 
+	@Override
+	public PublicVendorProfileDto getPublicVendorProfile(String vendorName) throws NotFoundException {
+
+		TransferVendor vendor = transferVendorRepo.findByVendorNameIgnoreCase(vendorName);
+		if (vendor == null) {
+			throw new NotFoundException("Vendor not found");
+		}
+
+		// There's no separate admin-verification step in this codebase (see registerVendor) —
+		// every vendor lands on Free_SUBSCRIPTION immediately. REJECTED/SUSPENDED vendors
+		// shouldn't be discoverable on a public page, so they 404 the same as a name that
+		// doesn't exist at all, rather than leaking that a rejected/suspended account exists.
+		VendorStatusEnum status = vendor.getVendorStatus();
+		boolean publiclyVisible = status == VendorStatusEnum.Free_SUBSCRIPTION
+				|| status == VendorStatusEnum.SUBSCRIPTION_PENDING
+				|| status == VendorStatusEnum.ACTIVE;
+		if (!publiclyVisible) {
+			throw new NotFoundException("Vendor not found");
+		}
+
+		PublicVendorProfileDto dto = new PublicVendorProfileDto();
+		dto.setVendorName(vendor.getVendorName());
+		dto.setVendorCity(vendor.getVendorCity());
+		dto.setVendorAddress(vendor.getVendorAddress());
+		dto.setVendorContactNumber(vendor.getVendorContactNumber());
+		dto.setVendorEmail(vendor.getVendorEmail());
+		dto.setIsIndividual(vendor.getIsIndividual());
+		dto.setVerified(true);
+
+		List<String> services = vendor.getVendorServices() == null
+				? List.of()
+				: vendor.getVendorServices().stream()
+						.filter(VendorService::isActive)
+						.map(vs -> vs.getServiceType().name())
+						.collect(Collectors.toList());
+		dto.setServices(services);
+
+		return dto;
+	}
+
 	private String uploadVendorDocument(Long vendorId, MultipartFile file, String folderName) {
 
 		if (file == null || file.isEmpty()) {
@@ -278,10 +321,9 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 	    double leadCost = 20.0;
 
-//	    if (wallet.getBalance() < leadCost) {
-//	        throw new RuntimeException(
-//	                "Insufficient wallet balance");
-//	    }
+	    if (wallet.getBalance() - leadCost < -200) {
+	        throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
+	    }
 
 	    wallet.setBalance(
 	            wallet.getBalance() - leadCost

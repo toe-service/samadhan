@@ -69,7 +69,7 @@ public class FireBaseMessagingService {
 			}
 
 		} catch (FirebaseMessagingException e) {
-			e.printStackTrace();
+			log.error("Failed to send notification", e);
 			return "Error Sending Notification";
 		}
 		return "Success Sending Notification";

@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.samadhan.dto.PublicVendorProfileDto;
 import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.NotFoundException;
 
 public interface TransferVendorService {
 
@@ -23,5 +25,7 @@ public interface TransferVendorService {
 			String termsVersion, String termsText) throws ConflictException;
 
 	void deductLeadCost(Long vendorId, Long requestId, String userType);
+
+	PublicVendorProfileDto getPublicVendorProfile(String vendorName) throws NotFoundException;
 
 }
