@@ -75,11 +75,11 @@ public class TransferVendorController {
 	// name that doesn't exist and a vendor that exists but isn't publicly visible (see
 	// TransferVendorServiceImpl#getPublicVendorProfile), so this can't be used to distinguish
 	// the two.
-	@GetMapping(value = "/public-profile/{vendorName}")
-	public ResponseEntity<ResponseObject<?>> getPublicVendorProfile(@PathVariable String vendorName)
+	@GetMapping(value = "/public-profile/{vendorSlug}")
+	public ResponseEntity<ResponseObject<?>> getPublicVendorProfile(@PathVariable String vendorSlug)
 			throws NotFoundException {
 
-		PublicVendorProfileDto dto = transferVendorService.getPublicVendorProfile(vendorName);
+		PublicVendorProfileDto dto = transferVendorService.getPublicVendorProfile(vendorSlug);
 		ResponseObject<PublicVendorProfileDto> success = ResponseUtil.populateResponseObject(dto, "SUCCESS", null);
 		return ResponseEntity.ok(success);
 	}

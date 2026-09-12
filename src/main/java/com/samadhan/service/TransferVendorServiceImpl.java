@@ -233,9 +233,9 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	}
 
 	@Override
-	public PublicVendorProfileDto getPublicVendorProfile(String vendorName) throws NotFoundException {
+	public PublicVendorProfileDto getPublicVendorProfile(String vendorSlug) throws NotFoundException {
 
-		TransferVendor vendor = transferVendorRepo.findByVendorNameIgnoreCase(vendorName);
+		TransferVendor vendor = transferVendorRepo.findByVendorNameSlug(vendorSlug);
 		if (vendor == null) {
 			throw new NotFoundException("Vendor not found");
 		}

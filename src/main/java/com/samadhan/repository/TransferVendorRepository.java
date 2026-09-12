@@ -59,12 +59,14 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 		)
 	List<TransferVendor> findAllActiveVendors();
 
-	// Public profile lookup by name (used for the /vendor/<name> shareable page). Same
-	// LIMIT 1 + deterministic ORDER BY guard as findByVendorEmail — there's no DB-level unique
-	// constraint on vendor_name either, so a single-result native query would otherwise fail
-	// hard the moment 2+ vendors share a name.
-	@Query(value="select * from transfer_vendor where lower(vendor_name)=lower(:vendorName) ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
-	TransferVendor findByVendorNameIgnoreCase(String vendorName);
+	// Public profile lookup by slug (used for the /vendor/<slug> shareable page) — the frontend
+	// builds the slug by lowercasing the vendor name and stripping spaces (e.g. "Kaka Logistics"
+	// -> "kakalogistics"), so the match here strips spaces from vendor_name the same way before
+	// comparing. Same LIMIT 1 + deterministic ORDER BY guard as findByVendorEmail — there's no
+	// DB-level unique constraint on vendor_name either, so a single-result native query would
+	// otherwise fail hard the moment 2+ vendors collide on the same slug.
+	@Query(value="select * from transfer_vendor where lower(replace(vendor_name, ' ', ''))=lower(:vendorSlug) ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
+	TransferVendor findByVendorNameSlug(String vendorSlug);
 
 }
 
