@@ -70,6 +70,12 @@ public class VendorAvailability {
 	@Column(name = "is_active")
 	private boolean active = true;
 
+	// Opt-in: only when set does matching also look for a reverse-direction (to->from) job to
+	// avoid an empty drive back. Without this, "pickup near fromLocation" alone was too loose a
+	// signal — see VendorAvailabilityServiceImpl#getRequestsMatchingAvailability.
+	@Column(name = "is_return_trip")
+	private boolean returnTrip = false;
+
 	@Column(name = "created_at")
 	private LocalDateTime createdAt;
 
@@ -183,6 +189,14 @@ public class VendorAvailability {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public boolean isReturnTrip() {
+		return returnTrip;
+	}
+
+	public void setReturnTrip(boolean returnTrip) {
+		this.returnTrip = returnTrip;
 	}
 
 	public LocalDateTime getCreatedAt() {

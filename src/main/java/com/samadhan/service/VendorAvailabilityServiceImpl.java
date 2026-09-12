@@ -86,6 +86,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		availability.setVehicleType(request.vehicleType);
 		availability.setVehicleCategory(request.vehicleCategory);
 		availability.setVehicleNumber(request.vehicleNumber);
+		availability.setReturnTrip(request.returnTrip != null && request.returnTrip);
 		availability.setActive(true);
 		availability.setCreatedAt(LocalDateTime.now());
 
@@ -129,10 +130,13 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		vendorAvailabilityRepository.save(availability);
 	}
 
-	// For each active posting, finds PENDING/unassigned requests near the posting's destination,
-	// near its starting point, or along its from->to driving route, and tags each one with why it
-	// matched. A request matching more than one posting/reason keeps its closest (smallest
-	// distance) match.
+	// For each active posting, finds PENDING/unassigned requests either along the posting's own
+	// from->to route (always), or — only when the vendor explicitly opted into a return trip on
+	// that posting — along the reverse to->from route as well, so an empty backhaul leg isn't
+	// silently assumed just because a pickup happens to be near fromLocation. Each match is
+	// tagged with why it matched and a 0-100 percent score; a request matching more than once
+	// keeps its RETURN_TRIP tag over POSTING_ROUTE (a vendor-confirmed return trip is a stronger
+	// signal than incidental route proximity), or its closest match within the same tag.
 	@Override
 	public List<TransferRequestDetails> getRequestsMatchingAvailability(Long vendorId) {
 		List<VendorAvailability> postings =
@@ -159,6 +163,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 					minLat - BOUNDING_BOX_BUFFER_DEG, maxLat + BOUNDING_BOX_BUFFER_DEG,
 					minLng - BOUNDING_BOX_BUFFER_DEG, maxLng + BOUNDING_BOX_BUFFER_DEG);
 
+			// Direction-agnostic — a straight-line distance to the nearest point on this road
+			// corridor is the same whether the vendor is driving it from->to or to->from, so the
+			// same decoded polyline serves both legs below.
 			List<double[]> routePoints = GeoUtils.decodePolyline(posting.getRoutePolyline());
 
 			for (TransferRequestDetails candidate : candidates) {
@@ -168,35 +175,63 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 					continue;
 				}
 
-				Double distToSource = (fromLat != null && fromLng != null)
-						? GeoUtils.haversineKm(srcLat, srcLng, fromLat, fromLng) : null;
+				// ---- Forward leg (always evaluated): pickup near the posting's destination, or
+				// anywhere along the from->to corridor.
 				double distToDest = GeoUtils.haversineKm(srcLat, srcLng, toLat, toLng);
 				Double distToRoute = routePoints.isEmpty() ? null
 						: GeoUtils.minDistanceToPolylineKm(srcLat, srcLng, routePoints);
-
-				boolean nearSource = distToSource != null && distToSource <= ENDPOINT_RADIUS_KM;
 				boolean nearDest = distToDest <= ENDPOINT_RADIUS_KM;
 				boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
 
-				if (!nearSource && !nearDest && !onRoute) {
-					continue;
+				if (nearDest || onRoute) {
+					boolean preferRoute = onRoute && (!nearDest || distToRoute <= distToDest);
+					double distanceKm = preferRoute ? distToRoute : distToDest;
+					double radiusKm = preferRoute ? ROUTE_CORRIDOR_KM : ENDPOINT_RADIUS_KM;
+					considerMatch(bestMatches, candidate, "POSTING_ROUTE", distanceKm, percentFromDistance(distanceKm, radiusKm));
 				}
 
-				// Pickup right at the posting's own starting point reads as a return-trip
-				// opportunity; everything else (destination or along the corridor) is the
-				// vendor's posted route itself.
-				String matchType = nearSource ? "RETURN_TRIP" : "POSTING_ROUTE";
-				double distanceKm = nearSource ? distToSource : (onRoute ? distToRoute : distToDest);
-
-				TransferRequestDetails existing = bestMatches.get(candidate.getId());
-				if (existing == null || distanceKm < existing.getMatchDistanceKm()) {
-					candidate.setMatchType(matchType);
-					candidate.setMatchDistanceKm(Math.round(distanceKm * 10) / 10.0);
-					bestMatches.put(candidate.getId(), candidate);
+				// ---- Return leg (opt-in only): pickup near/along the same corridor toward the
+				// posting's destination, but this time the candidate must also drop back off near
+				// the posting's own starting point — an actual to->from job, not just any pickup
+				// near the destination.
+				if (posting.isReturnTrip() && fromLat != null && fromLng != null && (nearDest || onRoute)) {
+					Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
+					Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
+					if (destLat != null && destLng != null) {
+						double distDropToOrigin = GeoUtils.haversineKm(destLat, destLng, fromLat, fromLng);
+						if (distDropToOrigin <= ENDPOINT_RADIUS_KM) {
+							boolean preferRoute = onRoute && (!nearDest || distToRoute <= distToDest);
+							double pickupDistanceKm = preferRoute ? distToRoute : distToDest;
+							double pickupRadiusKm = preferRoute ? ROUTE_CORRIDOR_KM : ENDPOINT_RADIUS_KM;
+							int pickupPercent = percentFromDistance(pickupDistanceKm, pickupRadiusKm);
+							int dropPercent = percentFromDistance(distDropToOrigin, ENDPOINT_RADIUS_KM);
+							double combinedDistanceKm = (pickupDistanceKm + distDropToOrigin) / 2.0;
+							int combinedPercent = (pickupPercent + dropPercent) / 2;
+							considerMatch(bestMatches, candidate, "RETURN_TRIP", combinedDistanceKm, combinedPercent);
+						}
+					}
 				}
 			}
 		}
 
 		return new ArrayList<>(bestMatches.values());
+	}
+
+	private int percentFromDistance(double distanceKm, double radiusKm) {
+		return (int) Math.round(Math.max(0, Math.min(100, 100.0 * (1 - distanceKm / radiusKm))));
+	}
+
+	private void considerMatch(Map<Long, TransferRequestDetails> bestMatches, TransferRequestDetails candidate,
+			String matchType, double distanceKm, int scorePercent) {
+		TransferRequestDetails existing = bestMatches.get(candidate.getId());
+		boolean isBetter = existing == null
+				|| ("RETURN_TRIP".equals(matchType) && !"RETURN_TRIP".equals(existing.getMatchType()))
+				|| (matchType.equals(existing.getMatchType()) && distanceKm < existing.getMatchDistanceKm());
+		if (isBetter) {
+			candidate.setMatchType(matchType);
+			candidate.setMatchDistanceKm(Math.round(distanceKm * 10) / 10.0);
+			candidate.setMatchScorePercent(scorePercent);
+			bestMatches.put(candidate.getId(), candidate);
+		}
 	}
 }
