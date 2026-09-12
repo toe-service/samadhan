@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.security.SecureRandom;
 
@@ -27,7 +26,8 @@ import com.samadhan.exception.SubscriptionSuspendedException;
 import com.samadhan.exception.VehicleTooFarException;
 import com.samadhan.exception.WalletLowBalanceException;
 
-import org.hibernate.annotations.common.util.impl.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
@@ -91,8 +91,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	 private FireBaseMessagingService fireBaseMessagingService;
 	
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-	
-	//private static final Logger logger = LoggerFactory.logger(TransferRequestService.class);
+
+	private static final Logger logger = LoggerFactory.getLogger(TransferRequestServiceImpl.class);
 	
 	@Override
 	@Transactional
@@ -467,7 +467,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			try {
 				fireBaseMessagingService.notifyVehicles(transferdetails);
 			} catch (Exception e) {
-				System.out.println("Failed to re-notify vehicles after cancelling request " + transferId + ": " + e.getMessage());
+				logger.warn("Failed to re-notify vehicles after cancelling request {}: {}", transferId, e.getMessage(), e);
 			}
 
 			return transferdetails;

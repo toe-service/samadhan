@@ -7,6 +7,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,8 @@ import java.util.function.Function;
 
 @Component
 public class TokenApi {
+    private static final Logger logger = LoggerFactory.getLogger(TokenApi.class);
+
     // Was a hardcoded literal (matching jwt.secret.key's value by coincidence) — rotating the
     // property in application.properties silently did nothing, since this field never read it.
     @Value("${jwt.secret.key}")
@@ -64,6 +68,7 @@ public class TokenApi {
             try {
                 return Long.parseLong(userIdObj.toString());
             } catch (NumberFormatException e) {
+                logger.warn("Token userId claim is not numeric: {}", userIdObj);
                 return null;
             }
         }
@@ -81,6 +86,7 @@ public class TokenApi {
             return !isTokenExpired(token) &&
                     alg.equals(encryptedClaimData);
         } catch (Exception ex) {
+            logger.debug("Token validation failed: {}", ex.getMessage());
             return false;
         }
     }

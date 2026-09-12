@@ -9,6 +9,8 @@ import com.samadhan.security.TokenApi;
 import com.samadhan.trait.SmsService;
 import com.samadhan.util.Utils;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -19,6 +21,8 @@ import java.util.Arrays;
 
 @Service
 public class GaadiService implements SmsService {
+    private static final Logger logger = LoggerFactory.getLogger(GaadiService.class);
+
     @Autowired
     private LoginRepo loginRepo;
     @Autowired
@@ -38,7 +42,7 @@ public class GaadiService implements SmsService {
             if(login.getOtp().equalsIgnoreCase(loginRequest.otp)) return tokenApi.generateToken(loginRequest.mobile, 5);
             else throw new Exception("wrong otp");
         } catch (Exception exp) {
-            //log error
+            logger.warn("Login failed for mobile {}: {}", loginRequest.mobile, exp.getMessage());
             return exp.getMessage();
         }
 

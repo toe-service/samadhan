@@ -18,9 +18,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.dto.PublicVendorProfileDto;
 import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.NotFoundException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.request.ChangePasswordRequest;
 import com.samadhan.request.ForgotPasswordRequest;
@@ -66,6 +68,20 @@ public class TransferVendorController {
 
 		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, gst, services, isIndividual, termsAccepted, termsVersion, termsText );
 		return resp;
+	}
+
+	// Public — no auth. Backs the shareable /vendor/<name> page on the frontend. Looked up by
+	// name (not id) per the frontend's URL design; NotFoundException (-> 404) covers both a
+	// name that doesn't exist and a vendor that exists but isn't publicly visible (see
+	// TransferVendorServiceImpl#getPublicVendorProfile), so this can't be used to distinguish
+	// the two.
+	@GetMapping(value = "/public-profile/{vendorName}")
+	public ResponseEntity<ResponseObject<?>> getPublicVendorProfile(@PathVariable String vendorName)
+			throws NotFoundException {
+
+		PublicVendorProfileDto dto = transferVendorService.getPublicVendorProfile(vendorName);
+		ResponseObject<PublicVendorProfileDto> success = ResponseUtil.populateResponseObject(dto, "SUCCESS", null);
+		return ResponseEntity.ok(success);
 	}
 
 	@GetMapping(value = "/wallet-vendor/{vendorId}")
