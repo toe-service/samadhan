@@ -119,15 +119,20 @@ TokenApi tokenApi;
 	  // Customer-tracking endpoint. Requires a valid JWT (default security rule), and the token's
 	  // own userId must match the path userId — otherwise any logged-in customer could browse
 	  // another customer's ride history (names, phone numbers, addresses) just by changing the ID.
+	  // Paginated: status selects which bucket of the user's own rides to return -
+	  // PENDING (default) = transfer_status 0, COMPLETED = transfer_status 8,
+	  // OTHER = everything else (accepted/assigned/ongoing/cancelled etc).
 	  @GetMapping(value = "/rideTransferbyUser/{userId}")
-	    public ResponseEntity<List<TransferRequestDetails>> getRidesTransferByuser(@PathVariable Long userId, HttpServletRequest httpRequest) {
+	    public ResponseEntity<com.samadhan.dto.UserRideFeedResponse> getRidesTransferByuser(
+	    		@PathVariable Long userId,
+	    		@RequestParam(defaultValue = "PENDING") String status,
+	    		@RequestParam(defaultValue = "0") int page,
+	    		@RequestParam(defaultValue = "10") int size,
+	    		HttpServletRequest httpRequest) {
 			requireOwnUserId(userId, httpRequest);
 
-			List<TransferRequestDetails> ridesByUser = transferRequestService.getTransferRidesByuser(userId);
-		    if (ridesByUser.isEmpty()) {
-		        return ResponseEntity.noContent().build(); // 204
-		    }
-
+			com.samadhan.dto.UserRideFeedResponse ridesByUser =
+					transferRequestService.getTransferRidesByuserPaged(userId, status, page, size);
 			return ResponseEntity.ok(ridesByUser);
 	    }
 

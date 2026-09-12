@@ -26,6 +26,8 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getTransferRidesByuser(Long userId);
 
+	public com.samadhan.dto.UserRideFeedResponse getTransferRidesByuserPaged(Long userId, String status, int page, int size);
+
 	public TransferRequestDetails requestTransferApproval(Long transferId, int transferApproval, Long vendorId, String cancellationReason, String userType, serviceTypeEnum serviceType, Integer vehicleId, String acceptedBy);
 
 	public TransferRequestDetails getRidesByTransferId(Long transferId);

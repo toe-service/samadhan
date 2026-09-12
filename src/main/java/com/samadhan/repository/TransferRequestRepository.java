@@ -16,6 +16,32 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select * from transfer_request_details where user_id=:userId ORDER BY request_created_date DESC" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByUserId(Long userId);
 
+	// Paginated feed backing GET /transfer/rideTransferbyUser/{userId}. statusFilter is one of
+	// PENDING (transfer_status = 0), COMPLETED (transfer_status = 8), or OTHER (everything else -
+	// ACCEPTED/DECLINED/READYFORPICKUP/HANDOVER/VEHICLEASSIGNED/ONGOING/YETTOBECOMPLETED/CANCELLED).
+	@Query(value =
+	        "SELECT * FROM transfer_request_details trd " +
+	        "WHERE trd.user_id = :userId " +
+	        "AND ( " +
+	        "  (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
+	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
+	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status NOT IN (0,8)) " +
+	        ") " +
+	        "ORDER BY trd.request_created_date DESC",
+	        countQuery =
+	        "SELECT COUNT(*) FROM transfer_request_details trd " +
+	        "WHERE trd.user_id = :userId " +
+	        "AND ( " +
+	        "  (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
+	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
+	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status NOT IN (0,8)) " +
+	        ")",
+	        nativeQuery = true)
+	Page<TransferRequestDetails> getUserRidesFeedPaged(
+	        @Param("userId") Long userId,
+	        @Param("statusFilter") String statusFilter,
+	        Pageable pageable);
+
 	@Query(value="select * from transfer_request_details where driver_id=:driverId AND transfer_status IN(3,4) ORDER BY request_created_date DESC" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByDriverId(Long driverId);
 

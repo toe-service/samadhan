@@ -342,7 +342,31 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		
 		return transferRidesByUserId;
-		
+
+	}
+
+	// Paginated feed backing GET /transfer/rideTransferbyUser/{userId}. status is PENDING
+	// (default), COMPLETED, or OTHER (everything else). No eligibility filtering is needed here
+	// (unlike the vehicle feed's PENDING bucket) since these are simply this user's own rides,
+	// so pagination happens at the DB level for every bucket.
+	@Override
+	public com.samadhan.dto.UserRideFeedResponse getTransferRidesByuserPaged(Long userId, String status, int page, int size) {
+		String normalizedStatus = (status == null || status.isBlank())
+				? "PENDING" : status.trim().toUpperCase();
+		int safePage = Math.max(page, 0);
+		int safeSize = Math.max(size, 1);
+
+		Pageable pageable = PageRequest.of(safePage, safeSize);
+		Page<TransferRequestDetails> pageResult =
+				transferRepo.getUserRidesFeedPaged(userId, normalizedStatus, pageable);
+
+		com.samadhan.dto.UserRideFeedResponse response = new com.samadhan.dto.UserRideFeedResponse();
+		response.setPage(safePage);
+		response.setSize(safeSize);
+		response.setRides(pageResult.getContent());
+		response.setTotalElements(pageResult.getTotalElements());
+		response.setTotalPages(pageResult.getTotalPages());
+		return response;
 	}
 
 	@Override
