@@ -54,6 +54,12 @@ public class TransferRequestDetails {
 	@javax.persistence.Transient
 	private Double matchDistanceKm;
 
+	// How close the match is, as a percentage (100 = right at the endpoint/on the route line,
+	// 0 = at the edge of the matching radius) — see VendorAvailabilityServiceImpl for the
+	// distance-to-percent conversion. Same not-persisted reasoning as matchType above.
+	@javax.persistence.Transient
+	private Integer matchScorePercent;
+
 	public String getMatchType() {
 		return matchType;
 	}
@@ -68,6 +74,14 @@ public class TransferRequestDetails {
 
 	public void setMatchDistanceKm(Double matchDistanceKm) {
 		this.matchDistanceKm = matchDistanceKm;
+	}
+
+	public Integer getMatchScorePercent() {
+		return matchScorePercent;
+	}
+
+	public void setMatchScorePercent(Integer matchScorePercent) {
+		this.matchScorePercent = matchScorePercent;
 	}
 
 

@@ -240,15 +240,16 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 			throw new NotFoundException("Vendor not found");
 		}
 
-		// There's no separate admin-verification step in this codebase (see registerVendor) —
-		// every vendor lands on Free_SUBSCRIPTION immediately. REJECTED/SUSPENDED vendors
-		// shouldn't be discoverable on a public page, so they 404 the same as a name that
-		// doesn't exist at all, rather than leaking that a rejected/suspended account exists.
+		// Blacklist, not whitelist: VERIFICATION_PENDING is never actually set by the current
+		// registerVendor flow (every new vendor lands on Free_SUBSCRIPTION immediately — see
+		// there), but it's still the enum's ordinal-0 value, so any legacy row predating that
+		// flow (or with a null vendor_status) would be a real, active vendor incorrectly hidden
+		// by a whitelist. Only REJECTED/SUSPENDED vendors are actually excluded from the public
+		// page, 404'ing the same as a name that doesn't exist so as not to leak which case it is.
 		VendorStatusEnum status = vendor.getVendorStatus();
-		boolean publiclyVisible = status == VendorStatusEnum.Free_SUBSCRIPTION
-				|| status == VendorStatusEnum.SUBSCRIPTION_PENDING
-				|| status == VendorStatusEnum.ACTIVE;
-		if (!publiclyVisible) {
+		boolean publiclyHidden = status == VendorStatusEnum.REJECTED
+				|| status == VendorStatusEnum.SUSPENDED;
+		if (publiclyHidden) {
 			throw new NotFoundException("Vendor not found");
 		}
 

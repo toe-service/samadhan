@@ -22,4 +22,5 @@ public class VendorAvailabilityRequest {
 	public String vehicleType;
 	public String vehicleCategory;
 	public String vehicleNumber;
+	public Boolean returnTrip;
 }
