@@ -26,6 +26,6 @@ public interface TransferVendorService {
 
 	void deductLeadCost(Long vendorId, Long requestId, String userType);
 
-	PublicVendorProfileDto getPublicVendorProfile(String vendorName) throws NotFoundException;
+	PublicVendorProfileDto getPublicVendorProfile(String vendorSlug) throws NotFoundException;
 
 }
