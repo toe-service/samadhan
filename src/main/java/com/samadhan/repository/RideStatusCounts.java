@@ -1,10 +1,13 @@
 package com.samadhan.repository;
 
 // Projection for TransferRequestRepository#countRidesByStatusForVendor — column aliases in
-// that native query (total/pending/accepted/ongoing) bind to these getters by name.
+// that native query (total/pending/accepted/ongoing/todayPickup/immediateCount) bind to these
+// getters by name.
 public interface RideStatusCounts {
 	Long getTotal();
 	Long getPending();
 	Long getAccepted();
 	Long getOngoing();
+	Long getTodayPickup();
+	Long getImmediateCount();
 }

@@ -20,6 +20,8 @@ public class RideFeedResponse {
 	private long pendingCount;
 	private long acceptedCount;
 	private long ongoingCount;
+	private long todayPickupCount;
+	private long immediateCount;
 
 	public List<TransferRequestDetails> getRides() {
 		return rides;
@@ -91,5 +93,21 @@ public class RideFeedResponse {
 
 	public void setOngoingCount(long ongoingCount) {
 		this.ongoingCount = ongoingCount;
+	}
+
+	public long getTodayPickupCount() {
+		return todayPickupCount;
+	}
+
+	public void setTodayPickupCount(long todayPickupCount) {
+		this.todayPickupCount = todayPickupCount;
+	}
+
+	public long getImmediateCount() {
+		return immediateCount;
+	}
+
+	public void setImmediateCount(long immediateCount) {
+		this.immediateCount = immediateCount;
 	}
 }
