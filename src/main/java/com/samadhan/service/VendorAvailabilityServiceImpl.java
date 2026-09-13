@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.samadhan.dto.GeoPoint;
 import com.samadhan.dto.RouteRequest;
 import com.samadhan.dto.RouteResponse;
+import com.samadhan.dto.RouteWaypoint;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorAvailability;
@@ -95,6 +96,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		availability.setVehicleCategory(request.vehicleCategory);
 		availability.setVehicleNumber(request.vehicleNumber);
 		availability.setReturnTrip(request.returnTrip != null && request.returnTrip);
+		availability.setWaypoints(request.waypoints);
 		availability.setActive(true);
 		availability.setCreatedAt(LocalDateTime.now());
 
@@ -105,10 +107,24 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		Double toLat = GeoUtils.parseCoord(request.toLatitude);
 		Double toLng = GeoUtils.parseCoord(request.toLongitude);
 
+		// Waypoints with valid coordinates only — an un-geocoded one (e.g. typed but never
+		// selected from suggestions on the frontend) is silently dropped from the route
+		// computation rather than failing the whole posting over one bad stop.
+		List<GeoPoint> routeWaypoints = new ArrayList<>();
+		if (request.waypoints != null) {
+			for (RouteWaypoint wp : request.waypoints) {
+				Double wLat = GeoUtils.parseCoord(wp.getLatitude());
+				Double wLng = GeoUtils.parseCoord(wp.getLongitude());
+				if (wLat != null && wLng != null) {
+					routeWaypoints.add(new GeoPoint(wLat, wLng));
+				}
+			}
+		}
+
 		if (fromLat != null && fromLng != null && toLat != null && toLng != null) {
 			try {
 				RouteResponse route = routeService.getRoute(new RouteRequest(
-						new GeoPoint(fromLat, fromLng), new GeoPoint(toLat, toLng), "DRIVE", false, null));
+						new GeoPoint(fromLat, fromLng), new GeoPoint(toLat, toLng), "DRIVE", false, routeWaypoints));
 				saved.setRoutePolyline(route.getPolyline());
 				saved = vendorAvailabilityRepository.save(saved);
 			} catch (Exception ex) {
@@ -166,6 +182,24 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			double minLng = (fromLng != null) ? Math.min(fromLng, toLng) : toLng;
 			double maxLng = (fromLng != null) ? Math.max(fromLng, toLng) : toLng;
 
+			// Vendor-specified intermediate stops (see postAvailability) — widen the bounding box
+			// to include them (a detour via a waypoint can sit well outside the straight-line
+			// from->to box) and keep their coordinates for the direct waypoint-proximity check
+			// below, independent of whether routePolyline successfully bent through them.
+			List<double[]> waypointCoords = new ArrayList<>();
+			for (RouteWaypoint wp : posting.getWaypoints()) {
+				Double wLat = GeoUtils.parseCoord(wp.getLatitude());
+				Double wLng = GeoUtils.parseCoord(wp.getLongitude());
+				if (wLat == null || wLng == null) {
+					continue;
+				}
+				waypointCoords.add(new double[] { wLat, wLng });
+				minLat = Math.min(minLat, wLat);
+				maxLat = Math.max(maxLat, wLat);
+				minLng = Math.min(minLng, wLng);
+				maxLng = Math.max(maxLng, wLng);
+			}
+
 			LocalDate today = LocalDate.now();
 			LocalDate maxPickupDate = posting.getExpectedDate().plusDays(DATE_WINDOW_AFTER_EXPECTED_DAYS);
 			List<TransferRequestDetails> candidates = transferRequestRepository.findPendingUnassignedInBoundingBox(
@@ -186,22 +220,30 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				}
 
 				// ---- Forward leg (always evaluated): pickup near the posting's own starting
-				// point (about to drive right past/through there), near its destination, or
-				// anywhere along the from->to corridor. nearOrigin matters independently of
-				// onRoute — the route polyline is a best-effort cache computed at posting time
-				// (see postAvailability) and can be missing/failed, in which case onRoute is
-				// always false and this would otherwise be the only remaining way to catch the
-				// single most obvious case: a pickup right where the vendor is starting from.
+				// point (about to drive right past/through there), near its destination, near a
+				// vendor-specified waypoint, or anywhere along the from->to corridor. nearOrigin/
+				// nearWaypoint matter independently of onRoute — the route polyline is a
+				// best-effort cache computed at posting time (see postAvailability) and can be
+				// missing/failed, in which case onRoute is always false and these would otherwise
+				// be the only remaining way to catch pickups at those points.
 				Double distToSource = (fromLat != null && fromLng != null)
 						? GeoUtils.haversineKm(srcLat, srcLng, fromLat, fromLng) : null;
 				double distToDest = GeoUtils.haversineKm(srcLat, srcLng, toLat, toLng);
 				Double distToRoute = routePoints.isEmpty() ? null
 						: GeoUtils.minDistanceToPolylineKm(srcLat, srcLng, routePoints);
+				Double distToWaypoint = null;
+				for (double[] wp : waypointCoords) {
+					double d = GeoUtils.haversineKm(srcLat, srcLng, wp[0], wp[1]);
+					if (distToWaypoint == null || d < distToWaypoint) {
+						distToWaypoint = d;
+					}
+				}
 				boolean nearOrigin = distToSource != null && distToSource <= ENDPOINT_RADIUS_KM;
 				boolean nearDest = distToDest <= ENDPOINT_RADIUS_KM;
 				boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
+				boolean nearWaypoint = distToWaypoint != null && distToWaypoint <= ENDPOINT_RADIUS_KM;
 
-				if (nearOrigin || nearDest || onRoute) {
+				if (nearOrigin || nearDest || onRoute || nearWaypoint) {
 					// Closest of whichever reasons actually matched, each scored against its own
 					// radius.
 					double bestDistanceKm = Double.MAX_VALUE;
@@ -214,6 +256,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 						bestDistanceKm = distToDest;
 						bestRadiusKm = ENDPOINT_RADIUS_KM;
 					}
+					if (nearWaypoint && distToWaypoint < bestDistanceKm) {
+						bestDistanceKm = distToWaypoint;
+						bestRadiusKm = ENDPOINT_RADIUS_KM;
+					}
 					if (onRoute && distToRoute < bestDistanceKm) {
 						bestDistanceKm = distToRoute;
 						bestRadiusKm = ROUTE_CORRIDOR_KM;
@@ -222,18 +268,25 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				}
 
 				// ---- Return leg (opt-in only): pickup near/along the same corridor toward the
-				// posting's destination, but this time the candidate must also drop back off near
-				// the posting's own starting point — an actual to->from job, not just any pickup
-				// near the destination.
-				if (posting.isReturnTrip() && fromLat != null && fromLng != null && (nearDest || onRoute)) {
+				// posting's destination (or near a waypoint on it), but this time the candidate
+				// must also drop back off near the posting's own starting point — an actual
+				// to->from job, not just any pickup near the destination.
+				if (posting.isReturnTrip() && fromLat != null && fromLng != null && (nearDest || onRoute || nearWaypoint)) {
 					Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
 					Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
 					if (destLat != null && destLng != null) {
 						double distDropToOrigin = GeoUtils.haversineKm(destLat, destLng, fromLat, fromLng);
 						if (distDropToOrigin <= ENDPOINT_RADIUS_KM) {
-							boolean preferRoute = onRoute && (!nearDest || distToRoute <= distToDest);
-							double pickupDistanceKm = preferRoute ? distToRoute : distToDest;
-							double pickupRadiusKm = preferRoute ? ROUTE_CORRIDOR_KM : ENDPOINT_RADIUS_KM;
+							double pickupDistanceKm = distToDest;
+							double pickupRadiusKm = ENDPOINT_RADIUS_KM;
+							if (onRoute && distToRoute < pickupDistanceKm) {
+								pickupDistanceKm = distToRoute;
+								pickupRadiusKm = ROUTE_CORRIDOR_KM;
+							}
+							if (nearWaypoint && distToWaypoint < pickupDistanceKm) {
+								pickupDistanceKm = distToWaypoint;
+								pickupRadiusKm = ENDPOINT_RADIUS_KM;
+							}
 							int pickupPercent = percentFromDistance(pickupDistanceKm, pickupRadiusKm);
 							int dropPercent = percentFromDistance(distDropToOrigin, ENDPOINT_RADIUS_KM);
 							double combinedDistanceKm = (pickupDistanceKm + distDropToOrigin) / 2.0;

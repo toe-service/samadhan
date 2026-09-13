@@ -1,6 +1,9 @@
 package com.samadhan.request;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import com.samadhan.dto.RouteWaypoint;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,4 +26,5 @@ public class VendorAvailabilityRequest {
 	public String vehicleCategory;
 	public String vehicleNumber;
 	public Boolean returnTrip;
+	public List<RouteWaypoint> waypoints;
 }
