@@ -857,7 +857,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public RideFeedResponse showRidestoVendorsPaged(Long vendorId, String statusFilter, int page, int size) {
+	public RideFeedResponse showRidestoVendorsPaged(
+			Long vendorId, String statusFilter, LocalDate pickupDate, int page, int size) {
 		String normalizedStatus = (statusFilter == null || statusFilter.isBlank())
 				? "ALL" : statusFilter.trim().toUpperCase();
 		int safePage = Math.max(page, 0);
@@ -873,12 +874,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			List<TransferRequestDetails> all = vendorVehicles.isEmpty()
 					? new ArrayList<>()
 					: getrideTransferByVehicle(vendorVehicles.get(0).getId());
-			return buildPagedResponseInMemory(all, normalizedStatus, safePage, safeSize);
+			return buildPagedResponseInMemory(all, normalizedStatus, pickupDate, safePage, safeSize);
 		}
 
 		Pageable pageable = PageRequest.of(safePage, safeSize);
 		Page<TransferRequestDetails> pageResult =
-				transferRepo.showRidestoVendorsPaged(vendorId, normalizedStatus, pageable);
+				transferRepo.showRidestoVendorsPaged(vendorId, normalizedStatus, pickupDate, pageable);
 		RideStatusCounts counts = transferRepo.countRidesByStatusForVendor(vendorId);
 
 		RideFeedResponse response = new RideFeedResponse();
@@ -891,12 +892,18 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		response.setPendingCount(counts != null && counts.getPending() != null ? counts.getPending() : 0);
 		response.setAcceptedCount(counts != null && counts.getAccepted() != null ? counts.getAccepted() : 0);
 		response.setOngoingCount(counts != null && counts.getOngoing() != null ? counts.getOngoing() : 0);
+		response.setTodayPickupCount(counts != null && counts.getTodayPickup() != null ? counts.getTodayPickup() : 0);
+		response.setImmediateCount(counts != null && counts.getImmediateCount() != null ? counts.getImmediateCount() : 0);
 		return response;
 	}
 
 	private RideFeedResponse buildPagedResponseInMemory(
-			List<TransferRequestDetails> all, String statusFilter, int page, int size) {
+			List<TransferRequestDetails> all, String statusFilter, LocalDate pickupDate, int page, int size) {
 
+		// Counts (including todayPickup) are always computed from the full, unfiltered list —
+		// same "summary cards stay accurate regardless of the current filter" invariant as the
+		// DB-backed path's separate countRidesByStatusForVendor query, which never takes
+		// statusFilter/pickupDate into account either.
 		long pending = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.PENDING).count();
 		long accepted = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.ACCEPTED).count();
 		long ongoing = all.stream().filter(r ->
@@ -904,24 +911,34 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				|| r.getTransferStatus() == rideStatusEnum.READYFORPICKUP
 				|| r.getTransferStatus() == rideStatusEnum.VEHICLEASSIGNED
 		).count();
+		LocalDate today = LocalDate.now();
+		long todayPickup = all.stream().filter(r -> today.equals(r.getPickupDate())).count();
+		long immediate = all.stream().filter(r -> Boolean.TRUE.equals(r.getInstantBooking())).count();
+
+		List<TransferRequestDetails> dateFiltered = pickupDate == null
+				? all
+				: all.stream().filter(r -> pickupDate.equals(r.getPickupDate())).collect(Collectors.toList());
 
 		List<TransferRequestDetails> filtered;
 		switch (statusFilter) {
 			case "PENDING":
-				filtered = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.PENDING).collect(Collectors.toList());
+				filtered = dateFiltered.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.PENDING).collect(Collectors.toList());
 				break;
 			case "ACCEPTED":
-				filtered = all.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.ACCEPTED).collect(Collectors.toList());
+				filtered = dateFiltered.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.ACCEPTED).collect(Collectors.toList());
 				break;
 			case "ONGOING":
-				filtered = all.stream().filter(r ->
+				filtered = dateFiltered.stream().filter(r ->
 						r.getTransferStatus() == rideStatusEnum.ONGOING
 						|| r.getTransferStatus() == rideStatusEnum.READYFORPICKUP
 						|| r.getTransferStatus() == rideStatusEnum.VEHICLEASSIGNED
 				).collect(Collectors.toList());
 				break;
+			case "IMMEDIATE":
+				filtered = dateFiltered.stream().filter(r -> Boolean.TRUE.equals(r.getInstantBooking())).collect(Collectors.toList());
+				break;
 			default:
-				filtered = all;
+				filtered = dateFiltered;
 		}
 
 		int fromIndex = Math.min(page * size, filtered.size());
@@ -937,6 +954,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		response.setPendingCount(pending);
 		response.setAcceptedCount(accepted);
 		response.setOngoingCount(ongoing);
+		response.setTodayPickupCount(todayPickup);
+		response.setImmediateCount(immediate);
 		return response;
 	}
 

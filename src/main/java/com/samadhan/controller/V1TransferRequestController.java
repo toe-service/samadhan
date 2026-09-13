@@ -166,10 +166,15 @@ TokenApi tokenApi;
 	    public ResponseEntity<com.samadhan.dto.RideFeedResponse> showRidestoVendors(
 	    		@PathVariable Long transferId,
 	    		@RequestParam(defaultValue = "ALL") String status,
+	    		// Optional — filters to rides picking up on this exact date (e.g. "today's pickups"),
+	    		// on top of the existing status filter. Omitted/blank means no date filter.
+	    		@RequestParam(required = false) String pickupDate,
 	    		@RequestParam(defaultValue = "0") int page,
 	    		@RequestParam(defaultValue = "10") int size) {
+		  LocalDate parsedPickupDate = (pickupDate == null || pickupDate.isBlank())
+				  ? null : LocalDate.parse(pickupDate.trim());
 		  com.samadhan.dto.RideFeedResponse showRidestoVendors =
-				  transferRequestService.showRidestoVendorsPaged(transferId, status, page, size);
+				  transferRequestService.showRidestoVendorsPaged(transferId, status, parsedPickupDate, page, size);
 		  return ResponseEntity.ok(showRidestoVendors);
 	    }
 	  
