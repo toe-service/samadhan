@@ -73,8 +73,15 @@ public class VendorAvailability {
 	// Opt-in: only when set does matching also look for a reverse-direction (to->from) job to
 	// avoid an empty drive back. Without this, "pickup near fromLocation" alone was too loose a
 	// signal — see VendorAvailabilityServiceImpl#getRequestsMatchingAvailability.
+	//
+	// Boxed Boolean, not primitive: this column was added via Hibernate's ddl-auto=update (the
+	// db_migrations/*.sql file is documentation only, never actually executed against the DB —
+	// see its own comment), which doesn't backfill a default for pre-existing rows. Every row
+	// that predates this column has NULL here, and a primitive boolean setter throws
+	// PropertyAccessException the instant Hibernate tries to assign it that NULL — which took
+	// down the entire postings list for any vendor with even one old row.
 	@Column(name = "is_return_trip")
-	private boolean returnTrip = false;
+	private Boolean returnTrip = false;
 
 	@Column(name = "created_at")
 	private LocalDateTime createdAt;
@@ -192,10 +199,10 @@ public class VendorAvailability {
 	}
 
 	public boolean isReturnTrip() {
-		return returnTrip;
+		return Boolean.TRUE.equals(returnTrip);
 	}
 
-	public void setReturnTrip(boolean returnTrip) {
+	public void setReturnTrip(Boolean returnTrip) {
 		this.returnTrip = returnTrip;
 	}
 
