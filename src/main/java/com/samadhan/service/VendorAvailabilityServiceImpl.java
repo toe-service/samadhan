@@ -185,19 +185,40 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 					continue;
 				}
 
-				// ---- Forward leg (always evaluated): pickup near the posting's destination, or
-				// anywhere along the from->to corridor.
+				// ---- Forward leg (always evaluated): pickup near the posting's own starting
+				// point (about to drive right past/through there), near its destination, or
+				// anywhere along the from->to corridor. nearOrigin matters independently of
+				// onRoute — the route polyline is a best-effort cache computed at posting time
+				// (see postAvailability) and can be missing/failed, in which case onRoute is
+				// always false and this would otherwise be the only remaining way to catch the
+				// single most obvious case: a pickup right where the vendor is starting from.
+				Double distToSource = (fromLat != null && fromLng != null)
+						? GeoUtils.haversineKm(srcLat, srcLng, fromLat, fromLng) : null;
 				double distToDest = GeoUtils.haversineKm(srcLat, srcLng, toLat, toLng);
 				Double distToRoute = routePoints.isEmpty() ? null
 						: GeoUtils.minDistanceToPolylineKm(srcLat, srcLng, routePoints);
+				boolean nearOrigin = distToSource != null && distToSource <= ENDPOINT_RADIUS_KM;
 				boolean nearDest = distToDest <= ENDPOINT_RADIUS_KM;
 				boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
 
-				if (nearDest || onRoute) {
-					boolean preferRoute = onRoute && (!nearDest || distToRoute <= distToDest);
-					double distanceKm = preferRoute ? distToRoute : distToDest;
-					double radiusKm = preferRoute ? ROUTE_CORRIDOR_KM : ENDPOINT_RADIUS_KM;
-					considerMatch(bestMatches, candidate, "POSTING_ROUTE", distanceKm, percentFromDistance(distanceKm, radiusKm));
+				if (nearOrigin || nearDest || onRoute) {
+					// Closest of whichever reasons actually matched, each scored against its own
+					// radius.
+					double bestDistanceKm = Double.MAX_VALUE;
+					double bestRadiusKm = ENDPOINT_RADIUS_KM;
+					if (nearOrigin && distToSource < bestDistanceKm) {
+						bestDistanceKm = distToSource;
+						bestRadiusKm = ENDPOINT_RADIUS_KM;
+					}
+					if (nearDest && distToDest < bestDistanceKm) {
+						bestDistanceKm = distToDest;
+						bestRadiusKm = ENDPOINT_RADIUS_KM;
+					}
+					if (onRoute && distToRoute < bestDistanceKm) {
+						bestDistanceKm = distToRoute;
+						bestRadiusKm = ROUTE_CORRIDOR_KM;
+					}
+					considerMatch(bestMatches, candidate, "POSTING_ROUTE", bestDistanceKm, percentFromDistance(bestDistanceKm, bestRadiusKm));
 				}
 
 				// ---- Return leg (opt-in only): pickup near/along the same corridor toward the
