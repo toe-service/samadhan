@@ -39,13 +39,6 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	private static final double ROUTE_CORRIDOR_KM = 15.0;
 	// Bounding-box padding around the posting's endpoints, applied before precise distance checks.
 	private static final double BOUNDING_BOX_BUFFER_DEG = 0.5;
-	// Matching used to require pickup_date == expected_date exactly, which missed genuinely
-	// on-route candidates like an "Immediate" (today) pickup against a posting for a few days
-	// out — the vendor could easily pick that up en route. The window runs from today (not
-	// expected_date - N — a pickup dated before today can't exist for a PENDING request anyway,
-	// and "immediate" ones are always dated today) through this many days after expected_date,
-	// to also catch a short return window once the vendor has actually arrived.
-	private static final int DATE_WINDOW_AFTER_EXPECTED_DAYS = 2;
 
 	@Autowired
 	VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -200,10 +193,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				maxLng = Math.max(maxLng, wLng);
 			}
 
-			LocalDate today = LocalDate.now();
-			LocalDate maxPickupDate = posting.getExpectedDate().plusDays(DATE_WINDOW_AFTER_EXPECTED_DAYS);
 			List<TransferRequestDetails> candidates = transferRequestRepository.findPendingUnassignedInBoundingBox(
-					today, maxPickupDate,
+					posting.getExpectedDate(),
 					minLat - BOUNDING_BOX_BUFFER_DEG, maxLat + BOUNDING_BOX_BUFFER_DEG,
 					minLng - BOUNDING_BOX_BUFFER_DEG, maxLng + BOUNDING_BOX_BUFFER_DEG);
 
@@ -271,7 +262,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				// posting's destination (or near a waypoint on it), but this time the candidate
 				// must also drop back off near the posting's own starting point — an actual
 				// to->from job, not just any pickup near the destination.
-				if (posting.isReturnTrip() && fromLat != null && fromLng != null && (nearDest || onRoute || nearWaypoint)) {
+				if (posting.isReturnTrip() && fromLat != null && fromLng != null
+						&& (nearDest || onRoute || nearWaypoint)) {
 					Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
 					Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
 					if (destLat != null && destLng != null) {

@@ -915,9 +915,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		long todayPickup = all.stream().filter(r -> today.equals(r.getPickupDate())).count();
 		long immediate = all.stream().filter(r -> Boolean.TRUE.equals(r.getInstantBooking())).count();
 
+		boolean pickupDateIsToday = pickupDate != null && pickupDate.equals(today);
 		List<TransferRequestDetails> dateFiltered = pickupDate == null
 				? all
-				: all.stream().filter(r -> pickupDate.equals(r.getPickupDate())).collect(Collectors.toList());
+				: all.stream()
+						.filter(r -> pickupDate.equals(r.getPickupDate())
+								|| (pickupDateIsToday && Boolean.TRUE.equals(r.getInstantBooking())))
+						.collect(Collectors.toList());
 
 		List<TransferRequestDetails> filtered;
 		switch (statusFilter) {

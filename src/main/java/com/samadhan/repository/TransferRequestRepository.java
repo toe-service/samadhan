@@ -261,7 +261,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
 	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
 	        ") " +
-	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate ) " +
+	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate OR (:pickupDate = CURDATE() AND trd.instant_booking = 1) ) " +
 	        "ORDER BY trd.request_created_date DESC",
 	        countQuery =
 	        "SELECT COUNT(*) " +
@@ -317,7 +317,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
 	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
 	        ") " +
-	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate )",
+	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate OR (:pickupDate = CURDATE() AND trd.instant_booking = 1) )",
 	        nativeQuery = true)
 	Page<TransferRequestDetails> showRidestoVendorsPaged(
 	        @Param("vendorId") Long vendorId,
@@ -509,26 +509,24 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select count(*) from transfer_request_details where vehicle_id=:vehicleId", nativeQuery = true)
 	long countByVehicleId(@Param("vehicleId") Long vehicleId);
 
-	// Backhaul matching candidates: PENDING, unassigned requests picking up within a date window
-	// (see VendorAvailabilityServiceImpl#DATE_WINDOW_AFTER_EXPECTED_DAYS — not just the posting's
-	// exact expected_date, which missed genuinely on-route "Immediate"/near-term pickups) and
-	// within a coarse lat/lng bounding box around a vendor availability posting's from/to points
-	// (plus buffer). This is a cheap SQL prefilter only — VendorAvailabilityServiceImpl does the
-	// precise endpoint-radius and route-corridor distance checks in Java against these candidates,
-	// since neither straight-line-vs-driving-route matching nor polyline distance can be expressed
-	// in a native query.
+	// Backhaul matching candidates: PENDING, unassigned requests picking up on or before the
+	// posting's expected_date (any earlier pickup date matches too, including "Immediate"/today
+	// ones — not just the exact date) and within a coarse lat/lng bounding box around a vendor
+	// availability posting's from/to points (plus buffer). This is a cheap SQL prefilter only —
+	// VendorAvailabilityServiceImpl does the precise endpoint-radius and route-corridor distance
+	// checks in Java against these candidates, since neither straight-line-vs-driving-route
+	// matching nor polyline distance can be expressed in a native query.
 	@Query(value =
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
-	        "AND trd.pickup_date BETWEEN :minPickupDate AND :maxPickupDate " +
+	        "AND trd.pickup_date <= :maxPickupDate " +
 	        "AND trd.source_latitude IS NOT NULL AND trd.source_longitude IS NOT NULL " +
 	        "AND CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8)) BETWEEN :minLat AND :maxLat " +
 	        "AND CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)) BETWEEN :minLng AND :maxLng " +
 	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
 	List<TransferRequestDetails> findPendingUnassignedInBoundingBox(
-	        @Param("minPickupDate") LocalDate minPickupDate,
 	        @Param("maxPickupDate") LocalDate maxPickupDate,
 	        @Param("minLat") double minLat, @Param("maxLat") double maxLat,
 	        @Param("minLng") double minLng, @Param("maxLng") double maxLng);
