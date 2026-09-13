@@ -20,6 +20,8 @@ import com.samadhan.dto.RouteWaypoint;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorAvailability;
+import com.samadhan.enums.VendorPickupVehicleEnum;
+import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
 import com.samadhan.repository.TransferRequestRepository;
@@ -203,6 +205,20 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			// same decoded polyline serves both legs below.
 			List<double[]> routePoints = GeoUtils.decodePolyline(posting.getRoutePolyline());
 
+			// The specific vehicle this posting is for (not vehicleCategory — that's the coarser
+			// SMALL_VEHICLE/OPEN_BODY_TRUCK/etc. grouping; vehicleType holds the exact
+			// VendorPickupVehicleEnum display name, e.g. "Tata Ace"). Null when the vendor picked
+			// "Any vehicle from my fleet" or the string doesn't parse — in either case the size
+			// check below is skipped rather than guessed at.
+			VendorPickupVehicleEnum postingVehicle = null;
+			if (posting.getVehicleType() != null && !posting.getVehicleType().isBlank()) {
+				try {
+					postingVehicle = VendorPickupVehicleEnum.fromValue(posting.getVehicleType());
+				} catch (IllegalArgumentException ex) {
+					postingVehicle = null;
+				}
+			}
+
 			for (TransferRequestDetails candidate : candidates) {
 				Double srcLat = GeoUtils.parseCoord(candidate.getSourceLatitude());
 				Double srcLng = GeoUtils.parseCoord(candidate.getSourceLongitude());
@@ -234,7 +250,25 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
 				boolean nearWaypoint = distToWaypoint != null && distToWaypoint <= ENDPOINT_RADIUS_KM;
 
-				if (nearOrigin || nearDest || onRoute || nearWaypoint) {
+				// Whole-vehicle jobs (BOOKVEHICLE, HOMESHIFTING) need a vehicle actually big
+				// enough to do them — same "requested type + next 2 larger by capacity" ladder
+				// already used for live push-notification eligibility (see
+				// TransferRequestServiceImpl#isEligiblePendingRide / FireBaseMessagingService),
+				// so a posting's vehicle choice means the same thing everywhere in the app. Skipped
+				// (no restriction) when either side's vehicle type isn't known — a "my whole fleet"
+				// posting, or a request with no recorded size — rather than guessing and wrongly
+				// excluding a real match. Package/car/bike (TRANSFERSERVICE) never needs the whole
+				// vehicle, so it's never size-gated.
+				boolean isWholeVehicleService = candidate.getServiceType() == serviceTypeEnum.BOOKVEHICLE
+						|| candidate.getServiceType() == serviceTypeEnum.HOMESHIFTING;
+				boolean vehicleSizeOk = true;
+				if (isWholeVehicleService && postingVehicle != null && candidate.getVendorPickupVehicle() != null) {
+					vehicleSizeOk = VendorPickupVehicleEnum
+							.getRequestedAndLarger(candidate.getVendorPickupVehicle())
+							.contains(postingVehicle);
+				}
+
+				if (vehicleSizeOk && (nearOrigin || nearDest || onRoute || nearWaypoint)) {
 					// Closest of whichever reasons actually matched, each scored against its own
 					// radius.
 					double bestDistanceKm = Double.MAX_VALUE;
@@ -262,7 +296,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				// posting's destination (or near a waypoint on it), but this time the candidate
 				// must also drop back off near the posting's own starting point — an actual
 				// to->from job, not just any pickup near the destination.
-				if (posting.isReturnTrip() && fromLat != null && fromLng != null
+				if (vehicleSizeOk && posting.isReturnTrip() && fromLat != null && fromLng != null
 						&& (nearDest || onRoute || nearWaypoint)) {
 					Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
 					Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
