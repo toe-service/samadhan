@@ -40,7 +40,8 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId);
 
-	public com.samadhan.dto.RideFeedResponse showRidestoVendorsPaged(Long transferId, String statusFilter, int page, int size);
+	public com.samadhan.dto.RideFeedResponse showRidestoVendorsPaged(
+			Long transferId, String statusFilter, LocalDate pickupDate, int page, int size);
 
 	public List<TransferRequestDetails> getrideTransferByVehicle(Long vehicleId);
 

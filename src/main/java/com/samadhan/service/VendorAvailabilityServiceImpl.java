@@ -1,5 +1,6 @@
 package com.samadhan.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,6 +38,13 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	private static final double ROUTE_CORRIDOR_KM = 15.0;
 	// Bounding-box padding around the posting's endpoints, applied before precise distance checks.
 	private static final double BOUNDING_BOX_BUFFER_DEG = 0.5;
+	// Matching used to require pickup_date == expected_date exactly, which missed genuinely
+	// on-route candidates like an "Immediate" (today) pickup against a posting for a few days
+	// out — the vendor could easily pick that up en route. The window runs from today (not
+	// expected_date - N — a pickup dated before today can't exist for a PENDING request anyway,
+	// and "immediate" ones are always dated today) through this many days after expected_date,
+	// to also catch a short return window once the vendor has actually arrived.
+	private static final int DATE_WINDOW_AFTER_EXPECTED_DAYS = 2;
 
 	@Autowired
 	VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -158,8 +166,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			double minLng = (fromLng != null) ? Math.min(fromLng, toLng) : toLng;
 			double maxLng = (fromLng != null) ? Math.max(fromLng, toLng) : toLng;
 
+			LocalDate today = LocalDate.now();
+			LocalDate maxPickupDate = posting.getExpectedDate().plusDays(DATE_WINDOW_AFTER_EXPECTED_DAYS);
 			List<TransferRequestDetails> candidates = transferRequestRepository.findPendingUnassignedInBoundingBox(
-					posting.getExpectedDate(),
+					today, maxPickupDate,
 					minLat - BOUNDING_BOX_BUFFER_DEG, maxLat + BOUNDING_BOX_BUFFER_DEG,
 					minLng - BOUNDING_BOX_BUFFER_DEG, maxLng + BOUNDING_BOX_BUFFER_DEG);
 

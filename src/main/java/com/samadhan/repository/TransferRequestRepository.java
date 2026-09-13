@@ -259,7 +259,9 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
 	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
+	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
 	        ") " +
+	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate ) " +
 	        "ORDER BY trd.request_created_date DESC",
 	        countQuery =
 	        "SELECT COUNT(*) " +
@@ -313,11 +315,14 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
 	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
-	        ")",
+	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
+	        ") " +
+	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate )",
 	        nativeQuery = true)
 	Page<TransferRequestDetails> showRidestoVendorsPaged(
 	        @Param("vendorId") Long vendorId,
 	        @Param("statusFilter") String statusFilter,
+	        @Param("pickupDate") LocalDate pickupDate,
 	        Pageable pageable);
 
 	// Same eligibility filtering as showRidestoVendors, minus any status filter, broken down
@@ -328,7 +333,9 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  COUNT(*) AS total, " +
 	        "  SUM(CASE WHEN trd.transfer_status = 0 THEN 1 ELSE 0 END) AS pending, " +
 	        "  SUM(CASE WHEN trd.transfer_status = 1 THEN 1 ELSE 0 END) AS accepted, " +
-	        "  SUM(CASE WHEN trd.transfer_status IN (3,5,6) THEN 1 ELSE 0 END) AS ongoing " +
+	        "  SUM(CASE WHEN trd.transfer_status IN (3,5,6) THEN 1 ELSE 0 END) AS ongoing, " +
+	        "  SUM(CASE WHEN trd.pickup_date = CURDATE() THEN 1 ELSE 0 END) AS todayPickup, " +
+	        "  SUM(CASE WHEN trd.instant_booking = 1 THEN 1 ELSE 0 END) AS immediateCount " +
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
 	        "WHERE tv.vendor_status IN (3,2,5,1) " +
@@ -502,7 +509,9 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select count(*) from transfer_request_details where vehicle_id=:vehicleId", nativeQuery = true)
 	long countByVehicleId(@Param("vehicleId") Long vehicleId);
 
-	// Backhaul matching candidates: PENDING, unassigned requests picking up on the given date
+	// Backhaul matching candidates: PENDING, unassigned requests picking up within a date window
+	// (see VendorAvailabilityServiceImpl#DATE_WINDOW_AFTER_EXPECTED_DAYS — not just the posting's
+	// exact expected_date, which missed genuinely on-route "Immediate"/near-term pickups) and
 	// within a coarse lat/lng bounding box around a vendor availability posting's from/to points
 	// (plus buffer). This is a cheap SQL prefilter only — VendorAvailabilityServiceImpl does the
 	// precise endpoint-radius and route-corridor distance checks in Java against these candidates,
@@ -512,14 +521,15 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
-	        "AND trd.pickup_date = :pickupDate " +
+	        "AND trd.pickup_date BETWEEN :minPickupDate AND :maxPickupDate " +
 	        "AND trd.source_latitude IS NOT NULL AND trd.source_longitude IS NOT NULL " +
 	        "AND CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8)) BETWEEN :minLat AND :maxLat " +
 	        "AND CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)) BETWEEN :minLng AND :maxLng " +
 	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
 	List<TransferRequestDetails> findPendingUnassignedInBoundingBox(
-	        @Param("pickupDate") LocalDate pickupDate,
+	        @Param("minPickupDate") LocalDate minPickupDate,
+	        @Param("maxPickupDate") LocalDate maxPickupDate,
 	        @Param("minLat") double minLat, @Param("maxLat") double maxLat,
 	        @Param("minLng") double minLng, @Param("maxLng") double maxLng);
 
