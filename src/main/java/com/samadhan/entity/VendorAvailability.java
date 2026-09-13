@@ -2,6 +2,8 @@ package com.samadhan.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +16,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samadhan.dto.RouteWaypoint;
 
 // A vendor/individual owner declaring "I'll be near <toLocation> on <expectedDate>" ahead of
 // time, so ride-matching can surface nearby requests to them before they actually arrive there —
@@ -52,8 +58,45 @@ public class VendorAvailability {
 
 	// Encoded polyline for the from->to driving route, fetched once from RouteService at
 	// posting time and cached here so matching doesn't re-call the Maps API per request lookup.
+	// When waypoints are set (below), this polyline is computed to actually pass through them.
 	@Column(name = "route_polyline", columnDefinition = "TEXT")
 	private String routePolyline;
+
+	// Vendor-specified intermediate stops (e.g. "via Kanpur, via Etawah") for postings where the
+	// straight-line from->to isn't the vehicle's actual path. Stored as JSON, not a child table —
+	// this is small, ordered, and only ever read/written whole, never queried by field. Passed to
+	// RouteService as waypoints so routePolyline bends through them, and also matched against
+	// directly in VendorAvailabilityServiceImpl (independent of the polyline, same reasoning as
+	// nearOrigin/nearDest — the route computation is best-effort and can fail).
+	@JsonIgnore
+	@Column(name = "waypoints_json", columnDefinition = "TEXT")
+	private String waypointsJson;
+
+	private static final ObjectMapper WAYPOINTS_MAPPER = new ObjectMapper();
+
+	public List<RouteWaypoint> getWaypoints() {
+		if (waypointsJson == null || waypointsJson.isBlank()) {
+			return new ArrayList<>();
+		}
+		try {
+			return WAYPOINTS_MAPPER.readValue(waypointsJson,
+					WAYPOINTS_MAPPER.getTypeFactory().constructCollectionType(List.class, RouteWaypoint.class));
+		} catch (JsonProcessingException e) {
+			return new ArrayList<>();
+		}
+	}
+
+	public void setWaypoints(List<RouteWaypoint> waypoints) {
+		if (waypoints == null || waypoints.isEmpty()) {
+			this.waypointsJson = null;
+			return;
+		}
+		try {
+			this.waypointsJson = WAYPOINTS_MAPPER.writeValueAsString(waypoints);
+		} catch (JsonProcessingException e) {
+			this.waypointsJson = null;
+		}
+	}
 
 	@Column(name = "expected_date", nullable = false)
 	private LocalDate expectedDate;
