@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -59,6 +60,27 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// your posting" against a 20ft truck (10 tonnes), which passes the plain "big enough" check
 	// but is such a size mismatch it's not a meaningful match either.
 	private static final double MIN_VEHICLE_CAPACITY_RATIO = 0.30;
+	// computeMatches is the expensive part of this class (a DB scan plus per-candidate distance
+	// math) but only two things can change its result for a given vendor: that vendor's own
+	// postings (edited rarely, and explicitly evicted below whenever they do change), or the
+	// system-wide pool of pending/unassigned requests (changes constantly from other vendors'
+	// activity, unrelated to this one). A short TTL bounds staleness from that second, uncontrolled
+	// source to roughly the same window the rest of the dashboard already polls at, while collapsing
+	// the repeated recomputation that otherwise happens on every page turn, date-filter change, or
+	// the separate summary-vs-paginated fetches the frontend makes for the same vendor back to back.
+	private static final long MATCHES_CACHE_TTL_MILLIS = 30_000L;
+
+	private static final class CachedMatches {
+		final List<TransferRequestDetails> matches;
+		final long computedAtMillis;
+
+		CachedMatches(List<TransferRequestDetails> matches, long computedAtMillis) {
+			this.matches = matches;
+			this.computedAtMillis = computedAtMillis;
+		}
+	}
+
+	private final Map<Long, CachedMatches> matchesCache = new ConcurrentHashMap<>();
 
 	@Autowired
 	VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -146,6 +168,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			}
 		}
 
+		// A new posting changes this vendor's own match set immediately — don't make them wait
+		// out the TTL to see requests matching a route they just posted.
+		matchesCache.remove(request.vendorId);
+
 		return saved;
 	}
 
@@ -209,7 +235,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			availability.setRoutePolyline(null);
 		}
 
-		return vendorAvailabilityRepository.save(availability);
+		VendorAvailability saved = vendorAvailabilityRepository.save(availability);
+		// Same reasoning as postAvailability — the edited route/vehicle/dates should reflect in
+		// this vendor's matches right away, not after the cache TTL expires.
+		matchesCache.remove(vendorId);
+		return saved;
 	}
 
 	@Override
@@ -228,6 +258,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		availability.setActive(false);
 		vendorAvailabilityRepository.save(availability);
+		// A cancelled posting should stop contributing matches immediately, not after the TTL.
+		matchesCache.remove(vendorId);
 	}
 
 	// For each active posting, finds PENDING/unassigned requests either along the posting's own
@@ -241,7 +273,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	public MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size, LocalDate pickupDate) {
 		int safePage = Math.max(page, 0);
 		int safeSize = Math.max(size, 1);
-		List<TransferRequestDetails> allMatches = computeMatches(vendorId);
+		List<TransferRequestDetails> allMatches = getCachedOrComputeMatches(vendorId);
 
 		// Same "exact date, or today's Immediate bookings when filtering on today" semantics as
 		// the main rides feed (TransferRequestRepository#showRidestoVendorsPaged) — applied here,
@@ -265,6 +297,19 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		response.setPage(safePage);
 		response.setSize(safeSize);
 		return response;
+	}
+
+	// Cache sits in front of computeMatches, keyed per vendor — pagination/date-filtering above
+	// this stay untouched, they just operate on whichever list (fresh or cached) comes back.
+	private List<TransferRequestDetails> getCachedOrComputeMatches(Long vendorId) {
+		CachedMatches cached = matchesCache.get(vendorId);
+		long now = System.currentTimeMillis();
+		if (cached != null && (now - cached.computedAtMillis) < MATCHES_CACHE_TTL_MILLIS) {
+			return cached.matches;
+		}
+		List<TransferRequestDetails> fresh = computeMatches(vendorId);
+		matchesCache.put(vendorId, new CachedMatches(fresh, now));
+		return fresh;
 	}
 
 	// The actual matching computation, unpaginated — split out from
