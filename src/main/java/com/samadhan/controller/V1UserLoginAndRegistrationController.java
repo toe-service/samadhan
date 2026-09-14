@@ -252,6 +252,7 @@ public class V1UserLoginAndRegistrationController {
         vendorLoginResponse.setRefreshToken(refreshToken.getToken());
         vendorLoginResponse.setUserRole(UserRole.VENDOR.getValue());
         vendorLoginResponse.setExpiresIn(900000L);
+        vendorLoginResponse.setIsIndividual(transferv.getIsIndividual());
 
         ResponseObject<TransferVendorLoginResponse> response = ResponseUtil.populateResponseObject(
                 vendorLoginResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
