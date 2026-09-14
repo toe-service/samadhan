@@ -51,6 +51,32 @@ public final class GeoUtils {
 		return min;
 	}
 
+	// Thins a densely-sampled route polyline down to vertices at least minSpacingKm apart, keeping
+	// the first and last point regardless of spacing so the route's actual endpoints are never
+	// dropped. Google's polylines run one vertex every few meters along real roads, so checking
+	// every candidate against every vertex (minDistanceToPolylineKm, called once per candidate) is
+	// far denser than the matching tolerance needs — VendorAvailabilityServiceImpl uses this before
+	// that per-candidate loop, once per posting, to cut that cost by roughly the same factor as the
+	// spacing increase, at a worst-case added distance error of about minSpacingKm/2 (negligible
+	// against the 15km route-corridor tolerance it feeds into).
+	public static List<double[]> simplifyPolyline(List<double[]> points, double minSpacingKm) {
+		if (points.size() <= 2) {
+			return points;
+		}
+		List<double[]> simplified = new ArrayList<>();
+		double[] last = points.get(0);
+		simplified.add(last);
+		for (int i = 1; i < points.size() - 1; i++) {
+			double[] p = points.get(i);
+			if (haversineKm(last[0], last[1], p[0], p[1]) >= minSpacingKm) {
+				simplified.add(p);
+				last = p;
+			}
+		}
+		simplified.add(points.get(points.size() - 1));
+		return simplified;
+	}
+
 	// Standard Google encoded polyline algorithm (used by both the Routes API and the JS Maps SDK).
 	public static List<double[]> decodePolyline(String encoded) {
 		List<double[]> points = new ArrayList<>();
