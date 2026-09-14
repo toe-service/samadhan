@@ -938,6 +938,21 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 						|| r.getTransferStatus() == rideStatusEnum.VEHICLEASSIGNED
 				).collect(Collectors.toList());
 				break;
+			case "READYFORPICKUP":
+				filtered = dateFiltered.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.READYFORPICKUP).collect(Collectors.toList());
+				break;
+			case "HANDOVER":
+				filtered = dateFiltered.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.HANDOVER).collect(Collectors.toList());
+				break;
+			case "VEHICLEASSIGNED":
+				filtered = dateFiltered.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.VEHICLEASSIGNED).collect(Collectors.toList());
+				break;
+			case "YETTOBECOMPLETED":
+				filtered = dateFiltered.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.YETTOBECOMPLETED).collect(Collectors.toList());
+				break;
+			case "COMPLETED":
+				filtered = dateFiltered.stream().filter(r -> r.getTransferStatus() == rideStatusEnum.COMPLETED).collect(Collectors.toList());
+				break;
 			case "IMMEDIATE":
 				filtered = dateFiltered.stream().filter(r -> Boolean.TRUE.equals(r.getInstantBooking())).collect(Collectors.toList());
 				break;
