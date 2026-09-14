@@ -8,6 +8,7 @@ public class TransferVendorLoginResponse {
     private String refreshToken;
     private String userRole;
     private Long expiresIn;
+    private Boolean isIndividual;
 
     public Long getVendorId() {
         return vendorId;
@@ -63,5 +64,13 @@ public class TransferVendorLoginResponse {
 
     public void setExpiresIn(Long expiresIn) {
         this.expiresIn = expiresIn;
+    }
+
+    public Boolean getIsIndividual() {
+        return isIndividual;
+    }
+
+    public void setIsIndividual(Boolean isIndividual) {
+        this.isIndividual = isIndividual;
     }
 }
