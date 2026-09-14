@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,6 +56,22 @@ public class VendorAvailabilityController {
 		VendorAvailability availability = vendorAvailabilityService.postAvailability(request);
 		ResponseObject<VendorAvailability> success = ResponseUtil.populateResponseObject(
 				availability, "success", null);
+		return ResponseEntity.ok(success);
+	}
+
+	@PutMapping(value = "/availability/{vendorId}/{availabilityId}")
+	public ResponseEntity<ResponseObject<VendorAvailability>> updateAvailability(
+			@PathVariable Long vendorId, @PathVariable Long availabilityId,
+			@RequestBody VendorAvailabilityRequest request, HttpServletRequest httpRequest) {
+
+		Long tokenVendorId = extractVendorId(httpRequest);
+		if (tokenVendorId == null || !tokenVendorId.equals(vendorId)) {
+			throw new AccessDeniedException("You are not authorized to edit this vendor's availability posting");
+		}
+
+		VendorAvailability updated = vendorAvailabilityService.updateAvailability(vendorId, availabilityId, request);
+		ResponseObject<VendorAvailability> success = ResponseUtil.populateResponseObject(
+				updated, "success", null);
 		return ResponseEntity.ok(success);
 	}
 
