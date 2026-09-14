@@ -46,6 +46,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// starting point (e.g. an 8km same-city errand) shows up as "matches your posting" against a
 	// 500km cross-city trip, which is technically true by proximity but not a meaningful match.
 	private static final double MIN_RIDE_DISTANCE_RATIO = 0.20;
+	// A whole-vehicle request must need at least this fraction of the posting's vehicle capacity
+	// to count as a match — otherwise a scooter-sized booking (a few kg) shows up as "matches
+	// your posting" against a 20ft truck (10 tonnes), which passes the plain "big enough" check
+	// but is such a size mismatch it's not a meaningful match either.
+	private static final double MIN_VEHICLE_CAPACITY_RATIO = 0.30;
 
 	@Autowired
 	VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -261,29 +266,37 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
 				boolean nearWaypoint = distToWaypoint != null && distToWaypoint <= ENDPOINT_RADIUS_KM;
 
-				// Whole-vehicle jobs (BOOKVEHICLE, HOMESHIFTING) need a vehicle actually big
-				// enough to do them — same "requested type + next 2 larger by capacity" ladder
-				// already used for live push-notification eligibility (see
-				// TransferRequestServiceImpl#isEligiblePendingRide / FireBaseMessagingService),
-				// so a posting's vehicle choice means the same thing everywhere in the app. Skipped
-				// (no restriction) when either side's vehicle type isn't known — a "my whole fleet"
+				// Whole-vehicle jobs (BOOKVEHICLE, HOMESHIFTING) need a vehicle actually big enough
+				// to do them — compared directly by payload capacity (maxWeightKg), NOT the
+				// "requested + next 2 larger" ladder used for live push-notification eligibility
+				// (TransferRequestServiceImpl#isEligiblePendingRide / FireBaseMessagingService).
+				// That 2-step cap exists there to limit notification spam to nearby vehicles, not
+				// to define "can this vehicle physically do the job" — reusing it here wrongly
+				// excluded a real match (e.g. a 20ft Open truck, 10000kg, sits several steps past
+				// a 14ft Open request, 4000kg, once closer-capacity types like 17ft/15ft Open are
+				// counted, even though 20ft obviously can carry a 14ft-sized load). Any posting
+				// vehicle with capacity >= the request's is eligible, full stop. Skipped (no
+				// restriction) when either side's vehicle type isn't known — a "my whole fleet"
 				// posting, or a request with no recorded size — rather than guessing and wrongly
 				// excluding a real match. Package/car/bike (TRANSFERSERVICE) never needs the whole
-				// vehicle, so it's never size-gated. vehicleMatchPercent scores how far up the
-				// ladder the match is — exact size = 100%, each larger step down from there —
-				// null (excluded from the overall average) when the check doesn't apply.
+				// vehicle, so it's never size-gated. vehicleMatchPercent scores how closely sized
+				// the match is — exact capacity = 100%, dropping as the posting's vehicle is
+				// increasingly oversized for the job — null (excluded from the overall average)
+				// when the check doesn't apply.
 				boolean isWholeVehicleService = candidate.getServiceType() == serviceTypeEnum.BOOKVEHICLE
 						|| candidate.getServiceType() == serviceTypeEnum.HOMESHIFTING;
 				boolean vehicleSizeOk = true;
 				Integer vehicleMatchPercent = null;
 				if (isWholeVehicleService && postingVehicle != null && candidate.getVendorPickupVehicle() != null) {
-					List<VendorPickupVehicleEnum> eligible = VendorPickupVehicleEnum
-							.getRequestedAndLarger(candidate.getVendorPickupVehicle());
-					int stepIndex = eligible.indexOf(postingVehicle);
-					vehicleSizeOk = stepIndex >= 0;
-					if (vehicleSizeOk) {
-						vehicleMatchPercent = (int) Math.round(
-								100.0 * (1 - (double) stepIndex / (VendorPickupVehicleEnum.LARGER_ALTERNATIVES + 1)));
+					Integer requiredWeightKg = candidate.getVendorPickupVehicle().getMaxWeightKg();
+					Integer postingWeightKg = postingVehicle.getMaxWeightKg();
+					if (requiredWeightKg != null && postingWeightKg != null && postingWeightKg > 0) {
+						vehicleSizeOk = requiredWeightKg <= postingWeightKg
+								&& requiredWeightKg >= MIN_VEHICLE_CAPACITY_RATIO * postingWeightKg;
+						if (vehicleSizeOk) {
+							vehicleMatchPercent = (int) Math.round(
+									100.0 * Math.min(1.0, (double) requiredWeightKg / postingWeightKg));
+						}
 					}
 				}
 
