@@ -3,6 +3,7 @@ package com.samadhan.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.samadhan.dto.GeoPoint;
+import com.samadhan.dto.MatchingRequestsResponse;
 import com.samadhan.dto.RouteRequest;
 import com.samadhan.dto.RouteResponse;
 import com.samadhan.dto.RouteWaypoint;
@@ -167,7 +169,26 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// keeps its RETURN_TRIP tag over POSTING_ROUTE (a vendor-confirmed return trip is a stronger
 	// signal than incidental route proximity), or its closest match within the same tag.
 	@Override
-	public List<TransferRequestDetails> getRequestsMatchingAvailability(Long vendorId) {
+	public MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size) {
+		int safePage = Math.max(page, 0);
+		int safeSize = Math.max(size, 1);
+		List<TransferRequestDetails> allMatches = computeMatches(vendorId);
+
+		int fromIndex = Math.min(safePage * safeSize, allMatches.size());
+		int toIndex = Math.min(fromIndex + safeSize, allMatches.size());
+
+		MatchingRequestsResponse response = new MatchingRequestsResponse();
+		response.setMatches(allMatches.subList(fromIndex, toIndex));
+		response.setTotalElements(allMatches.size());
+		response.setTotalPages((int) Math.ceil(allMatches.size() / (double) safeSize));
+		response.setPage(safePage);
+		response.setSize(safeSize);
+		return response;
+	}
+
+	// The actual matching computation, unpaginated — split out from
+	// getRequestsMatchingAvailability so pagination is a thin, separate concern layered on top.
+	private List<TransferRequestDetails> computeMatches(Long vendorId) {
 		List<VendorAvailability> postings =
 				vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
 
@@ -370,7 +391,15 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			}
 		}
 
-		return new ArrayList<>(bestMatches.values());
+		// bestMatches is a LinkedHashMap, so without this its iteration order is just "whichever
+		// posting/candidate happened to be processed first" — fine within a single posting (the
+		// candidate query is itself latest-first) but not guaranteed once results from multiple
+		// postings interleave. Sorting explicitly guarantees latest-first regardless.
+		List<TransferRequestDetails> matches = new ArrayList<>(bestMatches.values());
+		matches.sort(Comparator.comparing(
+				TransferRequestDetails::getRequestCreatedDate,
+				Comparator.nullsLast(Comparator.reverseOrder())));
+		return matches;
 	}
 
 	private int percentFromDistance(double distanceKm, double radiusKm) {
