@@ -510,25 +510,22 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	long countByVehicleId(@Param("vehicleId") Long vehicleId);
 
 	// Backhaul matching candidates: PENDING, unassigned requests picking up on or before the
-	// posting's expected_date (any earlier pickup date matches too, including "Immediate"/today
-	// ones — not just the exact date) and within a coarse lat/lng bounding box around a vendor
-	// availability posting's from/to points (plus buffer). This is a cheap SQL prefilter only —
-	// VendorAvailabilityServiceImpl does the precise endpoint-radius and route-corridor distance
-	// checks in Java against these candidates, since neither straight-line-vs-driving-route
-	// matching nor polyline distance can be expressed in a native query.
+	// latest expected_date across a vendor's active postings (any earlier pickup date matches
+	// too, including "Immediate"/today ones — not just the exact date). Fetched ONCE per
+	// VendorAvailabilityServiceImpl#computeMatches call and reused across all of that vendor's
+	// postings, with the per-posting lat/lng bounding box and precise endpoint-radius/route-
+	// corridor distance checks applied in Java against this shared pool — source_latitude/
+	// longitude are TEXT columns, so a CAST/TRIM-based bounding box in SQL can't use an index and
+	// is effectively a full scan; running that once per posting (the original approach) multiplied
+	// an already-expensive scan by the vendor's active-posting count.
 	@Query(value =
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
 	        "AND trd.pickup_date <= :maxPickupDate " +
 	        "AND trd.source_latitude IS NOT NULL AND trd.source_longitude IS NOT NULL " +
-	        "AND CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8)) BETWEEN :minLat AND :maxLat " +
-	        "AND CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)) BETWEEN :minLng AND :maxLng " +
 	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
-	List<TransferRequestDetails> findPendingUnassignedInBoundingBox(
-	        @Param("maxPickupDate") LocalDate maxPickupDate,
-	        @Param("minLat") double minLat, @Param("maxLat") double maxLat,
-	        @Param("minLng") double minLng, @Param("maxLng") double maxLng);
+	List<TransferRequestDetails> findPendingUnassignedUpTo(@Param("maxPickupDate") LocalDate maxPickupDate);
 
 }

@@ -1,5 +1,6 @@
 package com.samadhan.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.samadhan.dto.MatchingRequestsResponse;
@@ -21,7 +22,8 @@ public interface VendorAvailabilityService {
 	// (tagged RETURN_TRIP) — see VendorAvailabilityServiceImpl.getRequestsMatchingAvailability.
 	// matchType/matchDistanceKm are transient fields set on each returned TransferRequestDetails.
 	// The full match set is computed every call (it's a Java-side geo computation, not a plain
-	// DB query — see the impl), then paginated in memory, same pattern as
-	// TransferRequestServiceImpl#buildPagedResponseInMemory.
-	MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size);
+	// DB query — see the impl), optionally narrowed by pickupDate (same semantics as the main
+	// rides feed — exact date match, or today's Immediate bookings when filtering on today),
+	// then paginated in memory, same pattern as TransferRequestServiceImpl#buildPagedResponseInMemory.
+	MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size, LocalDate pickupDate);
 }

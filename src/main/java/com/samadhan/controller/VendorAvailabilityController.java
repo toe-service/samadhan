@@ -1,5 +1,6 @@
 package com.samadhan.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -99,6 +100,7 @@ public class VendorAvailabilityController {
 			@PathVariable Long vendorId,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(required = false) String pickupDate,
 			HttpServletRequest httpRequest) {
 
 		Long tokenVendorId = extractVendorId(httpRequest);
@@ -106,7 +108,10 @@ public class VendorAvailabilityController {
 			throw new AccessDeniedException("You are not authorized to view this vendor's matching requests");
 		}
 
-		MatchingRequestsResponse matches = vendorAvailabilityService.getRequestsMatchingAvailability(vendorId, page, size);
+		LocalDate parsedPickupDate = (pickupDate == null || pickupDate.isBlank())
+				? null : LocalDate.parse(pickupDate.trim());
+		MatchingRequestsResponse matches = vendorAvailabilityService.getRequestsMatchingAvailability(
+				vendorId, page, size, parsedPickupDate);
 		ResponseObject<MatchingRequestsResponse> success = ResponseUtil.populateResponseObject(
 				matches, "success", null);
 		return ResponseEntity.ok(success);

@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,10 +233,22 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// keeps its RETURN_TRIP tag over POSTING_ROUTE (a vendor-confirmed return trip is a stronger
 	// signal than incidental route proximity), or its closest match within the same tag.
 	@Override
-	public MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size) {
+	public MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size, LocalDate pickupDate) {
 		int safePage = Math.max(page, 0);
 		int safeSize = Math.max(size, 1);
 		List<TransferRequestDetails> allMatches = computeMatches(vendorId);
+
+		// Same "exact date, or today's Immediate bookings when filtering on today" semantics as
+		// the main rides feed (TransferRequestRepository#showRidestoVendorsPaged) — applied here,
+		// before pagination, so totalElements/totalPages reflect the filtered count rather than
+		// the filter being applied only to whichever page happened to come back.
+		if (pickupDate != null) {
+			boolean isToday = pickupDate.isEqual(LocalDate.now());
+			allMatches = allMatches.stream()
+					.filter(m -> pickupDate.equals(m.getPickupDate())
+							|| (isToday && Boolean.TRUE.equals(m.getInstantBooking())))
+					.collect(Collectors.toList());
+		}
 
 		int fromIndex = Math.min(safePage * safeSize, allMatches.size());
 		int toIndex = Math.min(fromIndex + safeSize, allMatches.size());
@@ -254,6 +267,23 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	private List<TransferRequestDetails> computeMatches(Long vendorId) {
 		List<VendorAvailability> postings =
 				vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
+		if (postings.isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		// Fetched once for all of this vendor's postings, not once per posting — the previous
+		// per-posting bounding-box query (findPendingUnassignedInBoundingBox) can't use an index
+		// (source_latitude/longitude are TEXT, so its WHERE clause needs a CAST/TRIM per row) and
+		// is effectively a full scan of every pending request. Running that once-per-posting
+		// multiplied an already-expensive scan by the vendor's active-posting count. The bounding
+		// box itself is now applied per-posting in Java below, against this shared pool.
+		LocalDate latestExpectedDate = postings.stream()
+				.map(VendorAvailability::getExpectedDate)
+				.filter(java.util.Objects::nonNull)
+				.max(Comparator.naturalOrder())
+				.orElse(LocalDate.now());
+		List<TransferRequestDetails> candidatePool =
+				transferRequestRepository.findPendingUnassignedUpTo(latestExpectedDate);
 
 		Map<Long, TransferRequestDetails> bestMatches = new LinkedHashMap<>();
 
@@ -289,10 +319,27 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				maxLng = Math.max(maxLng, wLng);
 			}
 
-			List<TransferRequestDetails> candidates = transferRequestRepository.findPendingUnassignedInBoundingBox(
-					posting.getExpectedDate(),
-					minLat - BOUNDING_BOX_BUFFER_DEG, maxLat + BOUNDING_BOX_BUFFER_DEG,
-					minLng - BOUNDING_BOX_BUFFER_DEG, maxLng + BOUNDING_BOX_BUFFER_DEG);
+			double boxMinLat = minLat - BOUNDING_BOX_BUFFER_DEG;
+			double boxMaxLat = maxLat + BOUNDING_BOX_BUFFER_DEG;
+			double boxMinLng = minLng - BOUNDING_BOX_BUFFER_DEG;
+			double boxMaxLng = maxLng + BOUNDING_BOX_BUFFER_DEG;
+			LocalDate postingExpectedDate = posting.getExpectedDate();
+			List<TransferRequestDetails> candidates = new ArrayList<>();
+			for (TransferRequestDetails c : candidatePool) {
+				if (postingExpectedDate != null && c.getPickupDate() != null
+						&& c.getPickupDate().isAfter(postingExpectedDate)) {
+					continue;
+				}
+				Double cLat = GeoUtils.parseCoord(c.getSourceLatitude());
+				Double cLng = GeoUtils.parseCoord(c.getSourceLongitude());
+				if (cLat == null || cLng == null) {
+					continue;
+				}
+				if (cLat < boxMinLat || cLat > boxMaxLat || cLng < boxMinLng || cLng > boxMaxLng) {
+					continue;
+				}
+				candidates.add(c);
+			}
 
 			// Direction-agnostic — a straight-line distance to the nearest point on this road
 			// corridor is the same whether the vendor is driving it from->to or to->from, so the
