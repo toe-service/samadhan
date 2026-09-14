@@ -42,6 +42,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	private static final double ENDPOINT_RADIUS_KM = 40.0;
 	// Corridor buffer for treating a pickup as "along the way" on the from->to driving route.
 	private static final double ROUTE_CORRIDOR_KM = 15.0;
+	// Minimum spacing between kept route-polyline vertices for the corridor distance check below —
+	// Google's polylines run a vertex every few meters, and checking every match candidate against
+	// every one of those is the dominant cost of computeMatches. Thinned to this spacing (still far
+	// tighter than ROUTE_CORRIDOR_KM, so no meaningful accuracy loss) via GeoUtils.simplifyPolyline.
+	private static final double ROUTE_SIMPLIFY_SPACING_KM = 2.0;
 	// Bounding-box padding around the posting's endpoints, applied before precise distance checks.
 	private static final double BOUNDING_BOX_BUFFER_DEG = 0.5;
 	// A candidate's own pickup->drop distance must be at least this fraction of the posting's
@@ -343,8 +348,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 			// Direction-agnostic — a straight-line distance to the nearest point on this road
 			// corridor is the same whether the vendor is driving it from->to or to->from, so the
-			// same decoded polyline serves both legs below.
-			List<double[]> routePoints = GeoUtils.decodePolyline(posting.getRoutePolyline());
+			// same decoded polyline serves both legs below. Simplified once per posting (not per
+			// candidate) so the per-candidate distance check further down isn't paying for Google's
+			// full vertex density.
+			List<double[]> routePoints = GeoUtils.simplifyPolyline(
+					GeoUtils.decodePolyline(posting.getRoutePolyline()), ROUTE_SIMPLIFY_SPACING_KM);
 
 			// The specific vehicle this posting is for (not vehicleCategory — that's the coarser
 			// SMALL_VEHICLE/OPEN_BODY_TRUCK/etc. grouping; vehicleType holds the exact
