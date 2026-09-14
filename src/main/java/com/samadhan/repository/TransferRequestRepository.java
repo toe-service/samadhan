@@ -259,6 +259,11 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
 	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
+	        "  OR (:statusFilter = 'READYFORPICKUP' AND trd.transfer_status = 3) " +
+	        "  OR (:statusFilter = 'HANDOVER' AND trd.transfer_status = 4) " +
+	        "  OR (:statusFilter = 'VEHICLEASSIGNED' AND trd.transfer_status = 5) " +
+	        "  OR (:statusFilter = 'YETTOBECOMPLETED' AND trd.transfer_status = 7) " +
+	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
 	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
 	        ") " +
 	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate OR (:pickupDate = CURDATE() AND trd.instant_booking = 1) ) " +
@@ -315,6 +320,11 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
 	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
+	        "  OR (:statusFilter = 'READYFORPICKUP' AND trd.transfer_status = 3) " +
+	        "  OR (:statusFilter = 'HANDOVER' AND trd.transfer_status = 4) " +
+	        "  OR (:statusFilter = 'VEHICLEASSIGNED' AND trd.transfer_status = 5) " +
+	        "  OR (:statusFilter = 'YETTOBECOMPLETED' AND trd.transfer_status = 7) " +
+	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
 	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
 	        ") " +
 	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate OR (:pickupDate = CURDATE() AND trd.instant_booking = 1) )",
