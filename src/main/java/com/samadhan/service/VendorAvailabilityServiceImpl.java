@@ -45,9 +45,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	private static final double ROUTE_CORRIDOR_KM = 15.0;
 	// Minimum spacing between kept route-polyline vertices for the corridor distance check below —
 	// Google's polylines run a vertex every few meters, and checking every match candidate against
-	// every one of those is the dominant cost of computeMatches. Thinned to this spacing (still far
-	// tighter than ROUTE_CORRIDOR_KM, so no meaningful accuracy loss) via GeoUtils.simplifyPolyline.
-	private static final double ROUTE_SIMPLIFY_SPACING_KM = 2.0;
+	// every one of those is the dominant cost of computeMatches. Thinned to this spacing via
+	// GeoUtils.simplifyPolyline; worst-case added distance error is roughly half this value (up to
+	// the full value on a sharply curving stretch) — at 4km that's ~13-27% of ROUTE_CORRIDOR_KM's
+	// 15km tolerance, still well short of it.
+	private static final double ROUTE_SIMPLIFY_SPACING_KM = 4.0;
 	// Bounding-box padding around the posting's endpoints, applied before precise distance checks.
 	private static final double BOUNDING_BOX_BUFFER_DEG = 0.5;
 	// A candidate's own pickup->drop distance must be at least this fraction of the posting's
