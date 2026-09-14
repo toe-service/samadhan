@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.dto.MatchingRequestsResponse;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.request.VendorAvailabilityRequest;
 import com.samadhan.response.ResponseObject;
@@ -77,16 +78,19 @@ public class VendorAvailabilityController {
 	// at the posting's own starting point (tagged RETURN_TRIP vs POSTING_ROUTE). Purely additive —
 	// doesn't touch or replace the vendor's normal incoming-requests feed.
 	@GetMapping(value = "/availability/{vendorId}/matching-requests")
-	public ResponseEntity<ResponseObject<List<TransferRequestDetails>>> getMatchingRequests(
-			@PathVariable Long vendorId, HttpServletRequest httpRequest) {
+	public ResponseEntity<ResponseObject<MatchingRequestsResponse>> getMatchingRequests(
+			@PathVariable Long vendorId,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size,
+			HttpServletRequest httpRequest) {
 
 		Long tokenVendorId = extractVendorId(httpRequest);
 		if (tokenVendorId == null || !tokenVendorId.equals(vendorId)) {
 			throw new AccessDeniedException("You are not authorized to view this vendor's matching requests");
 		}
 
-		List<TransferRequestDetails> matches = vendorAvailabilityService.getRequestsMatchingAvailability(vendorId);
-		ResponseObject<List<TransferRequestDetails>> success = ResponseUtil.populateResponseObject(
+		MatchingRequestsResponse matches = vendorAvailabilityService.getRequestsMatchingAvailability(vendorId, page, size);
+		ResponseObject<MatchingRequestsResponse> success = ResponseUtil.populateResponseObject(
 				matches, "success", null);
 		return ResponseEntity.ok(success);
 	}

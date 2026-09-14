@@ -2,7 +2,7 @@ package com.samadhan.service;
 
 import java.util.List;
 
-import com.samadhan.entity.TransferRequestDetails;
+import com.samadhan.dto.MatchingRequestsResponse;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.request.VendorAvailabilityRequest;
 
@@ -18,5 +18,8 @@ public interface VendorAvailabilityService {
 	// driving route (tagged matchType=POSTING_ROUTE), or near the posting's own starting point
 	// (tagged RETURN_TRIP) — see VendorAvailabilityServiceImpl.getRequestsMatchingAvailability.
 	// matchType/matchDistanceKm are transient fields set on each returned TransferRequestDetails.
-	List<TransferRequestDetails> getRequestsMatchingAvailability(Long vendorId);
+	// The full match set is computed every call (it's a Java-side geo computation, not a plain
+	// DB query — see the impl), then paginated in memory, same pattern as
+	// TransferRequestServiceImpl#buildPagedResponseInMemory.
+	MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size);
 }
