@@ -41,6 +41,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	private static final double ROUTE_CORRIDOR_KM = 15.0;
 	// Bounding-box padding around the posting's endpoints, applied before precise distance checks.
 	private static final double BOUNDING_BOX_BUFFER_DEG = 0.5;
+	// A candidate's own pickup->drop distance must be at least this fraction of the posting's
+	// total from->to distance to count as a match — otherwise a tiny local hop near the posting's
+	// starting point (e.g. an 8km same-city errand) shows up as "matches your posting" against a
+	// 500km cross-city trip, which is technically true by proximity but not a meaningful match.
+	private static final double MIN_RIDE_DISTANCE_RATIO = 0.20;
 
 	@Autowired
 	VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -219,6 +224,12 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				}
 			}
 
+			// Straight-line, not the driving-route distance — always available regardless of
+			// whether routePolyline was successfully computed (see postAvailability), and only
+			// used as the yardstick for MIN_RIDE_DISTANCE_RATIO, not for precise distance checks.
+			Double postingDistanceKm = (fromLat != null && fromLng != null)
+					? GeoUtils.haversineKm(fromLat, fromLng, toLat, toLng) : null;
+
 			for (TransferRequestDetails candidate : candidates) {
 				Double srcLat = GeoUtils.parseCoord(candidate.getSourceLatitude());
 				Double srcLng = GeoUtils.parseCoord(candidate.getSourceLongitude());
@@ -258,17 +269,36 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				// (no restriction) when either side's vehicle type isn't known — a "my whole fleet"
 				// posting, or a request with no recorded size — rather than guessing and wrongly
 				// excluding a real match. Package/car/bike (TRANSFERSERVICE) never needs the whole
-				// vehicle, so it's never size-gated.
+				// vehicle, so it's never size-gated. vehicleMatchPercent scores how far up the
+				// ladder the match is — exact size = 100%, each larger step down from there —
+				// null (excluded from the overall average) when the check doesn't apply.
 				boolean isWholeVehicleService = candidate.getServiceType() == serviceTypeEnum.BOOKVEHICLE
 						|| candidate.getServiceType() == serviceTypeEnum.HOMESHIFTING;
 				boolean vehicleSizeOk = true;
+				Integer vehicleMatchPercent = null;
 				if (isWholeVehicleService && postingVehicle != null && candidate.getVendorPickupVehicle() != null) {
-					vehicleSizeOk = VendorPickupVehicleEnum
-							.getRequestedAndLarger(candidate.getVendorPickupVehicle())
-							.contains(postingVehicle);
+					List<VendorPickupVehicleEnum> eligible = VendorPickupVehicleEnum
+							.getRequestedAndLarger(candidate.getVendorPickupVehicle());
+					int stepIndex = eligible.indexOf(postingVehicle);
+					vehicleSizeOk = stepIndex >= 0;
+					if (vehicleSizeOk) {
+						vehicleMatchPercent = (int) Math.round(
+								100.0 * (1 - (double) stepIndex / (VendorPickupVehicleEnum.LARGER_ALTERNATIVES + 1)));
+					}
 				}
 
-				if (vehicleSizeOk && (nearOrigin || nearDest || onRoute || nearWaypoint)) {
+				// Same permissive fallback as above — skipped (no restriction, and excluded from
+				// the percent average) when either distance is unknown, rather than guessing and
+				// wrongly dropping a real match over missing data.
+				boolean rideDistanceOk = true;
+				Integer distanceRatioPercent = null;
+				if (postingDistanceKm != null && postingDistanceKm > 0 && candidate.getDistanceKm() != null) {
+					double ratio = candidate.getDistanceKm() / postingDistanceKm;
+					rideDistanceOk = ratio >= MIN_RIDE_DISTANCE_RATIO;
+					distanceRatioPercent = (int) Math.round(Math.max(0, Math.min(100, ratio * 100.0)));
+				}
+
+				if (vehicleSizeOk && rideDistanceOk && (nearOrigin || nearDest || onRoute || nearWaypoint)) {
 					// Closest of whichever reasons actually matched, each scored against its own
 					// radius.
 					double bestDistanceKm = Double.MAX_VALUE;
@@ -289,14 +319,16 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 						bestDistanceKm = distToRoute;
 						bestRadiusKm = ROUTE_CORRIDOR_KM;
 					}
-					considerMatch(bestMatches, candidate, "POSTING_ROUTE", bestDistanceKm, percentFromDistance(bestDistanceKm, bestRadiusKm));
+					int overallPercent = averagePercent(
+							percentFromDistance(bestDistanceKm, bestRadiusKm), distanceRatioPercent, vehicleMatchPercent);
+					considerMatch(bestMatches, candidate, "POSTING_ROUTE", bestDistanceKm, overallPercent);
 				}
 
 				// ---- Return leg (opt-in only): pickup near/along the same corridor toward the
 				// posting's destination (or near a waypoint on it), but this time the candidate
 				// must also drop back off near the posting's own starting point — an actual
 				// to->from job, not just any pickup near the destination.
-				if (vehicleSizeOk && posting.isReturnTrip() && fromLat != null && fromLng != null
+				if (vehicleSizeOk && rideDistanceOk && posting.isReturnTrip() && fromLat != null && fromLng != null
 						&& (nearDest || onRoute || nearWaypoint)) {
 					Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
 					Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
@@ -316,7 +348,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 							int pickupPercent = percentFromDistance(pickupDistanceKm, pickupRadiusKm);
 							int dropPercent = percentFromDistance(distDropToOrigin, ENDPOINT_RADIUS_KM);
 							double combinedDistanceKm = (pickupDistanceKm + distDropToOrigin) / 2.0;
-							int combinedPercent = (pickupPercent + dropPercent) / 2;
+							int combinedPercent = averagePercent(
+									pickupPercent, dropPercent, distanceRatioPercent, vehicleMatchPercent);
 							considerMatch(bestMatches, candidate, "RETURN_TRIP", combinedDistanceKm, combinedPercent);
 						}
 					}
@@ -329,6 +362,21 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 	private int percentFromDistance(double distanceKm, double radiusKm) {
 		return (int) Math.round(Math.max(0, Math.min(100, 100.0 * (1 - distanceKm / radiusKm))));
+	}
+
+	// Averages whichever score components actually apply — proximity is always present, distance-
+	// ratio and vehicle-size are null (and skipped) whenever that check wasn't applicable, rather
+	// than dragging the average down with a meaningless default.
+	private int averagePercent(Integer... components) {
+		int sum = 0;
+		int count = 0;
+		for (Integer c : components) {
+			if (c != null) {
+				sum += c;
+				count++;
+			}
+		}
+		return count == 0 ? 0 : (int) Math.round((double) sum / count);
 	}
 
 	private void considerMatch(Map<Long, TransferRequestDetails> bestMatches, TransferRequestDetails candidate,
