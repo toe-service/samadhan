@@ -144,6 +144,69 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	}
 
 	@Override
+	public VendorAvailability updateAvailability(Long vendorId, Long availabilityId, VendorAvailabilityRequest request) {
+		if (request.toLocation == null || request.toLocation.trim().isEmpty()) {
+			throw new IllegalArgumentException("toLocation is required");
+		}
+		if (request.expectedDate == null) {
+			throw new IllegalArgumentException("expectedDate is required");
+		}
+
+		VendorAvailability availability = vendorAvailabilityRepository.findById(availabilityId)
+				.orElseThrow(() -> new ResourceNotFoundException("Availability not found: " + availabilityId));
+
+		if (availability.getTransferVendor() == null || !vendorId.equals(availability.getTransferVendor().getId())) {
+			throw new AccessDeniedException("You are not authorized to edit this availability posting");
+		}
+
+		availability.setFromLocation(request.fromLocation);
+		availability.setFromLatitude(request.fromLatitude);
+		availability.setFromLongitude(request.fromLongitude);
+		availability.setToLocation(request.toLocation);
+		availability.setToLatitude(request.toLatitude);
+		availability.setToLongitude(request.toLongitude);
+		availability.setExpectedDate(request.expectedDate);
+		availability.setVehicleType(request.vehicleType);
+		availability.setVehicleCategory(request.vehicleCategory);
+		availability.setVehicleNumber(request.vehicleNumber);
+		availability.setReturnTrip(request.returnTrip != null && request.returnTrip);
+		availability.setWaypoints(request.waypoints);
+
+		Double fromLat = GeoUtils.parseCoord(request.fromLatitude);
+		Double fromLng = GeoUtils.parseCoord(request.fromLongitude);
+		Double toLat = GeoUtils.parseCoord(request.toLatitude);
+		Double toLng = GeoUtils.parseCoord(request.toLongitude);
+
+		List<GeoPoint> routeWaypoints = new ArrayList<>();
+		if (request.waypoints != null) {
+			for (RouteWaypoint wp : request.waypoints) {
+				Double wLat = GeoUtils.parseCoord(wp.getLatitude());
+				Double wLng = GeoUtils.parseCoord(wp.getLongitude());
+				if (wLat != null && wLng != null) {
+					routeWaypoints.add(new GeoPoint(wLat, wLng));
+				}
+			}
+		}
+
+		// Route/waypoints may have changed, so the cached polyline is re-derived rather than kept
+		// stale from the pre-edit route — same best-effort behavior as postAvailability if the
+		// route call fails.
+		if (fromLat != null && fromLng != null && toLat != null && toLng != null) {
+			try {
+				RouteResponse route = routeService.getRoute(new RouteRequest(
+						new GeoPoint(fromLat, fromLng), new GeoPoint(toLat, toLng), "DRIVE", false, routeWaypoints));
+				availability.setRoutePolyline(route.getPolyline());
+			} catch (Exception ex) {
+				log.warn("Could not compute route for vendor availability {}: {}", availability.getId(), ex.getMessage());
+			}
+		} else {
+			availability.setRoutePolyline(null);
+		}
+
+		return vendorAvailabilityRepository.save(availability);
+	}
+
+	@Override
 	public List<VendorAvailability> getActiveForVendor(Long vendorId) {
 		return vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
 	}

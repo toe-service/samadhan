@@ -10,6 +10,8 @@ public interface VendorAvailabilityService {
 
 	VendorAvailability postAvailability(VendorAvailabilityRequest request);
 
+	VendorAvailability updateAvailability(Long vendorId, Long availabilityId, VendorAvailabilityRequest request);
+
 	List<VendorAvailability> getActiveForVendor(Long vendorId);
 
 	void cancelAvailability(Long vendorId, Long availabilityId);
