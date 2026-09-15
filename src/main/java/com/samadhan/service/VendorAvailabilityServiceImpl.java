@@ -173,10 +173,19 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 						new GeoPoint(fromLat, fromLng), new GeoPoint(toLat, toLng), "DRIVE", false, routeWaypoints));
 				saved.setRoutePolyline(route.getPolyline());
 				saved = vendorAvailabilityRepository.save(saved);
+				log.info("Computed route polyline for vendor availability {} ({} chars)",
+						saved.getId(), route.getPolyline() == null ? 0 : route.getPolyline().length());
 			} catch (Exception ex) {
 				// Best-effort: without a cached route, matching still works via endpoint-radius checks.
 				log.warn("Could not compute route for vendor availability {}: {}", saved.getId(), ex.getMessage());
 			}
+		} else {
+			// Logged at info (not warn) — this is the frontend not having resolved coordinates for
+			// from/to yet (e.g. typed but no suggestion selected), not a failure on this side, but
+			// still worth a trace since it's the other reason (besides the try/catch above) a
+			// posting can end up with no route_polyline.
+			log.info("Skipping route computation for vendor availability {} — fromLat/fromLng/toLat/toLng "
+					+ "not all resolved (from=[{},{}], to=[{},{}])", saved.getId(), fromLat, fromLng, toLat, toLng);
 		}
 
 		// A new posting changes this vendor's own match set immediately — recomputed and persisted
@@ -241,11 +250,15 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				RouteResponse route = routeService.getRoute(new RouteRequest(
 						new GeoPoint(fromLat, fromLng), new GeoPoint(toLat, toLng), "DRIVE", false, routeWaypoints));
 				availability.setRoutePolyline(route.getPolyline());
+				log.info("Computed route polyline for vendor availability {} ({} chars)",
+						availability.getId(), route.getPolyline() == null ? 0 : route.getPolyline().length());
 			} catch (Exception ex) {
 				log.warn("Could not compute route for vendor availability {}: {}", availability.getId(), ex.getMessage());
 			}
 		} else {
 			availability.setRoutePolyline(null);
+			log.info("Skipping route computation for vendor availability {} — fromLat/fromLng/toLat/toLng "
+					+ "not all resolved (from=[{},{}], to=[{},{}])", availability.getId(), fromLat, fromLng, toLat, toLng);
 		}
 
 		VendorAvailability saved = vendorAvailabilityRepository.save(availability);
@@ -431,6 +444,15 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
 			return;
 		}
+		// A request whose pickup date has already passed shouldn't be suggested as a match for a
+		// future posting just because it's still sitting in PENDING/unassigned — the date check
+		// below only bounds how far in the FUTURE a candidate can be relative to the posting
+		// (isAfter(expectedDate)), with no lower bound at all, so a months-old stale request could
+		// otherwise keep matching indefinitely.
+		if (candidate.getPickupDate() != null && candidate.getPickupDate().isBefore(LocalDate.now())) {
+			vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
+			return;
+		}
 
 		List<VendorAvailability> postings = vendorAvailabilityRepository.findByActiveTrueOrderByExpectedDateAsc();
 		Map<Long, MatchOutcome> bestByVendorId = new LinkedHashMap<>();
@@ -596,6 +618,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	}
 
 	private boolean withinDateAndBox(TransferRequestDetails candidate, PostingContext ctx) {
+		// Excludes stale requests whose pickup date has already passed — see the equivalent check
+		// in recomputeForRequest for why this lower bound is needed alongside the upper one below.
+		if (candidate.getPickupDate() != null && candidate.getPickupDate().isBefore(LocalDate.now())) {
+			return false;
+		}
 		if (ctx.expectedDate != null && candidate.getPickupDate() != null
 				&& candidate.getPickupDate().isAfter(ctx.expectedDate)) {
 			return false;
@@ -644,6 +671,34 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
 		boolean nearWaypoint = distToWaypoint != null && distToWaypoint <= ENDPOINT_RADIUS_KM;
 
+		// Candidate's own pickup->drop location, parsed once here and reused below by both the
+		// forward-direction gate and the return-trip check.
+		Double candidateDestLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
+		Double candidateDestLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
+
+		// A forward match requires the candidate to actually be heading the same general way as
+		// the posting, not just picking up somewhere near it — otherwise a pickup right at the
+		// posting's destination (nearDest) would match even if the job then heads off in a
+		// completely different direction (e.g. a "Noida -> Agra" job matching a "Lucknow -> Noida"
+		// posting just because it starts in Noida, when it's actually the vendor's OWN drop-off
+		// point and Agra isn't on the way anywhere near Lucknow). Measured as the dot product of
+		// the posting's from->to vector and the candidate's own pickup->drop vector: positive means
+		// broadly the same direction, negative means the candidate runs backward against the
+		// posting's direction. Skipped (no restriction) when the posting has no fromLocation (no
+		// direction to compare against) or the candidate's destination isn't known — same
+		// permissive-fallback convention as the other checks in this method. Not applied to the
+		// return-trip check below, which is intentionally the reverse direction and already has
+		// its own explicit "drops back near the origin" requirement.
+		boolean directionOk = true;
+		if (ctx.fromLat != null && ctx.fromLng != null && candidateDestLat != null && candidateDestLng != null) {
+			double postingVectorLat = ctx.toLat - ctx.fromLat;
+			double postingVectorLng = ctx.toLng - ctx.fromLng;
+			double candidateVectorLat = candidateDestLat - srcLat;
+			double candidateVectorLng = candidateDestLng - srcLng;
+			double dot = postingVectorLat * candidateVectorLat + postingVectorLng * candidateVectorLng;
+			directionOk = dot >= 0;
+		}
+
 		// Whole-vehicle jobs (BOOKVEHICLE, HOMESHIFTING) need a vehicle actually big enough to do
 		// them — compared directly by payload capacity (maxWeightKg). Skipped (no restriction)
 		// when either side's vehicle type isn't known — a "my whole fleet" posting, or a request
@@ -682,7 +737,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		List<MatchOutcome> outcomes = new ArrayList<>(2);
 
-		if (vehicleSizeOk && rideDistanceOk && (nearOrigin || nearDest || onRoute || nearWaypoint)) {
+		if (vehicleSizeOk && rideDistanceOk && directionOk && (nearOrigin || nearDest || onRoute || nearWaypoint)) {
 			// Closest of whichever reasons actually matched, each scored against its own radius.
 			double bestDistanceKm = Double.MAX_VALUE;
 			double bestRadiusKm = ENDPOINT_RADIUS_KM;
@@ -713,10 +768,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		// near the destination.
 		if (vehicleSizeOk && rideDistanceOk && posting.isReturnTrip() && ctx.fromLat != null && ctx.fromLng != null
 				&& (nearDest || onRoute || nearWaypoint)) {
-			Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
-			Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
-			if (destLat != null && destLng != null) {
-				double distDropToOrigin = GeoUtils.haversineKm(destLat, destLng, ctx.fromLat, ctx.fromLng);
+			if (candidateDestLat != null && candidateDestLng != null) {
+				double distDropToOrigin = GeoUtils.haversineKm(candidateDestLat, candidateDestLng, ctx.fromLat, ctx.fromLng);
 				if (distDropToOrigin <= ENDPOINT_RADIUS_KM) {
 					double pickupDistanceKm = distToDest;
 					double pickupRadiusKm = ENDPOINT_RADIUS_KM;
