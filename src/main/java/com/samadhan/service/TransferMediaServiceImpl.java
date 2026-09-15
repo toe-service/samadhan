@@ -50,7 +50,7 @@ public class TransferMediaServiceImpl implements TransferMediaService {
         String storageKey = String.format("transfers/%d/%d_%s", transferId, System.currentTimeMillis(), originalFilename);
 
         try {
-     //       storageService.uploadFile(storageKey, file.getInputStream(), file.getSize(), file.getContentType());
+            storageService.uploadFile(storageKey, file.getInputStream(), file.getSize(), file.getContentType());
         } catch (Exception e) {
             log.error("Failed to upload file to storage, saving media record without file", e);
         }
@@ -77,7 +77,7 @@ public class TransferMediaServiceImpl implements TransferMediaService {
         for (TransferMedia media : mediaList) {
             Map<String, Object> mediaMap = new HashMap<>();
             mediaMap.put("id", media.getId());
-          //  mediaMap.put("url", storageService.generatePresignedUrl(media.getStorageKey()));
+            mediaMap.put("url", storageService.generatePresignedUrl(media.getStorageKey()));
 
             if (media.getMediaType() == MediaType.PHOTO) {
                 photos.add(mediaMap);
