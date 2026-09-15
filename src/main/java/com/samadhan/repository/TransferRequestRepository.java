@@ -202,8 +202,14 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	// Same eligibility/business-rule filtering as showRidestoVendors above, but paged at the
 	// DB level (LIMIT/OFFSET via Pageable) instead of returning every matching row, and with
 	// an extra optional status filter for the dashboard's Pending/Accepted/Ongoing tabs.
-	// statusFilter is one of ALL/PENDING/ACCEPTED/ONGOING — ONGOING covers READYFORPICKUP(3),
-	// VEHICLEASSIGNED(5) and ONGOING(6) to match the dashboard's "in progress" bucket.
+	// statusFilter is one of ALL/PENDING/ACCEPTED/ONGOING/READYFORPICKUP/HANDOVER/
+	// VEHICLEASSIGNED/YETTOBECOMPLETED/COMPLETED/IMMEDIATE/INPROGRESS. ONGOING means literally
+	// transfer_status=6 only, matching the dropdown's separate Ready for Pickup/Vehicle Assigned/
+	// Handover/Yet to be Completed options — INPROGRESS is the broader READYFORPICKUP(3) +
+	// VEHICLEASSIGNED(5) + ONGOING(6) grouping the dashboard's summary tile shows (renamed from
+	// "Ongoing" since that name collided with the literal single-status meaning above). IMMEDIATE
+	// is restricted to still-PENDING instant bookings — an immediate booking that's already been
+	// accepted/assigned belongs under its own current status, not this filter.
 	@Query(value =
 	        "SELECT trd.*, " +
 	        "ST_Distance_Sphere( " +
@@ -259,15 +265,16 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  :statusFilter = 'ALL' " +
 	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
-	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
+	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status = 6) " +
+	        "  OR (:statusFilter = 'INPROGRESS' AND trd.transfer_status IN (3,5,6)) " +
 	        "  OR (:statusFilter = 'READYFORPICKUP' AND trd.transfer_status = 3) " +
 	        "  OR (:statusFilter = 'HANDOVER' AND trd.transfer_status = 4) " +
 	        "  OR (:statusFilter = 'VEHICLEASSIGNED' AND trd.transfer_status = 5) " +
 	        "  OR (:statusFilter = 'YETTOBECOMPLETED' AND trd.transfer_status = 7) " +
 	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
-	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
+	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1 AND trd.transfer_status = 0) " +
 	        ") " +
-	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate OR (:pickupDate = CURDATE() AND trd.instant_booking = 1) ) " +
+	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate ) " +
 	        "ORDER BY trd.request_created_date DESC",
 	        countQuery =
 	        "SELECT COUNT(*) " +
@@ -320,15 +327,16 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  :statusFilter = 'ALL' " +
 	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
-	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
+	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status = 6) " +
+	        "  OR (:statusFilter = 'INPROGRESS' AND trd.transfer_status IN (3,5,6)) " +
 	        "  OR (:statusFilter = 'READYFORPICKUP' AND trd.transfer_status = 3) " +
 	        "  OR (:statusFilter = 'HANDOVER' AND trd.transfer_status = 4) " +
 	        "  OR (:statusFilter = 'VEHICLEASSIGNED' AND trd.transfer_status = 5) " +
 	        "  OR (:statusFilter = 'YETTOBECOMPLETED' AND trd.transfer_status = 7) " +
 	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
-	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1) " +
+	        "  OR (:statusFilter = 'IMMEDIATE' AND trd.instant_booking = 1 AND trd.transfer_status = 0) " +
 	        ") " +
-	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate OR (:pickupDate = CURDATE() AND trd.instant_booking = 1) )",
+	        "AND ( :pickupDate IS NULL OR trd.pickup_date = :pickupDate )",
 	        nativeQuery = true)
 	Page<TransferRequestDetails> showRidestoVendorsPaged(
 	        @Param("vendorId") Long vendorId,
