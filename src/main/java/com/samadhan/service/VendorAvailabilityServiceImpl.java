@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.samadhan.dto.GeoPoint;
 import com.samadhan.dto.MatchingRequestsResponse;
@@ -83,7 +84,18 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	@Autowired
 	RouteService routeService;
 
+	// @Transactional: this method's own writes (saving the posting) previously auto-committed on
+	// their own, but it also now calls recomputeAndPersistForVendor at the end, whose delete of
+	// stale match rows (a Spring Data derived deleteBy... query) requires an already-active
+	// transaction to run — Spring Data implements deleteBy... by fetching matching rows and
+	// calling EntityManager.remove() on each, unlike save()/deleteById(), which come from
+	// SimpleJpaRepository and are transactional on their own. Without this, that delete throws
+	// "No EntityManager with actual transaction available for current thread", which
+	// safeRecomputeForVendor's try/catch swallows — leaving stale match rows behind with no
+	// visible error, exactly the bug this fixes. Same reasoning applies to updateAvailability,
+	// cancelAvailability, and bootstrapMatchesIfEmpty below.
 	@Override
+	@Transactional
 	public VendorAvailability postAvailability(VendorAvailabilityRequest request) {
 		if (request.vendorId == null) {
 			throw new IllegalArgumentException("vendorId is required");
@@ -164,7 +176,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		return saved;
 	}
 
+	// @Transactional — see postAvailability's comment above.
 	@Override
+	@Transactional
 	public VendorAvailability updateAvailability(Long vendorId, Long availabilityId, VendorAvailabilityRequest request) {
 		if (request.toLocation == null || request.toLocation.trim().isEmpty()) {
 			throw new IllegalArgumentException("toLocation is required");
@@ -236,7 +250,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		return vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
 	}
 
+	// @Transactional — see postAvailability's comment above.
 	@Override
+	@Transactional
 	public void cancelAvailability(Long vendorId, Long availabilityId) {
 		VendorAvailability availability = vendorAvailabilityRepository.findById(availabilityId)
 				.orElseThrow(() -> new ResourceNotFoundException("Availability not found: " + availabilityId));
@@ -424,7 +440,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
 	}
 
+	// @Transactional — see postAvailability's comment above; also keeps this one-time startup
+	// seed atomic across however many vendors have active postings, rather than each vendor's
+	// recompute auto-committing separately.
 	@Override
+	@Transactional
 	public void bootstrapMatchesIfEmpty() {
 		if (vendorAvailabilityMatchRepository.count() > 0) {
 			return;
