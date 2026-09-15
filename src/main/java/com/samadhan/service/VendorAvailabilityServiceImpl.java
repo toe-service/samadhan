@@ -381,7 +381,18 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		// convenience index (not a source of truth), and a vendor's own posting edits are a
 		// low-frequency, explicitly-triggered action, so a full replace here is simple and cheap
 		// enough not to need incremental upsert logic.
+		//
+		// The flush() is required, not optional: deleteByVendorId is a derived Spring Data delete
+		// query, which removes matching rows via the persistence context (entityManager.remove())
+		// rather than an immediate DML statement — Hibernate can defer actually executing those
+		// deletes until the next flush. saveAll's inserts, however, use GenerationType.IDENTITY,
+		// which executes immediately (it needs the DB-generated id back right away). Without an
+		// explicit flush in between, an insert for the same (vendor_id, transfer_request_id) pair
+		// as a row that was just "deleted" (but not yet physically removed) hits the unique
+		// constraint — this is what caused "Duplicate entry" errors on every recompute, not just
+		// under concurrent access.
 		vendorAvailabilityMatchRepository.deleteByVendorId(vendorId);
+		vendorAvailabilityMatchRepository.flush();
 		vendorAvailabilityMatchRepository.saveAll(rows);
 	}
 
@@ -431,7 +442,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			rows.add(toMatchRow(entry.getKey(), candidate, entry.getValue(), now));
 		}
 
+		// flush() required before the insert — see recomputeAndPersistForVendor's comment above.
 		vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
+		vendorAvailabilityMatchRepository.flush();
 		vendorAvailabilityMatchRepository.saveAll(rows);
 	}
 
