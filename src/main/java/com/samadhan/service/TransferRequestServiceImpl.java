@@ -89,7 +89,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	 
 	 @Autowired
 	 private FireBaseMessagingService fireBaseMessagingService;
-	
+
+	 @Autowired
+	 private VendorAvailabilityService vendorAvailabilityService;
+
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 	private static final Logger logger = LoggerFactory.getLogger(TransferRequestServiceImpl.class);
@@ -308,7 +311,19 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 		
 		transferRepo.save(transferRequest);
-		
+
+		// New pending/unassigned request — check it against every vendor's posted availability so
+		// it shows up as a match immediately, not just after that vendor's next posting edit.
+		// Best-effort: a failure here must never fail the booking itself, which is already saved.
+		if (transferRequest.getTransferStatus() == rideStatusEnum.PENDING) {
+			try {
+				vendorAvailabilityService.recomputeForRequest(transferRequest.getId());
+			} catch (Exception e) {
+				logger.warn("Failed to update posting-match table for new request {}: {}",
+						transferRequest.getId(), e.getMessage(), e);
+			}
+		}
+
 		fireBaseMessagingService.notifyVehicles(transferRequest);
 		
 //		List<TransferVendor> vendors = transferVendorRepo.findAllActiveVendors();
@@ -464,6 +479,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setOtp(null);
 			transferRepo.save(transferdetails);
 
+			// Cancelling reverts this request back to pending/unassigned — re-check it against
+			// every vendor's postings so it re-enters the match pool, same as a brand-new request.
+			try {
+				vendorAvailabilityService.recomputeForRequest(transferdetails.getId());
+			} catch (Exception e) {
+				logger.warn("Failed to update posting-match table after cancelling request {}: {}", transferId, e.getMessage(), e);
+			}
+
 			try {
 				fireBaseMessagingService.notifyVehicles(transferdetails);
 			} catch (Exception e) {
@@ -553,7 +576,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 
 		transferRepo.save(transferdetails);
-		
+
+		// This request just left the pending/unassigned pool (vehicle assigned, or claimed by a
+		// vendor) — stop showing it as a match anywhere.
+		try {
+			vendorAvailabilityService.invalidateForRequest(transferdetails.getId());
+		} catch (Exception e) {
+			logger.warn("Failed to clear posting-match rows after accepting request {}: {}", transferId, e.getMessage(), e);
+		}
+
 		 // 👇 New: tell every other vehicle's app to stop ringing
 //	    try {
 //	        fireBaseMessagingService.notifyRideTaken(transferdetails);

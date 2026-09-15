@@ -7,12 +7,14 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +26,15 @@ import com.samadhan.dto.RouteWaypoint;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorAvailability;
+import com.samadhan.entity.VendorAvailabilityMatch;
 import com.samadhan.enums.VendorPickupVehicleEnum;
+import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
+import com.samadhan.repository.VendorAvailabilityMatchRepository;
 import com.samadhan.repository.VendorAvailabilityRepository;
 import com.samadhan.request.VendorAvailabilityRequest;
 import com.samadhan.util.GeoUtils;
@@ -45,7 +50,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	private static final double ROUTE_CORRIDOR_KM = 15.0;
 	// Minimum spacing between kept route-polyline vertices for the corridor distance check below —
 	// Google's polylines run a vertex every few meters, and checking every match candidate against
-	// every one of those is the dominant cost of computeMatches. Thinned to this spacing via
+	// every one of those is the dominant cost of this scoring. Thinned to this spacing via
 	// GeoUtils.simplifyPolyline; worst-case added distance error is roughly half this value (up to
 	// the full value on a sharply curving stretch) — at 4km that's ~13-27% of ROUTE_CORRIDOR_KM's
 	// 15km tolerance, still well short of it.
@@ -62,27 +67,6 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// your posting" against a 20ft truck (10 tonnes), which passes the plain "big enough" check
 	// but is such a size mismatch it's not a meaningful match either.
 	private static final double MIN_VEHICLE_CAPACITY_RATIO = 0.30;
-	// computeMatches is the expensive part of this class (a DB scan plus per-candidate distance
-	// math) but only two things can change its result for a given vendor: that vendor's own
-	// postings (edited rarely, and explicitly evicted below whenever they do change), or the
-	// system-wide pool of pending/unassigned requests (changes constantly from other vendors'
-	// activity, unrelated to this one). A short TTL bounds staleness from that second, uncontrolled
-	// source to roughly the same window the rest of the dashboard already polls at, while collapsing
-	// the repeated recomputation that otherwise happens on every page turn, date-filter change, or
-	// the separate summary-vs-paginated fetches the frontend makes for the same vendor back to back.
-	private static final long MATCHES_CACHE_TTL_MILLIS = 30_000L;
-
-	private static final class CachedMatches {
-		final List<TransferRequestDetails> matches;
-		final long computedAtMillis;
-
-		CachedMatches(List<TransferRequestDetails> matches, long computedAtMillis) {
-			this.matches = matches;
-			this.computedAtMillis = computedAtMillis;
-		}
-	}
-
-	private final Map<Long, CachedMatches> matchesCache = new ConcurrentHashMap<>();
 
 	@Autowired
 	VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -92,6 +76,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 	@Autowired
 	TransferRequestRepository transferRequestRepository;
+
+	@Autowired
+	VendorAvailabilityMatchRepository vendorAvailabilityMatchRepository;
 
 	@Autowired
 	RouteService routeService;
@@ -170,9 +157,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			}
 		}
 
-		// A new posting changes this vendor's own match set immediately — don't make them wait
-		// out the TTL to see requests matching a route they just posted.
-		matchesCache.remove(request.vendorId);
+		// A new posting changes this vendor's own match set immediately — recomputed and persisted
+		// right away rather than waiting for the next trigger.
+		safeRecomputeForVendor(request.vendorId);
 
 		return saved;
 	}
@@ -239,8 +226,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		VendorAvailability saved = vendorAvailabilityRepository.save(availability);
 		// Same reasoning as postAvailability — the edited route/vehicle/dates should reflect in
-		// this vendor's matches right away, not after the cache TTL expires.
-		matchesCache.remove(vendorId);
+		// this vendor's matches right away.
+		safeRecomputeForVendor(vendorId);
 		return saved;
 	}
 
@@ -260,8 +247,20 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		availability.setActive(false);
 		vendorAvailabilityRepository.save(availability);
-		// A cancelled posting should stop contributing matches immediately, not after the TTL.
-		matchesCache.remove(vendorId);
+		// A cancelled posting should stop contributing matches immediately.
+		safeRecomputeForVendor(vendorId);
+	}
+
+	// Wraps recomputeAndPersistForVendor so a failure here (e.g. a transient DB hiccup) can never
+	// turn into an exception thrown out of postAvailability/updateAvailability/cancelAvailability —
+	// the posting itself is already saved by the time this runs; worst case the match table is
+	// stale until the next successful recompute, not a failed posting-edit request.
+	private void safeRecomputeForVendor(Long vendorId) {
+		try {
+			recomputeAndPersistForVendor(vendorId);
+		} catch (Exception e) {
+			log.warn("Failed to recompute posting matches for vendor {}: {}", vendorId, e.getMessage(), e);
+		}
 	}
 
 	// For each active posting, finds PENDING/unassigned requests either along the posting's own
@@ -270,301 +269,457 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// silently assumed just because a pickup happens to be near fromLocation. Each match is
 	// tagged with why it matched and a 0-100 percent score; a request matching more than once
 	// keeps its RETURN_TRIP tag over POSTING_ROUTE (a vendor-confirmed return trip is a stronger
-	// signal than incidental route proximity), or its closest match within the same tag.
+	// signal than incidental route proximity), or whichever match scores higher within the same
+	// tag (see mergeOutcome).
 	@Override
 	public MatchingRequestsResponse getRequestsMatchingAvailability(Long vendorId, int page, int size, LocalDate pickupDate) {
 		int safePage = Math.max(page, 0);
 		int safeSize = Math.max(size, 1);
-		List<TransferRequestDetails> allMatches = getCachedOrComputeMatches(vendorId);
+		Pageable pageable = PageRequest.of(safePage, safeSize);
 
-		// Same "exact date, or today's Immediate bookings when filtering on today" semantics as
-		// the main rides feed (TransferRequestRepository#showRidestoVendorsPaged) — applied here,
-		// before pagination, so totalElements/totalPages reflect the filtered count rather than
-		// the filter being applied only to whichever page happened to come back.
+		Page<VendorAvailabilityMatch> matchPage;
 		if (pickupDate != null) {
 			boolean isToday = pickupDate.isEqual(LocalDate.now());
-			allMatches = allMatches.stream()
-					.filter(m -> pickupDate.equals(m.getPickupDate())
-							|| (isToday && Boolean.TRUE.equals(m.getInstantBooking())))
-					.collect(Collectors.toList());
+			matchPage = vendorAvailabilityMatchRepository.findByVendorIdAndPickupDateFiltered(
+					vendorId, pickupDate, isToday, pageable);
+		} else {
+			matchPage = vendorAvailabilityMatchRepository.findByVendorIdOrderByRequestCreatedDateDesc(vendorId, pageable);
 		}
 
-		int fromIndex = Math.min(safePage * safeSize, allMatches.size());
-		int toIndex = Math.min(fromIndex + safeSize, allMatches.size());
+		List<VendorAvailabilityMatch> matchRows = matchPage.getContent();
+		List<Long> requestIds = matchRows.stream()
+				.map(VendorAvailabilityMatch::getTransferRequestId)
+				.collect(Collectors.toList());
+		Map<Long, TransferRequestDetails> requestsById = transferRequestRepository.findAllById(requestIds).stream()
+				.collect(Collectors.toMap(TransferRequestDetails::getId, r -> r));
+
+		List<TransferRequestDetails> matches = new ArrayList<>();
+		for (VendorAvailabilityMatch row : matchRows) {
+			TransferRequestDetails request = requestsById.get(row.getTransferRequestId());
+			if (request == null) {
+				// The request was removed/purged after this match row was written but before this
+				// read — skip rather than fail the whole page over one stale row.
+				continue;
+			}
+			request.setMatchType(row.getMatchType());
+			request.setMatchDistanceKm(row.getMatchDistanceKm());
+			request.setMatchScorePercent(row.getMatchScorePercent());
+			request.setVehicleMatchPercent(row.getVehicleMatchPercent());
+			matches.add(request);
+		}
 
 		MatchingRequestsResponse response = new MatchingRequestsResponse();
-		response.setMatches(allMatches.subList(fromIndex, toIndex));
-		response.setTotalElements(allMatches.size());
-		response.setTotalPages((int) Math.ceil(allMatches.size() / (double) safeSize));
+		response.setMatches(matches);
+		response.setTotalElements(matchPage.getTotalElements());
+		response.setTotalPages(matchPage.getTotalPages());
 		response.setPage(safePage);
 		response.setSize(safeSize);
 		return response;
 	}
 
-	// Cache sits in front of computeMatches, keyed per vendor — pagination/date-filtering above
-	// this stay untouched, they just operate on whichever list (fresh or cached) comes back.
-	private List<TransferRequestDetails> getCachedOrComputeMatches(Long vendorId) {
-		CachedMatches cached = matchesCache.get(vendorId);
-		long now = System.currentTimeMillis();
-		if (cached != null && (now - cached.computedAtMillis) < MATCHES_CACHE_TTL_MILLIS) {
-			return cached.matches;
-		}
-		List<TransferRequestDetails> fresh = computeMatches(vendorId);
-		matchesCache.put(vendorId, new CachedMatches(fresh, now));
-		return fresh;
-	}
-
-	// The actual matching computation, unpaginated — split out from
-	// getRequestsMatchingAvailability so pagination is a thin, separate concern layered on top.
-	private List<TransferRequestDetails> computeMatches(Long vendorId) {
+	// Recomputes this ONE vendor's full match set against every currently pending/unassigned
+	// request, and replaces its rows in vendor_availability_match. This is the same computation
+	// the old computeMatches did, just persisted instead of returned/cached in memory.
+	@Override
+	public void recomputeAndPersistForVendor(Long vendorId) {
 		List<VendorAvailability> postings =
 				vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
-		if (postings.isEmpty()) {
-			return new ArrayList<>();
+
+		Map<Long, MatchOutcome> bestByRequestId = new LinkedHashMap<>();
+		Map<Long, TransferRequestDetails> candidateById = new LinkedHashMap<>();
+
+		if (!postings.isEmpty()) {
+			LocalDate latestExpectedDate = postings.stream()
+					.map(VendorAvailability::getExpectedDate)
+					.filter(java.util.Objects::nonNull)
+					.max(Comparator.naturalOrder())
+					.orElse(LocalDate.now());
+			List<TransferRequestDetails> candidatePool =
+					transferRequestRepository.findPendingUnassignedUpTo(latestExpectedDate);
+
+			for (VendorAvailability posting : postings) {
+				PostingContext ctx = buildPostingContext(posting);
+				if (ctx == null) {
+					continue;
+				}
+				for (TransferRequestDetails candidate : candidatePool) {
+					if (!withinDateAndBox(candidate, ctx)) {
+						continue;
+					}
+					candidateById.put(candidate.getId(), candidate);
+					for (MatchOutcome outcome : scoreCandidateAgainstPosting(posting, candidate, ctx)) {
+						mergeOutcome(bestByRequestId, candidate.getId(), outcome);
+					}
+				}
+			}
 		}
 
-		// Fetched once for all of this vendor's postings, not once per posting — the previous
-		// per-posting bounding-box query (findPendingUnassignedInBoundingBox) can't use an index
-		// (source_latitude/longitude are TEXT, so its WHERE clause needs a CAST/TRIM per row) and
-		// is effectively a full scan of every pending request. Running that once-per-posting
-		// multiplied an already-expensive scan by the vendor's active-posting count. The bounding
-		// box itself is now applied per-posting in Java below, against this shared pool.
-		LocalDate latestExpectedDate = postings.stream()
-				.map(VendorAvailability::getExpectedDate)
-				.filter(java.util.Objects::nonNull)
-				.max(Comparator.naturalOrder())
-				.orElse(LocalDate.now());
-		List<TransferRequestDetails> candidatePool =
-				transferRequestRepository.findPendingUnassignedUpTo(latestExpectedDate);
+		LocalDateTime now = LocalDateTime.now();
+		List<VendorAvailabilityMatch> rows = new ArrayList<>();
+		for (Map.Entry<Long, MatchOutcome> entry : bestByRequestId.entrySet()) {
+			TransferRequestDetails candidate = candidateById.get(entry.getKey());
+			rows.add(toMatchRow(vendorId, candidate, entry.getValue(), now));
+		}
 
-		Map<Long, TransferRequestDetails> bestMatches = new LinkedHashMap<>();
+		// Delete-then-insert rather than a finer-grained diff — this table is a precomputed
+		// convenience index (not a source of truth), and a vendor's own posting edits are a
+		// low-frequency, explicitly-triggered action, so a full replace here is simple and cheap
+		// enough not to need incremental upsert logic.
+		vendorAvailabilityMatchRepository.deleteByVendorId(vendorId);
+		vendorAvailabilityMatchRepository.saveAll(rows);
+	}
+
+	// Recomputes match rows for this ONE request against every vendor's active postings —
+	// called when a request newly enters (or re-enters) the pending/unassigned pool.
+	@Override
+	public void recomputeForRequest(Long transferRequestId) {
+		TransferRequestDetails candidate = transferRequestRepository.findById(transferRequestId).orElse(null);
+		if (candidate == null) {
+			vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
+			return;
+		}
+		// Only pending/unassigned requests belong in the match pool — if this request has already
+		// moved on by the time this runs (e.g. two triggers raced), there's nothing to compute.
+		if (candidate.getTransferStatus() != rideStatusEnum.PENDING || candidate.getVehicleId() != null) {
+			vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
+			return;
+		}
+
+		List<VendorAvailability> postings = vendorAvailabilityRepository.findByActiveTrueOrderByExpectedDateAsc();
+		Map<Long, MatchOutcome> bestByVendorId = new LinkedHashMap<>();
 
 		for (VendorAvailability posting : postings) {
-			Double toLat = GeoUtils.parseCoord(posting.getToLatitude());
-			Double toLng = GeoUtils.parseCoord(posting.getToLongitude());
-			if (toLat == null || toLng == null) {
+			if (posting.getTransferVendor() == null) {
 				continue;
 			}
-			Double fromLat = GeoUtils.parseCoord(posting.getFromLatitude());
-			Double fromLng = GeoUtils.parseCoord(posting.getFromLongitude());
-
-			double minLat = (fromLat != null) ? Math.min(fromLat, toLat) : toLat;
-			double maxLat = (fromLat != null) ? Math.max(fromLat, toLat) : toLat;
-			double minLng = (fromLng != null) ? Math.min(fromLng, toLng) : toLng;
-			double maxLng = (fromLng != null) ? Math.max(fromLng, toLng) : toLng;
-
-			// Vendor-specified intermediate stops (see postAvailability) — widen the bounding box
-			// to include them (a detour via a waypoint can sit well outside the straight-line
-			// from->to box) and keep their coordinates for the direct waypoint-proximity check
-			// below, independent of whether routePolyline successfully bent through them.
-			List<double[]> waypointCoords = new ArrayList<>();
-			for (RouteWaypoint wp : posting.getWaypoints()) {
-				Double wLat = GeoUtils.parseCoord(wp.getLatitude());
-				Double wLng = GeoUtils.parseCoord(wp.getLongitude());
-				if (wLat == null || wLng == null) {
-					continue;
-				}
-				waypointCoords.add(new double[] { wLat, wLng });
-				minLat = Math.min(minLat, wLat);
-				maxLat = Math.max(maxLat, wLat);
-				minLng = Math.min(minLng, wLng);
-				maxLng = Math.max(maxLng, wLng);
+			if (posting.getExpectedDate() != null && candidate.getPickupDate() != null
+					&& candidate.getPickupDate().isAfter(posting.getExpectedDate())) {
+				continue;
 			}
-
-			double boxMinLat = minLat - BOUNDING_BOX_BUFFER_DEG;
-			double boxMaxLat = maxLat + BOUNDING_BOX_BUFFER_DEG;
-			double boxMinLng = minLng - BOUNDING_BOX_BUFFER_DEG;
-			double boxMaxLng = maxLng + BOUNDING_BOX_BUFFER_DEG;
-			LocalDate postingExpectedDate = posting.getExpectedDate();
-			List<TransferRequestDetails> candidates = new ArrayList<>();
-			for (TransferRequestDetails c : candidatePool) {
-				if (postingExpectedDate != null && c.getPickupDate() != null
-						&& c.getPickupDate().isAfter(postingExpectedDate)) {
-					continue;
-				}
-				Double cLat = GeoUtils.parseCoord(c.getSourceLatitude());
-				Double cLng = GeoUtils.parseCoord(c.getSourceLongitude());
-				if (cLat == null || cLng == null) {
-					continue;
-				}
-				if (cLat < boxMinLat || cLat > boxMaxLat || cLng < boxMinLng || cLng > boxMaxLng) {
-					continue;
-				}
-				candidates.add(c);
+			PostingContext ctx = buildPostingContext(posting);
+			if (ctx == null) {
+				continue;
 			}
-
-			// Direction-agnostic — a straight-line distance to the nearest point on this road
-			// corridor is the same whether the vendor is driving it from->to or to->from, so the
-			// same decoded polyline serves both legs below. Simplified once per posting (not per
-			// candidate) so the per-candidate distance check further down isn't paying for Google's
-			// full vertex density.
-			List<double[]> routePoints = GeoUtils.simplifyPolyline(
-					GeoUtils.decodePolyline(posting.getRoutePolyline()), ROUTE_SIMPLIFY_SPACING_KM);
-
-			// The specific vehicle this posting is for (not vehicleCategory — that's the coarser
-			// SMALL_VEHICLE/OPEN_BODY_TRUCK/etc. grouping; vehicleType holds the exact
-			// VendorPickupVehicleEnum display name, e.g. "Tata Ace"). Null when the vendor picked
-			// "Any vehicle from my fleet" or the string doesn't parse — in either case the size
-			// check below is skipped rather than guessed at.
-			VendorPickupVehicleEnum postingVehicle = null;
-			if (posting.getVehicleType() != null && !posting.getVehicleType().isBlank()) {
-				try {
-					postingVehicle = VendorPickupVehicleEnum.fromValue(posting.getVehicleType());
-				} catch (IllegalArgumentException ex) {
-					postingVehicle = null;
-				}
+			// Single-candidate path — the bounding-box pre-filter in withinDateAndBox exists to
+			// cheaply reject candidates when scanning many of them per posting (see
+			// recomputeAndPersistForVendor); with only one candidate to test, go straight to the
+			// precise scoring check instead.
+			for (MatchOutcome outcome : scoreCandidateAgainstPosting(posting, candidate, ctx)) {
+				mergeOutcome(bestByVendorId, posting.getTransferVendor().getId(), outcome);
 			}
+		}
 
-			// Straight-line, not the driving-route distance — always available regardless of
-			// whether routePolyline was successfully computed (see postAvailability), and only
-			// used as the yardstick for MIN_RIDE_DISTANCE_RATIO, not for precise distance checks.
-			Double postingDistanceKm = (fromLat != null && fromLng != null)
-					? GeoUtils.haversineKm(fromLat, fromLng, toLat, toLng) : null;
+		LocalDateTime now = LocalDateTime.now();
+		List<VendorAvailabilityMatch> rows = new ArrayList<>();
+		for (Map.Entry<Long, MatchOutcome> entry : bestByVendorId.entrySet()) {
+			rows.add(toMatchRow(entry.getKey(), candidate, entry.getValue(), now));
+		}
 
-			for (TransferRequestDetails candidate : candidates) {
-				Double srcLat = GeoUtils.parseCoord(candidate.getSourceLatitude());
-				Double srcLng = GeoUtils.parseCoord(candidate.getSourceLongitude());
-				if (srcLat == null || srcLng == null) {
-					continue;
-				}
+		vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
+		vendorAvailabilityMatchRepository.saveAll(rows);
+	}
 
-				// ---- Forward leg (always evaluated): pickup near the posting's own starting
-				// point (about to drive right past/through there), near its destination, near a
-				// vendor-specified waypoint, or anywhere along the from->to corridor. nearOrigin/
-				// nearWaypoint matter independently of onRoute — the route polyline is a
-				// best-effort cache computed at posting time (see postAvailability) and can be
-				// missing/failed, in which case onRoute is always false and these would otherwise
-				// be the only remaining way to catch pickups at those points.
-				Double distToSource = (fromLat != null && fromLng != null)
-						? GeoUtils.haversineKm(srcLat, srcLng, fromLat, fromLng) : null;
-				double distToDest = GeoUtils.haversineKm(srcLat, srcLng, toLat, toLng);
-				Double distToRoute = routePoints.isEmpty() ? null
-						: GeoUtils.minDistanceToPolylineKm(srcLat, srcLng, routePoints);
-				Double distToWaypoint = null;
-				for (double[] wp : waypointCoords) {
-					double d = GeoUtils.haversineKm(srcLat, srcLng, wp[0], wp[1]);
-					if (distToWaypoint == null || d < distToWaypoint) {
-						distToWaypoint = d;
-					}
-				}
-				boolean nearOrigin = distToSource != null && distToSource <= ENDPOINT_RADIUS_KM;
-				boolean nearDest = distToDest <= ENDPOINT_RADIUS_KM;
-				boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
-				boolean nearWaypoint = distToWaypoint != null && distToWaypoint <= ENDPOINT_RADIUS_KM;
+	@Override
+	public void invalidateForRequest(Long transferRequestId) {
+		vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
+	}
 
-				// Whole-vehicle jobs (BOOKVEHICLE, HOMESHIFTING) need a vehicle actually big enough
-				// to do them — compared directly by payload capacity (maxWeightKg), NOT the
-				// "requested + next 2 larger" ladder used for live push-notification eligibility
-				// (TransferRequestServiceImpl#isEligiblePendingRide / FireBaseMessagingService).
-				// That 2-step cap exists there to limit notification spam to nearby vehicles, not
-				// to define "can this vehicle physically do the job" — reusing it here wrongly
-				// excluded a real match (e.g. a 20ft Open truck, 10000kg, sits several steps past
-				// a 14ft Open request, 4000kg, once closer-capacity types like 17ft/15ft Open are
-				// counted, even though 20ft obviously can carry a 14ft-sized load). Any posting
-				// vehicle with capacity >= the request's is eligible, full stop. Skipped (no
-				// restriction) when either side's vehicle type isn't known — a "my whole fleet"
-				// posting, or a request with no recorded size — rather than guessing and wrongly
-				// excluding a real match. Package/car/bike (TRANSFERSERVICE) never needs the whole
-				// vehicle, so it's never size-gated. vehicleMatchPercent scores how closely sized
-				// the match is — exact capacity = 100%, dropping as the posting's vehicle is
-				// increasingly oversized for the job — null (excluded from the overall average)
-				// when the check doesn't apply.
-				boolean isWholeVehicleService = candidate.getServiceType() == serviceTypeEnum.BOOKVEHICLE
-						|| candidate.getServiceType() == serviceTypeEnum.HOMESHIFTING;
-				boolean vehicleSizeOk = true;
-				Integer vehicleMatchPercent = null;
-				if (isWholeVehicleService && postingVehicle != null && candidate.getVendorPickupVehicle() != null) {
-					Integer requiredWeightKg = candidate.getVendorPickupVehicle().getMaxWeightKg();
-					Integer postingWeightKg = postingVehicle.getMaxWeightKg();
-					if (requiredWeightKg != null && postingWeightKg != null && postingWeightKg > 0) {
-						vehicleSizeOk = requiredWeightKg <= postingWeightKg
-								&& requiredWeightKg >= MIN_VEHICLE_CAPACITY_RATIO * postingWeightKg;
-						if (vehicleSizeOk) {
-							vehicleMatchPercent = (int) Math.round(
-									100.0 * Math.min(1.0, (double) requiredWeightKg / postingWeightKg));
-						}
-					}
-				}
+	@Override
+	public void bootstrapMatchesIfEmpty() {
+		if (vendorAvailabilityMatchRepository.count() > 0) {
+			return;
+		}
+		List<Long> vendorIds = vendorAvailabilityRepository.findDistinctVendorIdByActiveTrue();
+		for (Long vendorId : vendorIds) {
+			safeRecomputeForVendor(vendorId);
+		}
+	}
 
-				// Same permissive fallback as above — skipped (no restriction, and excluded from
-				// the percent average) when either distance is unknown, rather than guessing and
-				// wrongly dropping a real match over missing data.
-				boolean rideDistanceOk = true;
-				Integer distanceRatioPercent = null;
-				if (postingDistanceKm != null && postingDistanceKm > 0 && candidate.getDistanceKm() != null) {
-					double ratio = candidate.getDistanceKm() / postingDistanceKm;
-					rideDistanceOk = ratio >= MIN_RIDE_DISTANCE_RATIO;
-					distanceRatioPercent = (int) Math.round(Math.max(0, Math.min(100, ratio * 100.0)));
-				}
+	// Per-posting values that don't depend on the candidate being scored — computed once per
+	// posting and reused across every candidate checked against it (or, in recomputeForRequest's
+	// direction, once per posting for the single candidate being checked).
+	private static final class PostingContext {
+		Double fromLat;
+		Double fromLng;
+		double toLat;
+		double toLng;
+		List<double[]> waypointCoords;
+		List<double[]> routePoints;
+		VendorPickupVehicleEnum postingVehicle;
+		Double postingDistanceKm;
+		LocalDate expectedDate;
+		double boxMinLat;
+		double boxMaxLat;
+		double boxMinLng;
+		double boxMaxLng;
+	}
 
-				if (vehicleSizeOk && rideDistanceOk && (nearOrigin || nearDest || onRoute || nearWaypoint)) {
-					// Closest of whichever reasons actually matched, each scored against its own
-					// radius.
-					double bestDistanceKm = Double.MAX_VALUE;
-					double bestRadiusKm = ENDPOINT_RADIUS_KM;
-					if (nearOrigin && distToSource < bestDistanceKm) {
-						bestDistanceKm = distToSource;
-						bestRadiusKm = ENDPOINT_RADIUS_KM;
-					}
-					if (nearDest && distToDest < bestDistanceKm) {
-						bestDistanceKm = distToDest;
-						bestRadiusKm = ENDPOINT_RADIUS_KM;
-					}
-					if (nearWaypoint && distToWaypoint < bestDistanceKm) {
-						bestDistanceKm = distToWaypoint;
-						bestRadiusKm = ENDPOINT_RADIUS_KM;
-					}
-					if (onRoute && distToRoute < bestDistanceKm) {
-						bestDistanceKm = distToRoute;
-						bestRadiusKm = ROUTE_CORRIDOR_KM;
-					}
-					int overallPercent = averagePercent(
-							percentFromDistance(bestDistanceKm, bestRadiusKm), distanceRatioPercent, vehicleMatchPercent);
-					considerMatch(bestMatches, candidate, "POSTING_ROUTE", bestDistanceKm, overallPercent);
-				}
+	private static final class MatchOutcome {
+		final String matchType;
+		final double distanceKm;
+		final int scorePercent;
+		final Integer vehicleMatchPercent;
 
-				// ---- Return leg (opt-in only): pickup near/along the same corridor toward the
-				// posting's destination (or near a waypoint on it), but this time the candidate
-				// must also drop back off near the posting's own starting point — an actual
-				// to->from job, not just any pickup near the destination.
-				if (vehicleSizeOk && rideDistanceOk && posting.isReturnTrip() && fromLat != null && fromLng != null
-						&& (nearDest || onRoute || nearWaypoint)) {
-					Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
-					Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
-					if (destLat != null && destLng != null) {
-						double distDropToOrigin = GeoUtils.haversineKm(destLat, destLng, fromLat, fromLng);
-						if (distDropToOrigin <= ENDPOINT_RADIUS_KM) {
-							double pickupDistanceKm = distToDest;
-							double pickupRadiusKm = ENDPOINT_RADIUS_KM;
-							if (onRoute && distToRoute < pickupDistanceKm) {
-								pickupDistanceKm = distToRoute;
-								pickupRadiusKm = ROUTE_CORRIDOR_KM;
-							}
-							if (nearWaypoint && distToWaypoint < pickupDistanceKm) {
-								pickupDistanceKm = distToWaypoint;
-								pickupRadiusKm = ENDPOINT_RADIUS_KM;
-							}
-							int pickupPercent = percentFromDistance(pickupDistanceKm, pickupRadiusKm);
-							int dropPercent = percentFromDistance(distDropToOrigin, ENDPOINT_RADIUS_KM);
-							double combinedDistanceKm = (pickupDistanceKm + distDropToOrigin) / 2.0;
-							int combinedPercent = averagePercent(
-									pickupPercent, dropPercent, distanceRatioPercent, vehicleMatchPercent);
-							considerMatch(bestMatches, candidate, "RETURN_TRIP", combinedDistanceKm, combinedPercent);
-						}
-					}
+		MatchOutcome(String matchType, double distanceKm, int scorePercent, Integer vehicleMatchPercent) {
+			this.matchType = matchType;
+			this.distanceKm = distanceKm;
+			this.scorePercent = scorePercent;
+			this.vehicleMatchPercent = vehicleMatchPercent;
+		}
+	}
+
+	private PostingContext buildPostingContext(VendorAvailability posting) {
+		Double toLat = GeoUtils.parseCoord(posting.getToLatitude());
+		Double toLng = GeoUtils.parseCoord(posting.getToLongitude());
+		if (toLat == null || toLng == null) {
+			return null;
+		}
+		Double fromLat = GeoUtils.parseCoord(posting.getFromLatitude());
+		Double fromLng = GeoUtils.parseCoord(posting.getFromLongitude());
+
+		double minLat = (fromLat != null) ? Math.min(fromLat, toLat) : toLat;
+		double maxLat = (fromLat != null) ? Math.max(fromLat, toLat) : toLat;
+		double minLng = (fromLng != null) ? Math.min(fromLng, toLng) : toLng;
+		double maxLng = (fromLng != null) ? Math.max(fromLng, toLng) : toLng;
+
+		// Vendor-specified intermediate stops — widen the bounding box to include them (a detour
+		// via a waypoint can sit well outside the straight-line from->to box) and keep their
+		// coordinates for the direct waypoint-proximity check, independent of whether
+		// routePolyline successfully bent through them.
+		List<double[]> waypointCoords = new ArrayList<>();
+		for (RouteWaypoint wp : posting.getWaypoints()) {
+			Double wLat = GeoUtils.parseCoord(wp.getLatitude());
+			Double wLng = GeoUtils.parseCoord(wp.getLongitude());
+			if (wLat == null || wLng == null) {
+				continue;
+			}
+			waypointCoords.add(new double[] { wLat, wLng });
+			minLat = Math.min(minLat, wLat);
+			maxLat = Math.max(maxLat, wLat);
+			minLng = Math.min(minLng, wLng);
+			maxLng = Math.max(maxLng, wLng);
+		}
+
+		PostingContext ctx = new PostingContext();
+		ctx.fromLat = fromLat;
+		ctx.fromLng = fromLng;
+		ctx.toLat = toLat;
+		ctx.toLng = toLng;
+		ctx.waypointCoords = waypointCoords;
+		ctx.boxMinLat = minLat - BOUNDING_BOX_BUFFER_DEG;
+		ctx.boxMaxLat = maxLat + BOUNDING_BOX_BUFFER_DEG;
+		ctx.boxMinLng = minLng - BOUNDING_BOX_BUFFER_DEG;
+		ctx.boxMaxLng = maxLng + BOUNDING_BOX_BUFFER_DEG;
+		ctx.expectedDate = posting.getExpectedDate();
+
+		// Direction-agnostic — a straight-line distance to the nearest point on this road
+		// corridor is the same whether the vendor is driving it from->to or to->from, so the
+		// same decoded polyline serves both legs. Simplified once per posting so the per-candidate
+		// distance check further down isn't paying for Google's full vertex density.
+		ctx.routePoints = GeoUtils.simplifyPolyline(
+				GeoUtils.decodePolyline(posting.getRoutePolyline()), ROUTE_SIMPLIFY_SPACING_KM);
+
+		// The specific vehicle this posting is for (not vehicleCategory — that's the coarser
+		// SMALL_VEHICLE/OPEN_BODY_TRUCK/etc. grouping; vehicleType holds the exact
+		// VendorPickupVehicleEnum display name, e.g. "Tata Ace"). Null when the vendor picked
+		// "Any vehicle from my fleet" or the string doesn't parse — in either case the size
+		// check below is skipped rather than guessed at.
+		VendorPickupVehicleEnum postingVehicle = null;
+		if (posting.getVehicleType() != null && !posting.getVehicleType().isBlank()) {
+			try {
+				postingVehicle = VendorPickupVehicleEnum.fromValue(posting.getVehicleType());
+			} catch (IllegalArgumentException ex) {
+				postingVehicle = null;
+			}
+		}
+		ctx.postingVehicle = postingVehicle;
+
+		// Straight-line, not the driving-route distance — always available regardless of whether
+		// routePolyline was successfully computed, and only used as the yardstick for
+		// MIN_RIDE_DISTANCE_RATIO, not for precise distance checks.
+		ctx.postingDistanceKm = (fromLat != null && fromLng != null)
+				? GeoUtils.haversineKm(fromLat, fromLng, toLat, toLng) : null;
+
+		return ctx;
+	}
+
+	private boolean withinDateAndBox(TransferRequestDetails candidate, PostingContext ctx) {
+		if (ctx.expectedDate != null && candidate.getPickupDate() != null
+				&& candidate.getPickupDate().isAfter(ctx.expectedDate)) {
+			return false;
+		}
+		Double cLat = GeoUtils.parseCoord(candidate.getSourceLatitude());
+		Double cLng = GeoUtils.parseCoord(candidate.getSourceLongitude());
+		if (cLat == null || cLng == null) {
+			return false;
+		}
+		return cLat >= ctx.boxMinLat && cLat <= ctx.boxMaxLat && cLng >= ctx.boxMinLng && cLng <= ctx.boxMaxLng;
+	}
+
+	// The actual per-(posting, candidate) scoring — extracted verbatim from the original inline
+	// per-candidate loop so both directions (one vendor against many candidates, or one candidate
+	// against many vendors' postings) share identical scoring. Returns 0, 1, or 2 outcomes: a
+	// forward/route match and/or (only for return-trip postings) a return-leg match.
+	private List<MatchOutcome> scoreCandidateAgainstPosting(
+			VendorAvailability posting, TransferRequestDetails candidate, PostingContext ctx) {
+
+		Double srcLat = GeoUtils.parseCoord(candidate.getSourceLatitude());
+		Double srcLng = GeoUtils.parseCoord(candidate.getSourceLongitude());
+		if (srcLat == null || srcLng == null) {
+			return List.of();
+		}
+
+		// ---- Forward leg (always evaluated): pickup near the posting's own starting point
+		// (about to drive right past/through there), near its destination, near a vendor-
+		// specified waypoint, or anywhere along the from->to corridor. nearOrigin/nearWaypoint
+		// matter independently of onRoute — the route polyline is a best-effort cache computed at
+		// posting time and can be missing/failed, in which case onRoute is always false and these
+		// would otherwise be the only remaining way to catch pickups at those points.
+		Double distToSource = (ctx.fromLat != null && ctx.fromLng != null)
+				? GeoUtils.haversineKm(srcLat, srcLng, ctx.fromLat, ctx.fromLng) : null;
+		double distToDest = GeoUtils.haversineKm(srcLat, srcLng, ctx.toLat, ctx.toLng);
+		Double distToRoute = ctx.routePoints.isEmpty() ? null
+				: GeoUtils.minDistanceToPolylineKm(srcLat, srcLng, ctx.routePoints);
+		Double distToWaypoint = null;
+		for (double[] wp : ctx.waypointCoords) {
+			double d = GeoUtils.haversineKm(srcLat, srcLng, wp[0], wp[1]);
+			if (distToWaypoint == null || d < distToWaypoint) {
+				distToWaypoint = d;
+			}
+		}
+		boolean nearOrigin = distToSource != null && distToSource <= ENDPOINT_RADIUS_KM;
+		boolean nearDest = distToDest <= ENDPOINT_RADIUS_KM;
+		boolean onRoute = distToRoute != null && distToRoute <= ROUTE_CORRIDOR_KM;
+		boolean nearWaypoint = distToWaypoint != null && distToWaypoint <= ENDPOINT_RADIUS_KM;
+
+		// Whole-vehicle jobs (BOOKVEHICLE, HOMESHIFTING) need a vehicle actually big enough to do
+		// them — compared directly by payload capacity (maxWeightKg). Skipped (no restriction)
+		// when either side's vehicle type isn't known — a "my whole fleet" posting, or a request
+		// with no recorded size — rather than guessing and wrongly excluding a real match.
+		// Package/car/bike (TRANSFERSERVICE) never needs the whole vehicle, so it's never
+		// size-gated. vehicleMatchPercent scores how closely sized the match is — exact capacity =
+		// 100%, dropping as the posting's vehicle is increasingly oversized for the job — null
+		// (excluded from the overall average) when the check doesn't apply.
+		boolean isWholeVehicleService = candidate.getServiceType() == serviceTypeEnum.BOOKVEHICLE
+				|| candidate.getServiceType() == serviceTypeEnum.HOMESHIFTING;
+		boolean vehicleSizeOk = true;
+		Integer vehicleMatchPercent = null;
+		if (isWholeVehicleService && ctx.postingVehicle != null && candidate.getVendorPickupVehicle() != null) {
+			Integer requiredWeightKg = candidate.getVendorPickupVehicle().getMaxWeightKg();
+			Integer postingWeightKg = ctx.postingVehicle.getMaxWeightKg();
+			if (requiredWeightKg != null && postingWeightKg != null && postingWeightKg > 0) {
+				vehicleSizeOk = requiredWeightKg <= postingWeightKg
+						&& requiredWeightKg >= MIN_VEHICLE_CAPACITY_RATIO * postingWeightKg;
+				if (vehicleSizeOk) {
+					vehicleMatchPercent = (int) Math.round(
+							100.0 * Math.min(1.0, (double) requiredWeightKg / postingWeightKg));
 				}
 			}
 		}
 
-		// bestMatches is a LinkedHashMap, so without this its iteration order is just "whichever
-		// posting/candidate happened to be processed first" — fine within a single posting (the
-		// candidate query is itself latest-first) but not guaranteed once results from multiple
-		// postings interleave. Sorting explicitly guarantees latest-first regardless.
-		List<TransferRequestDetails> matches = new ArrayList<>(bestMatches.values());
-		matches.sort(Comparator.comparing(
-				TransferRequestDetails::getRequestCreatedDate,
-				Comparator.nullsLast(Comparator.reverseOrder())));
-		return matches;
+		// Same permissive fallback as above — skipped (no restriction, and excluded from the
+		// percent average) when either distance is unknown, rather than guessing and wrongly
+		// dropping a real match over missing data.
+		boolean rideDistanceOk = true;
+		Integer distanceRatioPercent = null;
+		if (ctx.postingDistanceKm != null && ctx.postingDistanceKm > 0 && candidate.getDistanceKm() != null) {
+			double ratio = candidate.getDistanceKm() / ctx.postingDistanceKm;
+			rideDistanceOk = ratio >= MIN_RIDE_DISTANCE_RATIO;
+			distanceRatioPercent = (int) Math.round(Math.max(0, Math.min(100, ratio * 100.0)));
+		}
+
+		List<MatchOutcome> outcomes = new ArrayList<>(2);
+
+		if (vehicleSizeOk && rideDistanceOk && (nearOrigin || nearDest || onRoute || nearWaypoint)) {
+			// Closest of whichever reasons actually matched, each scored against its own radius.
+			double bestDistanceKm = Double.MAX_VALUE;
+			double bestRadiusKm = ENDPOINT_RADIUS_KM;
+			if (nearOrigin && distToSource < bestDistanceKm) {
+				bestDistanceKm = distToSource;
+				bestRadiusKm = ENDPOINT_RADIUS_KM;
+			}
+			if (nearDest && distToDest < bestDistanceKm) {
+				bestDistanceKm = distToDest;
+				bestRadiusKm = ENDPOINT_RADIUS_KM;
+			}
+			if (nearWaypoint && distToWaypoint < bestDistanceKm) {
+				bestDistanceKm = distToWaypoint;
+				bestRadiusKm = ENDPOINT_RADIUS_KM;
+			}
+			if (onRoute && distToRoute < bestDistanceKm) {
+				bestDistanceKm = distToRoute;
+				bestRadiusKm = ROUTE_CORRIDOR_KM;
+			}
+			int overallPercent = averagePercent(
+					percentFromDistance(bestDistanceKm, bestRadiusKm), distanceRatioPercent, vehicleMatchPercent);
+			outcomes.add(new MatchOutcome("POSTING_ROUTE", bestDistanceKm, overallPercent, vehicleMatchPercent));
+		}
+
+		// ---- Return leg (opt-in only): pickup near/along the same corridor toward the posting's
+		// destination (or near a waypoint on it), but this time the candidate must also drop back
+		// off near the posting's own starting point — an actual to->from job, not just any pickup
+		// near the destination.
+		if (vehicleSizeOk && rideDistanceOk && posting.isReturnTrip() && ctx.fromLat != null && ctx.fromLng != null
+				&& (nearDest || onRoute || nearWaypoint)) {
+			Double destLat = GeoUtils.parseCoord(candidate.getDestinationLatitude());
+			Double destLng = GeoUtils.parseCoord(candidate.getDestinationLongitude());
+			if (destLat != null && destLng != null) {
+				double distDropToOrigin = GeoUtils.haversineKm(destLat, destLng, ctx.fromLat, ctx.fromLng);
+				if (distDropToOrigin <= ENDPOINT_RADIUS_KM) {
+					double pickupDistanceKm = distToDest;
+					double pickupRadiusKm = ENDPOINT_RADIUS_KM;
+					if (onRoute && distToRoute < pickupDistanceKm) {
+						pickupDistanceKm = distToRoute;
+						pickupRadiusKm = ROUTE_CORRIDOR_KM;
+					}
+					if (nearWaypoint && distToWaypoint < pickupDistanceKm) {
+						pickupDistanceKm = distToWaypoint;
+						pickupRadiusKm = ENDPOINT_RADIUS_KM;
+					}
+					int pickupPercent = percentFromDistance(pickupDistanceKm, pickupRadiusKm);
+					int dropPercent = percentFromDistance(distDropToOrigin, ENDPOINT_RADIUS_KM);
+					double combinedDistanceKm = (pickupDistanceKm + distDropToOrigin) / 2.0;
+					int combinedPercent = averagePercent(
+							pickupPercent, dropPercent, distanceRatioPercent, vehicleMatchPercent);
+					outcomes.add(new MatchOutcome("RETURN_TRIP", combinedDistanceKm, combinedPercent, vehicleMatchPercent));
+				}
+			}
+		}
+
+		return outcomes;
+	}
+
+	// A request matching more than once (across postings, or forward+return on the same posting)
+	// keeps its RETURN_TRIP tag over POSTING_ROUTE (a vendor-confirmed return trip is a stronger
+	// signal than incidental route proximity), or whichever match scores higher within the same
+	// tag — not whichever is physically closer, since a closer-but-lower-scoring match (e.g. worse
+	// vehicle-size fit) would be a confusing number to show the vendor. Generic over what `key`
+	// represents: a request id when accumulating one vendor's best match per request
+	// (recomputeAndPersistForVendor), or a vendor id when accumulating one request's best match
+	// per vendor (recomputeForRequest).
+	private void mergeOutcome(Map<Long, MatchOutcome> bestByKey, Long key, MatchOutcome outcome) {
+		MatchOutcome existing = bestByKey.get(key);
+		boolean isBetter = existing == null
+				|| ("RETURN_TRIP".equals(outcome.matchType) && !"RETURN_TRIP".equals(existing.matchType))
+				|| (outcome.matchType.equals(existing.matchType) && outcome.scorePercent > existing.scorePercent);
+		if (isBetter) {
+			bestByKey.put(key, outcome);
+		}
+	}
+
+	private VendorAvailabilityMatch toMatchRow(Long vendorId, TransferRequestDetails candidate, MatchOutcome outcome, LocalDateTime now) {
+		VendorAvailabilityMatch row = new VendorAvailabilityMatch();
+		row.setVendorId(vendorId);
+		row.setTransferRequestId(candidate.getId());
+		row.setMatchType(outcome.matchType);
+		row.setMatchDistanceKm(Math.round(outcome.distanceKm * 10) / 10.0);
+		row.setMatchScorePercent(outcome.scorePercent);
+		row.setVehicleMatchPercent(outcome.vehicleMatchPercent);
+		row.setRequestCreatedDate(candidate.getRequestCreatedDate());
+		row.setPickupDate(candidate.getPickupDate());
+		row.setInstantBooking(candidate.getInstantBooking());
+		row.setComputedAt(now);
+		return row;
 	}
 
 	private int percentFromDistance(double distanceKm, double radiusKm) {
@@ -584,19 +739,5 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			}
 		}
 		return count == 0 ? 0 : (int) Math.round((double) sum / count);
-	}
-
-	private void considerMatch(Map<Long, TransferRequestDetails> bestMatches, TransferRequestDetails candidate,
-			String matchType, double distanceKm, int scorePercent) {
-		TransferRequestDetails existing = bestMatches.get(candidate.getId());
-		boolean isBetter = existing == null
-				|| ("RETURN_TRIP".equals(matchType) && !"RETURN_TRIP".equals(existing.getMatchType()))
-				|| (matchType.equals(existing.getMatchType()) && distanceKm < existing.getMatchDistanceKm());
-		if (isBetter) {
-			candidate.setMatchType(matchType);
-			candidate.setMatchDistanceKm(Math.round(distanceKm * 10) / 10.0);
-			candidate.setMatchScorePercent(scorePercent);
-			bestMatches.put(candidate.getId(), candidate);
-		}
 	}
 }
