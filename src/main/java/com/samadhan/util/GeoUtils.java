@@ -12,6 +12,11 @@ public final class GeoUtils {
 
 	private static final double EARTH_RADIUS_KM = 6371.0;
 
+	// Used by minDistanceToPolylineKm's flat-earth approximation below — a great-circle degree of
+	// latitude is this many km, essentially constant everywhere on Earth (equatorial bulge makes
+	// it vary by under 1%, irrelevant at this function's multi-km tolerances).
+	private static final double KM_PER_DEGREE_LAT = Math.toRadians(1) * EARTH_RADIUS_KM;
+
 	private GeoUtils() {
 	}
 
@@ -40,10 +45,23 @@ public final class GeoUtils {
 	// Nearest distance from a point to any vertex of a decoded route polyline. Google's Routes
 	// API returns points spaced closely enough along real roads that vertex-to-point distance is
 	// a fine approximation of true point-to-route distance for a multi-km matching buffer.
+	//
+	// This is VendorAvailabilityServiceImpl#computeMatches's single hottest loop — called once per
+	// (candidate request x posting) pair, scanning every polyline vertex each time — so it uses a
+	// flat-earth (equirectangular) distance instead of full haversine's trig calls (sin/cos/atan2)
+	// per vertex: cos(lat) is computed once per call instead of twice per vertex, and the rest is
+	// plain arithmetic plus one sqrt. Error versus true great-circle distance is a fraction of a
+	// percent at the scale this function operates at (single-digit-to-double-digit km, checked
+	// against a 15km corridor tolerance) — negligible next to the ~2km error already accepted from
+	// polyline simplification (see simplifyPolyline) and the vertex-only (not true point-to-segment)
+	// approximation this function already made even with exact haversine.
 	public static double minDistanceToPolylineKm(double lat, double lng, List<double[]> polylinePoints) {
+		double cosLat = Math.cos(Math.toRadians(lat));
 		double min = Double.MAX_VALUE;
 		for (double[] p : polylinePoints) {
-			double d = haversineKm(lat, lng, p[0], p[1]);
+			double dLatKm = (p[0] - lat) * KM_PER_DEGREE_LAT;
+			double dLngKm = (p[1] - lng) * KM_PER_DEGREE_LAT * cosLat;
+			double d = Math.sqrt(dLatKm * dLatKm + dLngKm * dLngKm);
 			if (d < min) {
 				min = d;
 			}

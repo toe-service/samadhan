@@ -60,6 +60,15 @@ public class TransferRequestDetails {
 	@javax.persistence.Transient
 	private Integer matchScorePercent;
 
+	// How closely sized the posting's vehicle is to what this request actually needs (100 = exact
+	// capacity, dropping as the posting's vehicle is oversized for the job) — null when the check
+	// doesn't apply (posting has no specific vehicleType, request isn't a whole-vehicle service,
+	// or either side's vehicle size isn't known). Same not-persisted reasoning as matchType above;
+	// already folded into matchScorePercent's overall average, exposed separately here so the
+	// frontend can show it on its own instead of only as part of the combined score.
+	@javax.persistence.Transient
+	private Integer vehicleMatchPercent;
+
 	public String getMatchType() {
 		return matchType;
 	}
@@ -78,6 +87,14 @@ public class TransferRequestDetails {
 
 	public Integer getMatchScorePercent() {
 		return matchScorePercent;
+	}
+
+	public Integer getVehicleMatchPercent() {
+		return vehicleMatchPercent;
+	}
+
+	public void setVehicleMatchPercent(Integer vehicleMatchPercent) {
+		this.vehicleMatchPercent = vehicleMatchPercent;
 	}
 
 	public void setMatchScorePercent(Integer matchScorePercent) {
@@ -128,11 +145,11 @@ public class TransferRequestDetails {
 	 @JoinColumn(name = "user_id", referencedColumnName = "id")
 	// @JsonIgnore
 	 private UserDetails userDetails;
-	 
+
 	 @OneToOne(cascade = CascadeType.ALL)
 	 @JoinColumn(name = "parcel_details_id", referencedColumnName = "id")
 	 private ParcelDetails parcelDetails;
-	 
+
 	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "driver_id", referencedColumnName = "id")
 	// @JsonIgnore

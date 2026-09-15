@@ -15,6 +15,16 @@ public interface VendorAvailabilityRepository extends JpaRepository<VendorAvaila
 
 	List<VendorAvailability> findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(Long vendorId);
 
+	// All active postings system-wide, regardless of vendor — used when a single new/re-entered
+	// pending request needs to be checked against every vendor's postings (the inverse direction
+	// of the per-vendor recompute above), see VendorAvailabilityServiceImpl#recomputeForRequest.
+	List<VendorAvailability> findByActiveTrueOrderByExpectedDateAsc();
+
+	// Vendor IDs with at least one active posting — used only to seed vendor_availability_match
+	// once at startup if it's ever empty, see VendorAvailabilityServiceImpl#bootstrapMatchesIfEmpty.
+	@Query("SELECT DISTINCT va.transferVendor.id FROM VendorAvailability va WHERE va.active = true")
+	List<Long> findDistinctVendorIdByActiveTrue();
+
 	// Matches requests to vendors who declared they'll be near a given pickup point on the
 	// request's pickup date (or "today" for instant bookings), within the same 40km radius
 	// showRidestoVendors already uses for a vendor's permanent location.
