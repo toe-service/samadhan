@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -84,18 +85,27 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	@Autowired
 	RouteService routeService;
 
-	// @Transactional: this method's own writes (saving the posting) previously auto-committed on
-	// their own, but it also now calls recomputeAndPersistForVendor at the end, whose delete of
-	// stale match rows (a Spring Data derived deleteBy... query) requires an already-active
-	// transaction to run — Spring Data implements deleteBy... by fetching matching rows and
-	// calling EntityManager.remove() on each, unlike save()/deleteById(), which come from
-	// SimpleJpaRepository and are transactional on their own. Without this, that delete throws
-	// "No EntityManager with actual transaction available for current thread", which
-	// safeRecomputeForVendor's try/catch swallows — leaving stale match rows behind with no
-	// visible error, exactly the bug this fixes. Same reasoning applies to updateAvailability,
-	// cancelAvailability, and bootstrapMatchesIfEmpty below.
+	// Self-injected proxy reference — @Lazy defers resolution so Spring doesn't choke on this
+	// bean depending on itself during construction. Needed because postAvailability/
+	// updateAvailability/cancelAvailability/bootstrapMatchesIfEmpty call recomputeAndPersistForVendor
+	// on `this` (a plain, non-proxied call within the same class instance), and Spring's
+	// @Transactional support is proxy-based — it only takes effect when a method is invoked
+	// *through* the proxy from outside the class, not via such a same-class self-invocation.
+	// Going through `self` instead routes the call through the real proxy so @Transactional on
+	// recomputeAndPersistForVendor actually applies.
+	@Autowired
+	@Lazy
+	private VendorAvailabilityService self;
+
+	// NOT @Transactional — this method calls routeService.getRoute(...) below, an external HTTP
+	// call to Google's Routes API. Wrapping the whole method in a transaction would hold a DB
+	// connection checked out for that call's entire duration, including any slow response or
+	// outage on Google's side — a classic "don't hold a DB transaction across network I/O"
+	// mistake. The DB-only work that actually needs a transaction (recomputeAndPersistForVendor's
+	// delete-then-insert) gets its own short transaction instead, via the self-injected proxy
+	// call in safeRecomputeForVendor — see that method and recomputeAndPersistForVendor's
+	// @Transactional for why. Same reasoning applies to updateAvailability below.
 	@Override
-	@Transactional
 	public VendorAvailability postAvailability(VendorAvailabilityRequest request) {
 		if (request.vendorId == null) {
 			throw new IllegalArgumentException("vendorId is required");
@@ -176,9 +186,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		return saved;
 	}
 
-	// @Transactional — see postAvailability's comment above.
+	// NOT @Transactional — see postAvailability's comment above; this method also calls
+	// routeService.getRoute(...).
 	@Override
-	@Transactional
 	public VendorAvailability updateAvailability(Long vendorId, Long availabilityId, VendorAvailabilityRequest request) {
 		if (request.toLocation == null || request.toLocation.trim().isEmpty()) {
 			throw new IllegalArgumentException("toLocation is required");
@@ -250,9 +260,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		return vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
 	}
 
-	// @Transactional — see postAvailability's comment above.
+	// NOT @Transactional — no external call here (unlike postAvailability/updateAvailability),
+	// but kept consistent with them: recomputeAndPersistForVendor gets its own short transaction
+	// via the self-injected proxy call in safeRecomputeForVendor, same as every other caller.
 	@Override
-	@Transactional
 	public void cancelAvailability(Long vendorId, Long availabilityId) {
 		VendorAvailability availability = vendorAvailabilityRepository.findById(availabilityId)
 				.orElseThrow(() -> new ResourceNotFoundException("Availability not found: " + availabilityId));
@@ -270,10 +281,12 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// Wraps recomputeAndPersistForVendor so a failure here (e.g. a transient DB hiccup) can never
 	// turn into an exception thrown out of postAvailability/updateAvailability/cancelAvailability —
 	// the posting itself is already saved by the time this runs; worst case the match table is
-	// stale until the next successful recompute, not a failed posting-edit request.
+	// stale until the next successful recompute, not a failed posting-edit request. Calls through
+	// `self` (not a plain `this` call) so recomputeAndPersistForVendor's @Transactional actually
+	// takes effect — see the field comment on `self` above.
 	private void safeRecomputeForVendor(Long vendorId) {
 		try {
-			recomputeAndPersistForVendor(vendorId);
+			self.recomputeAndPersistForVendor(vendorId);
 		} catch (Exception e) {
 			log.warn("Failed to recompute posting matches for vendor {}: {}", vendorId, e.getMessage(), e);
 		}
@@ -336,7 +349,14 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// Recomputes this ONE vendor's full match set against every currently pending/unassigned
 	// request, and replaces its rows in vendor_availability_match. This is the same computation
 	// the old computeMatches did, just persisted instead of returned/cached in memory.
+	//
+	// @Transactional: needed because deleteByVendorId (below) is a Spring Data derived delete
+	// query — it removes rows via the persistence context (EntityManager.remove()) rather than an
+	// immediate DML statement, which requires an active transaction. Only takes effect when
+	// called via `self` (see that field's comment) rather than a plain same-class call, since
+	// Spring's @Transactional support is proxy-based.
 	@Override
+	@Transactional
 	public void recomputeAndPersistForVendor(Long vendorId) {
 		List<VendorAvailability> postings =
 				vendorAvailabilityRepository.findByTransferVendorIdAndActiveTrueOrderByExpectedDateAsc(vendorId);
@@ -453,11 +473,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
 	}
 
-	// @Transactional — see postAvailability's comment above; also keeps this one-time startup
-	// seed atomic across however many vendors have active postings, rather than each vendor's
-	// recompute auto-committing separately.
+	// NOT @Transactional — each vendor's safeRecomputeForVendor call already gets its own short
+	// transaction (see recomputeAndPersistForVendor's @Transactional), which is preferable here
+	// to one giant transaction spanning every vendor with an active posting at startup.
 	@Override
-	@Transactional
 	public void bootstrapMatchesIfEmpty() {
 		if (vendorAvailabilityMatchRepository.count() > 0) {
 			return;
