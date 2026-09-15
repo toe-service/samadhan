@@ -254,7 +254,36 @@ public class TransferRequestDetails {
 
 	 @Column(name = "instant_booking")
 	 private Boolean instantBooking = false;
-	 
+
+	 // Set once by OverduePickupScheduler the first time it re-notifies nearby vehicles about this
+	 // request still being PENDING/unassigned past its pickup time — prevents notifying repeatedly
+	 // on every scheduler run for the same stuck request. Null means "not yet flagged overdue".
+	 @Column(name = "overdue_notified_at")
+	 private LocalDateTime overdueNotifiedAt;
+
+	 public LocalDateTime getOverdueNotifiedAt() {
+		 return overdueNotifiedAt;
+	 }
+
+	 public void setOverdueNotifiedAt(LocalDateTime overdueNotifiedAt) {
+		 this.overdueNotifiedAt = overdueNotifiedAt;
+	 }
+
+	 // Set once by OverduePickupScheduler's proactive reminder, sent PICKUP_REMINDER_LEAD_MINUTES
+	 // before a still-pending scheduled booking's pickup window starts (e.g. 2:30 PM for a
+	 // "3 PM - 6 PM" slot) — a nudge before the window opens, distinct from overdueNotifiedAt
+	 // (which only fires after the window has already fully passed).
+	 @Column(name = "pickup_reminder_sent_at")
+	 private LocalDateTime pickupReminderSentAt;
+
+	 public LocalDateTime getPickupReminderSentAt() {
+		 return pickupReminderSentAt;
+	 }
+
+	 public void setPickupReminderSentAt(LocalDateTime pickupReminderSentAt) {
+		 this.pickupReminderSentAt = pickupReminderSentAt;
+	 }
+
 	 @Column(name = "goods_type")
 	 private String goodsType;
 	 
