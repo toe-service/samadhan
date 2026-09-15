@@ -43,6 +43,7 @@ import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VendorWalletRepository;
 import com.samadhan.repository.WalletTransactionRepo;
 import com.samadhan.service.PaymentService;
+import com.samadhan.service.StorageService;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
@@ -63,10 +64,12 @@ import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.LineSeparator;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
@@ -126,6 +129,9 @@ public class PaymentController {
 
 	 @Autowired
 	 TokenApi tokenApi;
+
+	 @Autowired
+	 StorageService storageService;
 
 	 // Confirms a payment-verification callback actually came from Razorpay (not a client
 	 // fabricating a "success" response without ever paying), using the SDK's own constant-time
@@ -298,6 +304,19 @@ public class PaymentController {
 	     String vendorContact = sellerVendor.getVendorContactNumber();
 	     boolean vendorGstRegistered = vendorGst != null && !vendorGst.isBlank();
 
+	     // Loaded once here and embedded in the footer below; a fetch failure shouldn't block
+	     // invoice generation, so the invoice still renders (without a signature image) if the
+	     // stored key is missing or the bucket read fails.
+	     byte[] signatureBytes = null;
+	     String signatureStorageKey = sellerVendor.getSignatureStorageKey();
+	     if (signatureStorageKey != null && !signatureStorageKey.isBlank()) {
+	         try {
+	             signatureBytes = storageService.getObjectAsBytes(signatureStorageKey);
+	         } catch (Exception e) {
+	             logger.warn("Failed to load signature image for vendor {}: {}", sellerVendor.getId(), e.getMessage());
+	         }
+	     }
+
 	     //================ HEADER BAND ===================
 
 	     Table headerBand = new Table(UnitValue.createPercentArray(new float[]{60, 40}));
@@ -435,7 +454,15 @@ public class PaymentController {
 
 	     document.add(sign);
 
-	     document.add(new Paragraph("\n\n"));
+	     if (signatureBytes != null) {
+	         Image signatureImage = new Image(ImageDataFactory.create(signatureBytes))
+	                 .setWidth(120)
+	                 .setHeight(50)
+	                 .setHorizontalAlignment(HorizontalAlignment.RIGHT);
+	         document.add(signatureImage);
+	     } else {
+	         document.add(new Paragraph("\n\n"));
+	     }
 
 	     document.add(new Paragraph("Authorized Signatory")
 	             .setFont(normal)

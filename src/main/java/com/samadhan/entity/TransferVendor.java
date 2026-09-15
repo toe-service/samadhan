@@ -81,6 +81,9 @@ public class TransferVendor {
 	 @Column(name = "pan_storage_key")
 	 private String panStorageKey;
 
+	 @Column(name = "signature_storage_key")
+	 private String signatureStorageKey;
+
 	 @Column(name = "is_individual")
 	 private Boolean isIndividual;
 
@@ -170,6 +173,14 @@ public class TransferVendor {
 
 	public void setPanStorageKey(String panStorageKey) {
 		this.panStorageKey = panStorageKey;
+	}
+
+	public String getSignatureStorageKey() {
+		return signatureStorageKey;
+	}
+
+	public void setSignatureStorageKey(String signatureStorageKey) {
+		this.signatureStorageKey = signatureStorageKey;
 	}
 
 	public Long getId() {
