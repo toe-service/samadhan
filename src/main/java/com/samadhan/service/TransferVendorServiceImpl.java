@@ -110,14 +110,18 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	@Transactional
 	public TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber,
 			String vendorCity, String vendorAddress, String vendorLatitude, String vendorLongitude,
-			MultipartFile aadhaarFile, MultipartFile panFile, String gst, String services, Boolean isIndividual,
-			Boolean termsAccepted, String termsVersion, String termsText)
+			MultipartFile aadhaarFile, MultipartFile panFile, MultipartFile signatureFile, String gst,
+			String services, Boolean isIndividual, Boolean termsAccepted, String termsVersion, String termsText)
 			throws ConflictException {
 
 		  boolean hasAadhaar = aadhaarFile != null && !aadhaarFile.isEmpty();
 		  boolean hasPan = panFile != null && !panFile.isEmpty();
 		  if (!hasAadhaar && !hasPan) {
 			  throw new ConflictException("Please upload either Aadhaar Card or PAN Card");
+		  }
+
+		  if (signatureFile == null || signatureFile.isEmpty()) {
+			  throw new ConflictException("Please upload your signature");
 		  }
 
 		  if (termsAccepted == null || !termsAccepted) {
@@ -212,6 +216,17 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		                "pan");
 
 		        vendor.setPanStorageKey(panKey);
+		    }
+
+		    // Upload Signature
+		    if (signatureFile != null && !signatureFile.isEmpty()) {
+
+		        String signatureKey = uploadVendorDocument(
+		                vendor.getId(),
+		                signatureFile,
+		                "signature");
+
+		        vendor.setSignatureStorageKey(signatureKey);
 		    }
 
 		    // Save storage keys
