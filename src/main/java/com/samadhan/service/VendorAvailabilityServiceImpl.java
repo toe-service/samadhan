@@ -448,8 +448,15 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		// future posting just because it's still sitting in PENDING/unassigned — the date check
 		// below only bounds how far in the FUTURE a candidate can be relative to the posting
 		// (isAfter(expectedDate)), with no lower bound at all, so a months-old stale request could
-		// otherwise keep matching indefinitely.
-		if (candidate.getPickupDate() != null && candidate.getPickupDate().isBefore(LocalDate.now())) {
+		// otherwise keep matching indefinitely. Exempts instant/immediate bookings: their
+		// pickupDate is stamped as the day the request was made (see
+		// TransferRequestServiceImpl#requestRideTransfer), not a literal scheduled date — the
+		// actual intent is "as soon as possible," which stays valid and urgent even if it's now
+		// showing a date in the past, same "instantBooking overrides the literal date" treatment
+		// already used by the pickupDate filter in getRequestsMatchingAvailability.
+		boolean isInstantBooking = Boolean.TRUE.equals(candidate.getInstantBooking());
+		if (!isInstantBooking && candidate.getPickupDate() != null
+				&& candidate.getPickupDate().isBefore(LocalDate.now())) {
 			vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
 			return;
 		}
@@ -619,8 +626,11 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 	private boolean withinDateAndBox(TransferRequestDetails candidate, PostingContext ctx) {
 		// Excludes stale requests whose pickup date has already passed — see the equivalent check
-		// in recomputeForRequest for why this lower bound is needed alongside the upper one below.
-		if (candidate.getPickupDate() != null && candidate.getPickupDate().isBefore(LocalDate.now())) {
+		// in recomputeForRequest for why this lower bound is needed alongside the upper one below,
+		// and why instant/immediate bookings are exempted from it.
+		boolean isInstantBooking = Boolean.TRUE.equals(candidate.getInstantBooking());
+		if (!isInstantBooking && candidate.getPickupDate() != null
+				&& candidate.getPickupDate().isBefore(LocalDate.now())) {
 			return false;
 		}
 		if (ctx.expectedDate != null && candidate.getPickupDate() != null

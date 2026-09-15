@@ -9,6 +9,8 @@ import com.samadhan.dto.routes.ComputeRoutesRequest;
 import com.samadhan.dto.routes.ComputeRoutesResponse;
 import com.samadhan.dto.routes.Waypoint;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -16,12 +18,15 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class RouteService {
+    private static final Logger log = LoggerFactory.getLogger(RouteService.class);
+
     private final String mapsApiKey;
     private final RestTemplate restTemplate;
     private final String COMPUTE_ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes";
@@ -29,6 +34,23 @@ public class RouteService {
     RouteService(@Value("${maps.api.key}") String mapsApiKey, RestTemplate restTemplate) {
         this.mapsApiKey = mapsApiKey;
         this.restTemplate = restTemplate;
+    }
+
+    // Every "API Key not found" failure so far has turned out to be a Railway/Google Cloud config
+    // question, not a code bug — this makes that diagnosable from logs alone instead of guessing.
+    // Never logs the key value itself, only whether it's present and its length: a real Google API
+    // key is 39 characters starting with "AIza"; 0 means the MAPS_API_KEY env var isn't set/wired
+    // at all, and any other length is a strong sign of a copy-paste error (truncated, extra
+    // whitespace/quotes, wrong variable).
+    @PostConstruct
+    void logApiKeyPresence() {
+        int length = mapsApiKey == null ? 0 : mapsApiKey.trim().length();
+        if (length == 0) {
+            log.warn("maps.api.key (MAPS_API_KEY) is empty or not set — every route computation will fail.");
+        } else {
+            log.info("maps.api.key (MAPS_API_KEY) is set, length={} (expected 39 for a standard Google API key)",
+                    length);
+        }
     }
 
     public RouteResponse getRoute(RouteRequest req) {

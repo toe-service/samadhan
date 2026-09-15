@@ -1,6 +1,7 @@
 package com.samadhan.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -537,5 +538,44 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "ORDER BY trd.request_created_date DESC",
 	        nativeQuery = true)
 	List<TransferRequestDetails> findPendingUnassignedUpTo(@Param("maxPickupDate") LocalDate maxPickupDate);
+
+	// PENDING, unassigned requests whose pickup has already passed without being picked up, so
+	// OverduePickupScheduler can re-notify nearby vehicles instead of letting them silently sit
+	// forever. Two different "overdue" definitions since pickup_date means different things for
+	// each: instant/immediate bookings stamp pickup_date as the day the request was made (see
+	// TransferRequestServiceImpl#requestRideTransfer) with the real intent "as soon as possible",
+	// so they're judged overdue by elapsed time since creation instead; scheduled bookings are
+	// judged overdue once their actual pickup_date has fully passed. overdue_notified_at IS NULL
+	// ensures each request is only ever notified once by this scheduler, not on every run.
+	@Query(value =
+	        "SELECT * FROM transfer_request_details trd " +
+	        "WHERE trd.transfer_status = 0 " +
+	        "AND trd.vehicle_id IS NULL " +
+	        "AND trd.overdue_notified_at IS NULL " +
+	        "AND ( " +
+	        "  (trd.instant_booking = 1 AND trd.request_created_date <= :instantBookingCutoff) " +
+	        "  OR ((trd.instant_booking IS NULL OR trd.instant_booking = 0) AND trd.pickup_date < :today) " +
+	        ")",
+	        nativeQuery = true)
+	List<TransferRequestDetails> findOverduePendingUnassigned(
+	        @Param("today") LocalDate today,
+	        @Param("instantBookingCutoff") LocalDateTime instantBookingCutoff);
+
+	// Candidates for OverduePickupScheduler's proactive pre-pickup reminder: still-PENDING,
+	// unassigned, non-instant bookings scheduled for today. pickup_schedule is one of a small
+	// fixed set of slot labels ("9 AM - 12 PM", etc. — see the live <select> in
+	// CreateTransfer/BookVehicle/HomeShifting on the frontend), so the actual "is it within the
+	// reminder window" time math is done in Java against that known set rather than in SQL.
+	// pickup_reminder_sent_at IS NULL ensures each request is only ever reminded once.
+	@Query(value =
+	        "SELECT * FROM transfer_request_details trd " +
+	        "WHERE trd.transfer_status = 0 " +
+	        "AND trd.vehicle_id IS NULL " +
+	        "AND (trd.instant_booking IS NULL OR trd.instant_booking = 0) " +
+	        "AND trd.pickup_date = :today " +
+	        "AND trd.pickup_reminder_sent_at IS NULL " +
+	        "AND trd.pickup_schedule IS NOT NULL",
+	        nativeQuery = true)
+	List<TransferRequestDetails> findScheduledPendingUnassignedToday(@Param("today") LocalDate today);
 
 }
