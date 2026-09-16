@@ -178,7 +178,9 @@ public class LocationService {
 	        JsonNode predictions = root.path("predictions");
 
 		List<String> allowedCities = Arrays.asList(
-		        "Delhi", "Noida", "Greater Noida", "Ghaziabad", "Gurgaon", "Gurugram", "Faridabad","Amethi","Lucknow"
+		        "Delhi", "Noida", "Greater Noida", "Ghaziabad", "Gurgaon", "Gurugram", "Faridabad", "Amethi", "Lucknow",
+		        "Kanpur", "Agra", "Meerut", "Hapur", "Kannauj", "Varanasi", "Banaras", "Etawah", "Barabanki",
+		        "Sultanpur", "Mathura", "Rampur"
 		);
 
 		for (int i = 0; i < Math.min(10, predictions.size()); i++) {
