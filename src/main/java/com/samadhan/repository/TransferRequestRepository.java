@@ -14,7 +14,7 @@ import com.samadhan.entity.TransferRequestDetails;
 
 public interface TransferRequestRepository   extends JpaRepository<TransferRequestDetails, Long> {
 
-	@Query(value="select * from transfer_request_details where user_id=:userId ORDER BY request_created_date DESC" ,nativeQuery = true)
+	@Query(value="select * from transfer_request_details where user_id=:userId AND (is_deleted IS NULL OR is_deleted = 0) ORDER BY request_created_date DESC" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByUserId(Long userId);
 
 	// Paginated feed backing GET /transfer/rideTransferbyUser/{userId}. statusFilter is one of
@@ -23,6 +23,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value =
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.user_id = :userId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 	        "  (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
@@ -32,6 +33,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        countQuery =
 	        "SELECT COUNT(*) FROM transfer_request_details trd " +
 	        "WHERE trd.user_id = :userId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 	        "  (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
@@ -43,7 +45,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        @Param("statusFilter") String statusFilter,
 	        Pageable pageable);
 
-	@Query(value="select * from transfer_request_details where driver_id=:driverId AND transfer_status IN(3,4) ORDER BY request_created_date DESC" ,nativeQuery = true)
+	@Query(value="select * from transfer_request_details where driver_id=:driverId AND transfer_status IN(3,4) AND (is_deleted IS NULL OR is_deleted = 0) ORDER BY request_created_date DESC" ,nativeQuery = true)
 	List<TransferRequestDetails> findTransferRideByDriverId(Long driverId);
 
 //	@Query(value="SELECT trd.*\r\n"
@@ -119,6 +121,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
 	        "WHERE tv.vendor_status IN (3,2,5,1) " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 
 	        // Assigned rides of current vendor
@@ -158,6 +161,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT 1 FROM vehicle veh " +
 	        "WHERE veh.transfer_id = :vendorId " +
 	        "AND veh.vehicle_latitude IS NOT NULL AND veh.vehicle_longitude IS NOT NULL " +
+	        "AND (veh.is_active IS NULL OR veh.is_active = 1) " +
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(veh.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(veh.vehicle_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))) " +
@@ -219,6 +223,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
 	        "WHERE tv.vendor_status IN (3,2,5,1) " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 	        "   NOT EXISTS (SELECT 1 FROM vendor_service vs0 WHERE vs0.vendor_id = :vendorId) " +
 	        "   OR EXISTS ( " +
@@ -243,6 +248,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT 1 FROM vehicle veh " +
 	        "WHERE veh.transfer_id = :vendorId " +
 	        "AND veh.vehicle_latitude IS NOT NULL AND veh.vehicle_longitude IS NOT NULL " +
+	        "AND (veh.is_active IS NULL OR veh.is_active = 1) " +
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(veh.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(veh.vehicle_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))) " +
@@ -281,6 +287,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
 	        "WHERE tv.vendor_status IN (3,2,5,1) " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 	        "   NOT EXISTS (SELECT 1 FROM vendor_service vs0 WHERE vs0.vendor_id = :vendorId) " +
 	        "   OR EXISTS ( " +
@@ -305,6 +312,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT 1 FROM vehicle veh " +
 	        "WHERE veh.transfer_id = :vendorId " +
 	        "AND veh.vehicle_latitude IS NOT NULL AND veh.vehicle_longitude IS NOT NULL " +
+	        "AND (veh.is_active IS NULL OR veh.is_active = 1) " +
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(veh.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(veh.vehicle_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))) " +
@@ -358,6 +366,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "FROM transfer_request_details trd " +
 	        "JOIN transfer_vendor tv ON tv.id = :vendorId " +
 	        "WHERE tv.vendor_status IN (3,2,5,1) " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 	        "   NOT EXISTS (SELECT 1 FROM vendor_service vs0 WHERE vs0.vendor_id = :vendorId) " +
 	        "   OR EXISTS ( " +
@@ -382,6 +391,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT 1 FROM vehicle veh " +
 	        "WHERE veh.transfer_id = :vendorId " +
 	        "AND veh.vehicle_latitude IS NOT NULL AND veh.vehicle_longitude IS NOT NULL " +
+	        "AND (veh.is_active IS NULL OR veh.is_active = 1) " +
 	        "AND ST_Distance_Sphere( " +
 	        "POINT(CAST(TRIM(veh.vehicle_longitude) AS DECIMAL(12,8)), CAST(TRIM(veh.vehicle_latitude) AS DECIMAL(12,8))), " +
 	        "POINT(CAST(TRIM(trd.source_longitude) AS DECIMAL(12,8)), CAST(TRIM(trd.source_latitude) AS DECIMAL(12,8))) " +
@@ -434,7 +444,8 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        ") / 1000 AS vehicle_distance_km " +
 	        "FROM transfer_request_details trd " +
 	        "JOIN vehicle v ON v.id = :vehicleId " +
-	        "WHERE ( " +
+	        "WHERE (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
+	        "AND ( " +
 	        // Already assigned to this vehicle, in an active status
 	        "   ( trd.vehicle_id = :vehicleId AND trd.transfer_status IN (5,6,7,8) ) " +
 	        "   OR ( " +
@@ -481,6 +492,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "JOIN vehicle v ON v.id = :vehicleId " +
 	        "WHERE trd.vehicle_id IS NULL " +
 	        "AND trd.transfer_status = 0 " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
 	        "AND ST_Distance_Sphere( " +
@@ -504,6 +516,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value =
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.vehicle_id = :vehicleId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 	        "  (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
 	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status IN (5,6,7)) " +
@@ -512,6 +525,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        countQuery =
 	        "SELECT COUNT(*) FROM transfer_request_details trd " +
 	        "WHERE trd.vehicle_id = :vehicleId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND ( " +
 	        "  (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
 	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status IN (5,6,7)) " +
@@ -541,6 +555,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND trd.pickup_date <= :maxPickupDate " +
 	        "AND trd.source_latitude IS NOT NULL AND trd.source_longitude IS NOT NULL " +
 	        "ORDER BY trd.request_created_date DESC",
@@ -559,6 +574,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND trd.overdue_notified_at IS NULL " +
 	        "AND ( " +
 	        "  (trd.instant_booking = 1 AND trd.request_created_date <= :instantBookingCutoff) " +
@@ -579,6 +595,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND (trd.instant_booking IS NULL OR trd.instant_booking = 0) " +
 	        "AND trd.pickup_date = :today " +
 	        "AND trd.pickup_reminder_sent_at IS NULL " +

@@ -343,6 +343,12 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 				// read — skip rather than fail the whole page over one stale row.
 				continue;
 			}
+			if (Boolean.TRUE.equals(request.getIsDeleted())) {
+				// Soft-deleted after this match row was written — requestTransferDelete already
+				// clears its match rows going forward, but this covers any stale row from before
+				// that (or a concurrent delete racing this read).
+				continue;
+			}
 			request.setMatchType(row.getMatchType());
 			request.setMatchDistanceKm(row.getMatchDistanceKm());
 			request.setMatchScorePercent(row.getMatchScorePercent());

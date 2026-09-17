@@ -36,4 +36,6 @@ public interface driversService {
 
 	Driver deleteDriver(Long driverId);
 
+	Driver deactivateDriver(Long driverId);
+
 }

@@ -79,7 +79,21 @@ public class Driver {
 
 	@Column(name="current_location")
 	private String currentLocation;
-	
+
+	// Soft-delete flag, same pattern as Vehicle.isActive — set false instead of removing the row,
+	// so ride history tied to this driver stays intact. DriverRepository's vendor/nearby listing
+	// queries exclude isActive=false drivers.
+	@Column(name = "is_active")
+	private Boolean isActive = true;
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
 	@OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
 	private List<Ride> rides;
 	

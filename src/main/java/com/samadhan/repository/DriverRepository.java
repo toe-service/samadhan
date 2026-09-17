@@ -17,11 +17,12 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 //	           "sin(radians(:pickuplatitude)) * sin(radians(d.driver_latitude)))) <= :distance", nativeQuery = true)
 	
 	@Query("SELECT d FROM Driver d WHERE " +
+	           "(d.isActive IS NULL OR d.isActive = true) AND " +
 	           "(6371 * acos(cos(radians(:pickuplatitude)) * cos(radians(d.driverLatitude)) * cos(radians(d.driverLongitude) - radians(:pickuplongitude)) + " +
 	           "sin(radians(:pickuplatitude)) * sin(radians(d.driverLatitude)))) <= :distance")
 	List<Driver> findAllDriversByfilters(String pickuplatitude, String pickuplongitude,double distance);
 
-	@Query(value="SELECT * FROM driver WHERE transfer_id=:vendorId" ,nativeQuery = true)
+	@Query(value="SELECT * FROM driver WHERE transfer_id=:vendorId AND (is_active IS NULL OR is_active = 1)" ,nativeQuery = true)
 	List<Driver> findByVendorId(Long vendorId);
 
 	@Query(value="SELECT * FROM driver WHERE driver_contact_number=:userName AND password=:password" ,nativeQuery = true)
