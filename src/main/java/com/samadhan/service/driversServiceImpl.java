@@ -288,4 +288,14 @@ public class driversServiceImpl implements driversService {
 		return driver;
 	}
 
+	// Soft delete — marks the driver inactive instead of removing the row, so transfer/ride
+	// history tied to this driver stays intact. Same pattern as VehicleServiceImpl#deactivateVehicle.
+	@Override
+	public Driver deactivateDriver(Long driverId) {
+		Driver driver = driverRepo.findById(driverId)
+				.orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
+		driver.setIsActive(false);
+		return driverRepo.save(driver);
+	}
+
 }

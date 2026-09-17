@@ -10,10 +10,10 @@ import com.samadhan.entity.Vehicle;
 
 public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 
-	@Query(value="select * from vehicle where transfer_id=:vendorId",nativeQuery=true)
+	@Query(value="select * from vehicle where transfer_id=:vendorId and (is_active IS NULL OR is_active = 1)",nativeQuery=true)
 	List<Vehicle> findByVendorId(Long vendorId);
 
-	@Query(value="select * from vehicle where transfer_id=:vendorId and ongoing_status=:isActive",nativeQuery=true)
+	@Query(value="select * from vehicle where transfer_id=:vendorId and ongoing_status=:isActive and (is_active IS NULL OR is_active = 1)",nativeQuery=true)
 	List<Vehicle> findByActiveVendorId(Long vendorId, boolean isActive);
 
 	@Query(value="select * from vehicle where user_name=:userName and password=:password",nativeQuery=true)
@@ -30,6 +30,7 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	        "FROM vehicle v " +
 	        "LEFT JOIN transfer_vendor tv ON tv.id = v.transfer_id " +
 	        "WHERE v.fcm_token IS NOT NULL " +
+	        "AND (v.is_active IS NULL OR v.is_active = 1) " +
 	        "AND v.ongoing_status = false " +
 	        // vendor_vehicle_type holds the enum ordinal (Vehicle.vendorVehicle has no
 	        // @Enumerated(EnumType.STRING)), so the caller passes ordinals, not names.

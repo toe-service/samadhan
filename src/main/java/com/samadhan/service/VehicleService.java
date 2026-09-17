@@ -26,6 +26,8 @@ public interface VehicleService {
 
 	Vehicle deactivateVehicle(Long vehicleId);
 
+	Vehicle deactivateVehicleForVendor(Long vehicleId, Long vendorId);
+
 	// Hard delete — permanently removes the row. Rejects (ConflictException) if the vehicle has
 	// existing transfer/ride history, so history isn't silently orphaned or lost; callers should
 	// use deactivateVehicle instead in that case.

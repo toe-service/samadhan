@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Vehicle;
-import com.samadhan.exception.ConflictException;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.response.ResponseObject;
 import com.samadhan.security.TokenApi;
@@ -72,14 +71,19 @@ public class VehicleController {
 		return resp;
 	}
 
-	// Authenticated (default security rule — see SecurityConfig). Hard delete: permanently
-	// removes the row (unlike DELETE /v1/vehicle/{vehicleId}, which only deactivates it). The
-	// JWT's own userId claim must match the vehicleId being deleted, same ownership check as
-	// V1UserLoginAndRegistrationController#deleteVehicle. Rejected with a ConflictException if
-	// the vehicle has transfer/ride history — deactivate it instead in that case.
+	// Authenticated (default security rule — see SecurityConfig). Soft delete: marks the vehicle
+	// inactive instead of removing the row, same as DELETE /v1/vehicle/{vehicleId} — this used to
+	// hard-delete (rejected via ConflictException if the vehicle had transfer/ride history), but
+	// that risked losing ride/wallet history for any vehicle with none yet at delete time, and
+	// still left it discoverable elsewhere. Deactivated vehicles are now excluded from every
+	// vendor/vehicle-facing listing (VehicleRepository.findByVendorId/findByActiveVendorId/
+	// findNearbyVehicles). NOTE: this is intentionally separate from VehicleService.deleteVehicle,
+	// which the public POST /v1/vehicle-delete endpoint still uses unchanged. The JWT's own userId
+	// claim must match the vehicleId being deleted, same ownership check as
+	// V1UserLoginAndRegistrationController#deleteVehicle.
 	@DeleteMapping(value = "/{vehicleId}")
 	public ResponseEntity<ResponseObject<?>> deleteVehicle(
-			@PathVariable Long vehicleId, HttpServletRequest httpRequest) throws ConflictException {
+			@PathVariable Long vehicleId, HttpServletRequest httpRequest) {
 
 		String authHeader = httpRequest.getHeader("Authorization");
 		String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
@@ -89,7 +93,7 @@ public class VehicleController {
 			throw new AccessDeniedException("You are not authorized to delete this vehicle");
 		}
 
-		vehicleService.deleteVehicle(vehicleId);
+		vehicleService.deactivateVehicle(vehicleId);
 		ResponseObject<String> success = ResponseUtil.populateResponseObject(
 				"Vehicle deleted successfully.", "SUCCESS", null);
 		return ResponseEntity.ok(success);

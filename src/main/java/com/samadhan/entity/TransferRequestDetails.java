@@ -284,6 +284,20 @@ public class TransferRequestDetails {
 		 this.pickupReminderSentAt = pickupReminderSentAt;
 	 }
 
+	 // Soft-delete flag set by requestTransferDelete — keeps the row (and its wallet_transaction/
+	 // cancelled_request history) intact instead of hard-deleting, while every vendor/vehicle/
+	 // user/driver-facing feed query excludes is_deleted=1 rows so it disappears from view.
+	 @Column(name = "is_deleted")
+	 private Boolean isDeleted = false;
+
+	 public Boolean getIsDeleted() {
+		 return isDeleted;
+	 }
+
+	 public void setIsDeleted(Boolean isDeleted) {
+		 this.isDeleted = isDeleted;
+	 }
+
 	 @Column(name = "goods_type")
 	 private String goodsType;
 	 

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -145,6 +146,22 @@ public class VehicleServiceImpl implements VehicleService{
 	public Vehicle deactivateVehicle(Long vehicleId) {
 		Vehicle vehicle = vehicleRepo.findById(vehicleId)
 				.orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
+		vehicle.setIsActive(false);
+		return vehicleRepo.save(vehicle);
+	}
+
+	// Vendor-facing soft delete for the "All Vehicles" fleet management page — unlike
+	// deactivateVehicle above (called by the vehicle's own JWT-authenticated self-service
+	// endpoints), this is invoked with the vendor's own credentials, so ownership is checked
+	// explicitly here instead of via a token claim, same pattern as the vehicle-assignment
+	// ownership check in TransferRequestServiceImpl#requestTransferApproval.
+	@Override
+	public Vehicle deactivateVehicleForVendor(Long vehicleId, Long vendorId) {
+		Vehicle vehicle = vehicleRepo.findById(vehicleId)
+				.orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
+		if (vehicle.getTransferVendor() == null || !vendorId.equals(vehicle.getTransferVendor().getId())) {
+			throw new AccessDeniedException("Vehicle " + vehicleId + " does not belong to vendor " + vendorId);
+		}
 		vehicle.setIsActive(false);
 		return vehicleRepo.save(vehicle);
 	}

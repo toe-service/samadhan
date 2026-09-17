@@ -1097,14 +1097,28 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		return response;
 	}
 
+	// Soft delete: previously hard-deleted the row plus every cancelled_request/wallet_transaction
+	// tied to it, which wiped the financial audit trail for a request that already had fees
+	// charged against it (see TransferRequestDetails.isDeleted). The row and its history now stay
+	// in place; every vendor/vehicle/user/driver-facing feed query excludes is_deleted=1 rows.
 	@Override
 	@Transactional
 	public TransferRequestDetails requestTransferDelete(Long transferId) {
 		TransferRequestDetails transfer = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
-		CancelledRequestRepo.deleteByTransferRequest(transferId);
-		walletTransactionRepo.deleteBydeleteByTransferRequest(transferId);
-		transferRepo.delete(transfer);
+		transfer.setIsDeleted(true);
+		transferRepo.save(transfer);
+
+		// A deleted request may already have a row in vendor_availability_match (the "Matching
+		// Your Posting" feed) from before it was deleted — that table isn't covered by the
+		// is_deleted filters on TransferRequestRepository's feed queries, so it's cleared
+		// explicitly here, same as the invalidateForRequest call on acceptance above.
+		try {
+			vendorAvailabilityService.invalidateForRequest(transferId);
+		} catch (Exception e) {
+			logger.warn("Failed to clear posting-match rows after deleting request {}: {}", transferId, e.getMessage(), e);
+		}
+
 		return transfer;
 	}
 
