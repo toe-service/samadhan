@@ -11,6 +11,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -71,6 +72,19 @@ public class UserDetails {
 	@JsonIgnore
 	@Column(name = "reset_otp_attempts")
 	private Integer resetOtpAttempts;
+
+	// Set at login (see /v1/user-otp-verify) — the app's push token for the "Available Rides"
+	// daily notification. Null for a user who's never logged in since this was added, or who
+	// denied notification permission on their device.
+	@JsonIgnore
+	@Column(name = "fcm_token")
+	private String fcmToken;
+
+	// Set by AvailableRidesNotificationScheduler the day it last sent this user a push — caps the
+	// notification at once per user per day even if they match more than one route that day.
+	@JsonIgnore
+	@Column(name = "last_availability_notified_date")
+	private LocalDate lastAvailabilityNotifiedDate;
 
 	public Long getId() {
 		return id;

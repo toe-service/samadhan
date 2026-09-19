@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.samadhan.dto.AvailablePosting;
+import com.samadhan.dto.AvailableRideSummary;
 import com.samadhan.dto.MatchingRequestsResponse;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.request.VendorAvailabilityRequest;
@@ -129,6 +132,37 @@ public class VendorAvailabilityController {
 		vendorAvailabilityService.cancelAvailability(vendorId, availabilityId);
 		ResponseObject<String> success = ResponseUtil.populateResponseObject(
 				"Availability posting cancelled.", "success", null);
+		return ResponseEntity.ok(success);
+	}
+
+	// Public, cross-vendor route+date summaries backing the customer app's "Available Rides" tab —
+	// unlike every other endpoint in this controller, this isn't scoped to one vendor's own
+	// postings, so it has no ownership check (see SecurityConfig for the matching permitAll entry).
+	// Just aggregate counts, no vendor identity or pricing exposed. fromCity/toCity are optional
+	// search filters — omitted means every upcoming route, same as before this filter existed.
+	@GetMapping(value = "/available-rides")
+	public ResponseEntity<ResponseObject<List<AvailableRideSummary>>> getAvailableRides(
+			@RequestParam(required = false) String fromCity,
+			@RequestParam(required = false) String toCity) {
+
+		List<AvailableRideSummary> summaries = vendorAvailabilityService.getAvailableRideSummaries(fromCity, toCity);
+		ResponseObject<List<AvailableRideSummary>> success = ResponseUtil.populateResponseObject(
+				summaries, "success", null);
+		return ResponseEntity.ok(success);
+	}
+
+	// Individual (ungrouped) postings for one route+date — the "pick a specific vendor" drill-down
+	// after a route summary is tapped in the "Available Rides" tab. Same public, no-ownership-check
+	// access as getAvailableRides above (see SecurityConfig).
+	@GetMapping(value = "/available-rides/postings")
+	public ResponseEntity<ResponseObject<List<AvailablePosting>>> getAvailablePostings(
+			@RequestParam String fromCity,
+			@RequestParam String toCity,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+		List<AvailablePosting> postings = vendorAvailabilityService.getAvailablePostings(fromCity, toCity, date);
+		ResponseObject<List<AvailablePosting>> success = ResponseUtil.populateResponseObject(
+				postings, "success", null);
 		return ResponseEntity.ok(success);
 	}
 }

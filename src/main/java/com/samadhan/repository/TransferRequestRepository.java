@@ -141,8 +141,14 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 
 	        "OR ( " +
 
-	        // Only pending rides
+	        // Only pending rides. transfer_id IS NULL excludes a request already targeted to a
+	        // specific vendor (see requestRideTransfer's "Available Rides" flow — pre-set vendor,
+	        // deliberately left PENDING) from this open/nearby broadcast branch; it's still
+	        // visible to its own targeted vendor via the "trd.transfer_id = :vendorId" branch
+	        // above regardless of status. A no-op for every pre-existing PENDING row, since
+	        // transfer_id was never set while status stayed PENDING before that flow existed.
 	        "trd.transfer_status = 0 " +
+	        "AND trd.transfer_id IS NULL " +
 
 	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
@@ -237,6 +243,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "trd.transfer_id = :vendorId " +
 	        "OR ( " +
 	        "trd.transfer_status = 0 " +
+	        "AND trd.transfer_id IS NULL " +
 	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
 	        "AND ( " +
@@ -301,6 +308,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "trd.transfer_id = :vendorId " +
 	        "OR ( " +
 	        "trd.transfer_status = 0 " +
+	        "AND trd.transfer_id IS NULL " +
 	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
 	        "AND ( " +
@@ -380,6 +388,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "trd.transfer_id = :vendorId " +
 	        "OR ( " +
 	        "trd.transfer_status = 0 " +
+	        "AND trd.transfer_id IS NULL " +
 	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
 	        "AND ( " +
@@ -460,6 +469,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        // Rides with no distance_km recorded fall through to 30 km, which is
 	        // the radius the feed used before this rule existed.
 	        "       trd.vehicle_id IS NULL " +
+	        "       AND trd.transfer_id IS NULL " +
 	        "       AND trd.source_latitude IS NOT NULL " +
 	        "       AND trd.source_longitude IS NOT NULL " +
 	        "       AND ST_Distance_Sphere( " +
@@ -492,6 +502,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "JOIN vehicle v ON v.id = :vehicleId " +
 	        "WHERE trd.vehicle_id IS NULL " +
 	        "AND trd.transfer_status = 0 " +
+	        "AND trd.transfer_id IS NULL " +
 	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND trd.source_latitude IS NOT NULL " +
 	        "AND trd.source_longitude IS NOT NULL " +
@@ -555,6 +566,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
+	        "AND trd.transfer_id IS NULL " +
 	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND trd.pickup_date <= :maxPickupDate " +
 	        "AND trd.source_latitude IS NOT NULL AND trd.source_longitude IS NOT NULL " +
@@ -574,6 +586,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
+	        "AND trd.transfer_id IS NULL " +
 	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND trd.overdue_notified_at IS NULL " +
 	        "AND ( " +
@@ -595,6 +608,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.transfer_status = 0 " +
 	        "AND trd.vehicle_id IS NULL " +
+	        "AND trd.transfer_id IS NULL " +
 	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
 	        "AND (trd.instant_booking IS NULL OR trd.instant_booking = 0) " +
 	        "AND trd.pickup_date = :today " +

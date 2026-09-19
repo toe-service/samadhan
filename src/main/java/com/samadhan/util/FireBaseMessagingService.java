@@ -203,5 +203,36 @@ public class FireBaseMessagingService {
 	        }
 	    }
 	}
-	
+
+	// Generic single-token send, unlike notifyVehicles/notifyRideTaken above (both hardwired to
+	// Vehicle entities/tokens) — used by AvailableRidesNotificationScheduler to push to a
+	// UserDetails.fcmToken. Best-effort: caller decides how to handle a thrown
+	// FirebaseMessagingException (this class's other methods log-and-continue per recipient
+	// rather than failing the whole batch, same convention expected here).
+	public void sendPushNotification(String fcmToken, String title, String body, java.util.Map<String, String> data)
+			throws FirebaseMessagingException {
+
+		Notification notification = Notification
+				.builder()
+				.setTitle(title)
+				.setBody(body)
+				.build();
+
+		Message.Builder messageBuilder = Message
+				.builder()
+				.setToken(fcmToken)
+				.setNotification(notification)
+				.setAndroidConfig(
+						AndroidConfig.builder()
+								.setPriority(AndroidConfig.Priority.HIGH)
+								.build()
+				);
+
+		if (data != null) {
+			messageBuilder.putAllData(data);
+		}
+
+		firebaseMessaging.send(messageBuilder.build());
+	}
+
 }

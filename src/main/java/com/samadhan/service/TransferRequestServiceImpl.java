@@ -303,6 +303,18 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 		}else {
 		transferRequest.setUserType(userType);
+		if (vendor != null) {
+			// Customer picked a specific vendor's posted availability (see the "Available Rides"
+			// tab) — targets the request to that vendor only, but deliberately stays PENDING
+			// rather than auto-accepting: the vendor still has to explicitly Accept/Decline it,
+			// same as any other incoming request. Exclusivity (not showing up for any other
+			// vendor/vehicle despite being PENDING) comes from transfer_id being non-null here —
+			// every query that treats "PENDING" as "open to anyone" also requires
+			// transfer_id IS NULL (see TransferRequestRepository + recomputeForRequest), so this
+			// row is invisible everywhere except this one vendor's own dashboard
+			// (trd.transfer_id = :vendorId branch), which doesn't care about status at all.
+			transferRequest.setTransferVendor(vendor);
+		}
 		transferRequest.setTransferStatus(rideStatusEnum.PENDING);
 		}
 		
@@ -400,7 +412,16 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		// Cancelling (transferApproval==3) is expected to run on a request that already has a
 		// vendor attached — that's exactly what "already accepted" means. The guard only makes
 		// sense for accept(1)/decline(2), otherwise cancel could never reach its own logic below.
-		if (existingVendor != null && transferApproval != 3) {
+		// One more exception: a request created via the "Available Rides" targeted-booking flow
+		// (see requestRideTransfer) already has its vendor pre-set at creation time but is
+		// deliberately left PENDING so that vendor still has to explicitly accept/decline it —
+		// so the guard is skipped when the caller IS that same pre-targeted vendor and the
+		// request hasn't actually been acted on yet (still PENDING). A different vendorId hitting
+		// someone else's targeted-but-pending request is still blocked here.
+		boolean isOwnTargetedPendingRequest = existingVendor != null
+				&& existingVendor.getId().equals(vendorId)
+				&& transferdetails.getTransferStatus() == rideStatusEnum.PENDING;
+		if (existingVendor != null && transferApproval != 3 && !isOwnTargetedPendingRequest) {
 		    throw new RequestAlreadyAcceptedException("This request is already accepted.");
 		}
 
@@ -455,13 +476,29 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		}
 		
 		if(transferApproval==2) {
-			
+
 			CancelledRequest cancelRequest=new CancelledRequest();
 			cancelRequest.setTransferVendor(transferVendor);
 			cancelRequest.setTransferRequest(transferdetails);
 			cancelRequest.setcancellationReason(cancellationReason);
 			cancelRequest.setRequestFlag(true);
 			CancelledRequestRepo.save(cancelRequest);
+
+			// Declining a targeted request (existingVendor was already set — see
+			// isOwnTargetedPendingRequest above) releases the vendor lock instead of leaving it
+			// stuck, exclusively offered to a vendor who just said no, and unactionable by anyone
+			// else. A normal (non-targeted) decline never has existingVendor set in the first
+			// place, so this is a no-op for every decline that isn't on a targeted request.
+			if (existingVendor != null) {
+				transferdetails.setTransferVendor(null);
+				transferRepo.save(transferdetails);
+				try {
+					vendorAvailabilityService.recomputeForRequest(transferdetails.getId());
+				} catch (Exception e) {
+					logger.warn("Failed to update posting-match table after declining targeted request {}: {}", transferId, e.getMessage(), e);
+				}
+			}
+
 			return transferdetails;
 		}if(transferApproval==3) {
 			

@@ -12,4 +12,8 @@ public interface UserService {
 
 	public UserDetails deactivateUser(Long userId);
 
+	// Saves the device's push token at login (see /v1/user-otp-verify) for the "Available Rides"
+	// daily notification. No-ops silently if fcmToken is null (caller didn't send one).
+	public void updateFcmToken(Long userId, String fcmToken);
+
 }

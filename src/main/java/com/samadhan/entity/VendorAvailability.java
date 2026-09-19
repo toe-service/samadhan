@@ -56,6 +56,16 @@ public class VendorAvailability {
 	@Column(name = "to_longitude")
 	private String toLongitude;
 
+	// Best-effort city names extracted from fromLocation/toLocation at post/update time (see
+	// util/CityUtils.extractCity) — backs the "Available Rides" route+date aggregation, which
+	// can't group free-text addresses directly. Null when extraction couldn't run (e.g. blank
+	// location), same permissive-fallback convention as this entity's lat/lng fields.
+	@Column(name = "from_city")
+	private String fromCity;
+
+	@Column(name = "to_city")
+	private String toCity;
+
 	// Encoded polyline for the from->to driving route, fetched once from RouteService at
 	// posting time and cached here so matching doesn't re-call the Maps API per request lookup.
 	// When waypoints are set (below), this polyline is computed to actually pass through them.
@@ -175,6 +185,22 @@ public class VendorAvailability {
 
 	public void setToLocation(String toLocation) {
 		this.toLocation = toLocation;
+	}
+
+	public String getFromCity() {
+		return fromCity;
+	}
+
+	public void setFromCity(String fromCity) {
+		this.fromCity = fromCity;
+	}
+
+	public String getToCity() {
+		return toCity;
+	}
+
+	public void setToCity(String toCity) {
+		this.toCity = toCity;
 	}
 
 	public String getToLatitude() {

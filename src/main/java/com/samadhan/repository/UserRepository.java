@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.samadhan.entity.UserDetails;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,6 +36,19 @@ public interface UserRepository extends JpaRepository<UserDetails, Long> {
     // NonUniqueResultException — see the same fix applied to TransferVendorRepository.
     @Query(value = "Select * from user_details where user_email = :userEmail ORDER BY id ASC LIMIT 1", nativeQuery = true)
     UserDetails findByUserEmail(@Param("userEmail") String userEmail);
+
+    // Candidates for AvailableRidesNotificationScheduler: users in the posting's origin city with
+    // a registered push token, not already notified today — last_availability_notified_date is
+    // the once-per-user-per-day dedupe flag, checked here rather than after the fact so a user
+    // matching several routes on the same day only shows up once, on whichever route is processed
+    // first.
+    @Query(value =
+            "SELECT * FROM user_details " +
+            "WHERE device_city = :city " +
+            "AND fcm_token IS NOT NULL AND fcm_token <> '' " +
+            "AND (last_availability_notified_date IS NULL OR last_availability_notified_date < :today)",
+            nativeQuery = true)
+    List<UserDetails> findUsersToNotifyForCity(@Param("city") String city, @Param("today") LocalDate today);
 }
 
 

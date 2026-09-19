@@ -96,6 +96,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/transferVendor/password/forgot").permitAll()
                 .antMatchers(HttpMethod.POST, "/transferVendor/password/reset").permitAll()
                 .antMatchers(HttpMethod.GET, "/transferVendor/public-profile/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/vendor/available-rides").permitAll()
+                .antMatchers(HttpMethod.GET, "/vendor/available-rides/postings").permitAll()
                // .antMatchers(HttpMethod.GET, "/transfer/rideCostCalculation").permitAll()
                 .antMatchers("/health").permitAll()
                 .antMatchers("/swagger-ui/**").permitAll()

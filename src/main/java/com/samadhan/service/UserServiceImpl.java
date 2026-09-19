@@ -65,4 +65,15 @@ public class UserServiceImpl implements UserService{
 		user.setIsActive(false);
 		return userrepo.save(user);
 	}
+
+	@Override
+	public void updateFcmToken(Long userId, String fcmToken) {
+		if (fcmToken == null || fcmToken.isBlank()) {
+			return;
+		}
+		UserDetails user = userrepo.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+		user.setFcmToken(fcmToken);
+		userrepo.save(user);
+	}
 }
