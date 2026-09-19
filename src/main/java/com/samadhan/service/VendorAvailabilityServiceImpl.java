@@ -20,6 +20,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.samadhan.dto.AvailablePosting;
+import com.samadhan.dto.AvailableRideSummary;
 import com.samadhan.dto.GeoPoint;
 import com.samadhan.dto.MatchingRequestsResponse;
 import com.samadhan.dto.RouteRequest;
@@ -34,11 +36,14 @@ import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
+import com.samadhan.repository.AvailablePostingProjection;
+import com.samadhan.repository.AvailableRideSummaryProjection;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VendorAvailabilityMatchRepository;
 import com.samadhan.repository.VendorAvailabilityRepository;
 import com.samadhan.request.VendorAvailabilityRequest;
+import com.samadhan.util.CityUtils;
 import com.samadhan.util.GeoUtils;
 
 @Service
@@ -69,6 +74,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 	// your posting" against a 20ft truck (10 tonnes), which passes the plain "big enough" check
 	// but is such a size mismatch it's not a meaningful match either.
 	private static final double MIN_VEHICLE_CAPACITY_RATIO = 0.30;
+	// Advertising copy only for the "Available Rides" feed/notification — not enforced at booking
+	// or pricing. No coupon/discount system exists yet; wiring this to an actual price reduction
+	// is a separate decision (who funds it: the platform's take-rate or the vendor's price).
+	private static final int AVAILABLE_RIDES_DISCOUNT_PERCENT = 10;
 
 	@Autowired
 	VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -137,6 +146,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		availability.setToLocation(request.toLocation);
 		availability.setToLatitude(request.toLatitude);
 		availability.setToLongitude(request.toLongitude);
+		availability.setFromCity(CityUtils.extractCity(request.fromLocation));
+		availability.setToCity(CityUtils.extractCity(request.toLocation));
 		availability.setExpectedDate(request.expectedDate);
 		availability.setVehicleType(request.vehicleType);
 		availability.setVehicleCategory(request.vehicleCategory);
@@ -219,6 +230,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		availability.setToLocation(request.toLocation);
 		availability.setToLatitude(request.toLatitude);
 		availability.setToLongitude(request.toLongitude);
+		availability.setFromCity(CityUtils.extractCity(request.fromLocation));
+		availability.setToCity(CityUtils.extractCity(request.toLocation));
 		availability.setExpectedDate(request.expectedDate);
 		availability.setVehicleType(request.vehicleType);
 		availability.setVehicleCategory(request.vehicleCategory);
@@ -446,7 +459,13 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		}
 		// Only pending/unassigned requests belong in the match pool — if this request has already
 		// moved on by the time this runs (e.g. two triggers raced), there's nothing to compute.
-		if (candidate.getTransferStatus() != rideStatusEnum.PENDING || candidate.getVehicleId() != null) {
+		// Also excludes a request already targeted to a specific vendor (see
+		// TransferRequestServiceImpl#requestRideTransfer's "Available Rides" flow — pre-set
+		// vendor, deliberately left PENDING so that vendor can still Accept/Decline it) — it's
+		// not actually open/unassigned even though its status says PENDING, so it shouldn't be
+		// suggested as a match to any other vendor's postings.
+		if (candidate.getTransferStatus() != rideStatusEnum.PENDING || candidate.getVehicleId() != null
+				|| candidate.getTransferVendor() != null) {
 			vendorAvailabilityMatchRepository.deleteByTransferRequestId(transferRequestId);
 			return;
 		}
@@ -520,6 +539,43 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		for (Long vendorId : vendorIds) {
 			safeRecomputeForVendor(vendorId);
 		}
+	}
+
+	@Override
+	public List<AvailableRideSummary> getAvailableRideSummaries(String fromCity, String toCity) {
+		List<AvailableRideSummaryProjection> rows =
+				vendorAvailabilityRepository.findAvailableRideSummaries(LocalDate.now(), fromCity, toCity);
+
+		List<AvailableRideSummary> summaries = new ArrayList<>(rows.size());
+		for (AvailableRideSummaryProjection row : rows) {
+			AvailableRideSummary summary = new AvailableRideSummary();
+			summary.setFromCity(row.getFromCity());
+			summary.setToCity(row.getToCity());
+			summary.setExpectedDate(row.getExpectedDate());
+			summary.setVehicleCount(row.getVehicleCount());
+			summary.setDiscountPercent(AVAILABLE_RIDES_DISCOUNT_PERCENT);
+			summaries.add(summary);
+		}
+		return summaries;
+	}
+
+	@Override
+	public List<AvailablePosting> getAvailablePostings(String fromCity, String toCity, LocalDate date) {
+		List<AvailablePostingProjection> rows =
+				vendorAvailabilityRepository.findAvailablePostings(fromCity, toCity, date);
+
+		List<AvailablePosting> postings = new ArrayList<>(rows.size());
+		for (AvailablePostingProjection row : rows) {
+			AvailablePosting posting = new AvailablePosting();
+			posting.setAvailabilityId(row.getAvailabilityId());
+			posting.setVendorId(row.getVendorId());
+			posting.setVendorName(row.getVendorName());
+			posting.setVehicleType(row.getVehicleType());
+			posting.setVehicleCategory(row.getVehicleCategory());
+			posting.setExpectedDate(row.getExpectedDate());
+			postings.add(posting);
+		}
+		return postings;
 	}
 
 	// Per-posting values that don't depend on the candidate being scored — computed once per

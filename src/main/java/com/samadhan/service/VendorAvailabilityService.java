@@ -3,6 +3,7 @@ package com.samadhan.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.samadhan.dto.AvailableRideSummary;
 import com.samadhan.dto.MatchingRequestsResponse;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.request.VendorAvailabilityRequest;
@@ -44,5 +45,15 @@ public interface VendorAvailabilityService {
 	// first deployed), populates it from every vendor that currently has an active posting.
 	// No-ops immediately once the table has any rows, so it's cheap to call on every app startup.
 	void bootstrapMatchesIfEmpty();
+
+	// Public, cross-vendor route+date summaries backing GET /vendor/available-rides (the customer
+	// app's "Available Rides" tab) — every active posting from today onward, grouped by route.
+	// fromCity/toCity are optional search filters (null = no filter).
+	List<AvailableRideSummary> getAvailableRideSummaries(String fromCity, String toCity);
+
+	// Individual active postings for one route+date (unlike getAvailableRideSummaries above,
+	// not grouped) — backs the "pick a specific vendor" drill-down after a user taps a route
+	// summary in the "Available Rides" tab.
+	List<com.samadhan.dto.AvailablePosting> getAvailablePostings(String fromCity, String toCity, LocalDate date);
 
 }

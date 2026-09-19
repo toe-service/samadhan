@@ -84,6 +84,16 @@ public class V1UserLoginAndRegistrationController {
 
         userDetails.setLastLogin(System.currentTimeMillis());
 
+        // Saves the device's push token (if the app sent one) for the "Available Rides" daily
+        // notification — same fcmToken-at-login pattern as /v1/role-login for drivers/vehicles.
+        // Best-effort: a failure here (e.g. a transient DB hiccup) must not fail an otherwise-
+        // successful login — the token would just get saved on the next login instead.
+        try {
+            userService.updateFcmToken(userDetails.getId(), userOtpVerifyRequest.getFcmToken());
+        } catch (Exception e) {
+            logger.warn("Failed to save fcmToken for user {}: {}", userDetails.getId(), e.getMessage(), e);
+        }
+
         UserOtpVerifyResponse otpVerifyResponse = new UserOtpVerifyResponse();
         otpVerifyResponse.setUserContactNumber(userDetails.getUserContactNumber());
         otpVerifyResponse.setOtp(userOtpVerifyRequest.getOtp());
