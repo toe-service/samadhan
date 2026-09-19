@@ -15,6 +15,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -603,6 +605,45 @@ public class TransferRequestDetails {
 
 	public void setDistanceKm(Double distanceKm) {
 		this.distanceKm = distanceKm;
+	}
+
+	// True when this ride needs an agent to consolidate it into a shared vehicle route instead
+	// of the vendor assigning one of their own vehicles directly — long-haul (>100km) Car/Bike/
+	// Package transfers only. Whole-vehicle bookings (BOOKVEHICLE) and anything ≤100km are
+	// always direct, existing-flow assignment. A real persisted column (see migration 026) rather
+	// than a computed-only getter, kept in sync by computeAgentInvolved() below on every
+	// insert/update — purely additive, no existing field or endpoint changes.
+	@Column(name = "agent_involved")
+	private Boolean agentInvolved;
+
+	public Boolean getAgentInvolved() {
+		return agentInvolved;
+	}
+
+	public void setAgentInvolved(Boolean agentInvolved) {
+		this.agentInvolved = agentInvolved;
+	}
+
+	// Runs automatically before every save (regardless of which code path — creation, distance
+	// getting set/updated later, status changes, etc.) so agent_involved can never drift out of
+	// sync with the ride's own distance/service/parcel type.
+	//
+	// Reads parcel type from parcelDetails.getParcelType(), NOT this class's own ParcelType field
+	// above — confirmed against production data that this entity's own parcel_type column is
+	// always null (dead/legacy column, never written by any code path); the real value lives on
+	// the related parcel_details row instead.
+	@PrePersist
+	@PreUpdate
+	private void computeAgentInvolved() {
+		ParcelTypeEnum actualParcelType = parcelDetails != null ? parcelDetails.getParcelType() : null;
+		if (serviceType != serviceTypeEnum.TRANSFERSERVICE || actualParcelType == null || distanceKm == null) {
+			agentInvolved = false;
+			return;
+		}
+		boolean isParcelEligible = actualParcelType == ParcelTypeEnum.Car
+				|| actualParcelType == ParcelTypeEnum.Bike
+				|| actualParcelType == ParcelTypeEnum.Package;
+		agentInvolved = isParcelEligible && distanceKm > 100;
 	}
 
 	public LocalDateTime getRequestCreatedDate() {
