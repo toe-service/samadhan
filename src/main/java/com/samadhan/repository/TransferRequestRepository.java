@@ -18,8 +18,10 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	List<TransferRequestDetails> findTransferRideByUserId(Long userId);
 
 	// Paginated feed backing GET /transfer/rideTransferbyUser/{userId}. statusFilter is one of
-	// PENDING (transfer_status = 0), COMPLETED (transfer_status = 8), or OTHER (everything else -
-	// ACCEPTED/DECLINED/READYFORPICKUP/HANDOVER/VEHICLEASSIGNED/ONGOING/YETTOBECOMPLETED/CANCELLED).
+	// PENDING (transfer_status = 0), COMPLETED (transfer_status = 8), OTHER (everything else -
+	// ACCEPTED/DECLINED/READYFORPICKUP/HANDOVER/VEHICLEASSIGNED/ONGOING/YETTOBECOMPLETED/CANCELLED),
+	// or ACTIVE (every status except COMPLETED — i.e. PENDING + OTHER combined in one bucket, for
+	// the user dashboard's "everything except completed" view).
 	@Query(value =
 	        "SELECT * FROM transfer_request_details trd " +
 	        "WHERE trd.user_id = :userId " +
@@ -28,6 +30,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
 	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status NOT IN (0,8)) " +
+	        "  OR (:statusFilter = 'ACTIVE' AND trd.transfer_status != 8) " +
 	        ") " +
 	        "ORDER BY trd.request_created_date DESC",
 	        countQuery =
@@ -38,6 +41,7 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        "  (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
 	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
 	        "  OR (:statusFilter = 'OTHER' AND trd.transfer_status NOT IN (0,8)) " +
+	        "  OR (:statusFilter = 'ACTIVE' AND trd.transfer_status != 8) " +
 	        ")",
 	        nativeQuery = true)
 	Page<TransferRequestDetails> getUserRidesFeedPaged(
