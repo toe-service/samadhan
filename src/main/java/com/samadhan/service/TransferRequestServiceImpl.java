@@ -228,7 +228,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			 transferRequest.setPickupDate(currentDate);  
 		  }else {
 			  transferRequest.setPickupDate(pickupDate);  
-		  }
+		 }
 		LocalDateTime currentDateTime=LocalDateTime.now();
 	//	transferRequest.setPickupDate(pickupDate);
 		// Backend is authoritative on this label, not the client: instantBooking already
