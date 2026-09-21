@@ -2,6 +2,7 @@ package com.samadhan.service;
 
 import com.samadhan.dto.CachedTransferMedia;
 import com.samadhan.enums.MediaUploadBy;
+import com.samadhan.enums.RideStage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,10 +27,11 @@ class TransferMediaCacheTest {
     void testPutAndGet() {
         Long transferId = 1L;
         MediaUploadBy uploadBy = MediaUploadBy.AGENT;
+        RideStage rideStage = RideStage.START;
         Map<String, List<Map<String, Object>>> data = Collections.emptyMap();
 
-        transferMediaCache.put(transferId, uploadBy, data);
-        Map<String, List<Map<String, Object>>> cachedData = transferMediaCache.get(transferId, uploadBy);
+        transferMediaCache.put(transferId, uploadBy, rideStage, data);
+        Map<String, List<Map<String, Object>>> cachedData = transferMediaCache.get(transferId, uploadBy, rideStage);
 
         Assertions.assertNotNull(cachedData);
         Assertions.assertEquals(data, cachedData);
@@ -37,31 +39,33 @@ class TransferMediaCacheTest {
 
     @Test
     void testGetNonExistent() {
-        Assertions.assertNull(transferMediaCache.get(999L, MediaUploadBy.AGENT));
+        Assertions.assertNull(transferMediaCache.get(999L, MediaUploadBy.AGENT, RideStage.START));
     }
 
     @Test
     void testEvict() {
         Long transferId = 1L;
         MediaUploadBy uploadBy = MediaUploadBy.AGENT;
-        transferMediaCache.put(transferId, uploadBy, Collections.emptyMap());
-        Assertions.assertNotNull(transferMediaCache.get(transferId, uploadBy));
+        RideStage rideStage = RideStage.START;
+        transferMediaCache.put(transferId, uploadBy, rideStage, Collections.emptyMap());
+        Assertions.assertNotNull(transferMediaCache.get(transferId, uploadBy, rideStage));
 
-        transferMediaCache.evict(transferId, uploadBy);
-        Assertions.assertNull(transferMediaCache.get(transferId, uploadBy));
+        transferMediaCache.evict(transferId, uploadBy, rideStage);
+        Assertions.assertNull(transferMediaCache.get(transferId, uploadBy, rideStage));
     }
 
     @Test
     void testExpiration() throws InterruptedException {
         Long transferId = 1L;
         MediaUploadBy uploadBy = MediaUploadBy.AGENT;
+        RideStage rideStage = RideStage.START;
         ReflectionTestUtils.setField(transferMediaCache, "cacheTtlMillis", 50L);
-        transferMediaCache.put(transferId, uploadBy, Collections.emptyMap());
+        transferMediaCache.put(transferId, uploadBy, rideStage, Collections.emptyMap());
 
-        Assertions.assertNotNull(transferMediaCache.get(transferId, uploadBy));
+        Assertions.assertNotNull(transferMediaCache.get(transferId, uploadBy, rideStage));
 
         Thread.sleep(100);
 
-        Assertions.assertNull(transferMediaCache.get(transferId, uploadBy));
+        Assertions.assertNull(transferMediaCache.get(transferId, uploadBy, rideStage));
     }
 }
