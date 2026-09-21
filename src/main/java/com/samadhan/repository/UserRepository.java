@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<UserDetails, Long> {
                 SELECT 1
                 FROM user_details u
                 WHERE u.user_contact_number = :mobile
-                   OR u.user_email = :email
+                   OR LOWER(u.user_email) = LOWER(:email)
             )
             """, nativeQuery = true)
     int existsByMobileOrEmail(
@@ -29,12 +29,14 @@ public interface UserRepository extends JpaRepository<UserDetails, Long> {
 
     Optional<UserDetails> findByUserContactNumber(String mobileNumber);
 
-    @Query(value = "Select * from user_details where user_email = :userName AND user_password =:password", nativeQuery = true)
+    // LOWER() on the email side only — password stays an exact match, only the login
+    // identifier should be case-insensitive.
+    @Query(value = "Select * from user_details where LOWER(user_email) = LOWER(:userName) AND user_password =:password", nativeQuery = true)
 	UserDetails findByUserNamePassword(String userName, String password);
 
     // LIMIT 1 guards against pre-existing duplicate user_email rows throwing
     // NonUniqueResultException — see the same fix applied to TransferVendorRepository.
-    @Query(value = "Select * from user_details where user_email = :userEmail ORDER BY id ASC LIMIT 1", nativeQuery = true)
+    @Query(value = "Select * from user_details where LOWER(user_email) = LOWER(:userEmail) ORDER BY id ASC LIMIT 1", nativeQuery = true)
     UserDetails findByUserEmail(@Param("userEmail") String userEmail);
 
     // Candidates for AvailableRidesNotificationScheduler: users in the posting's origin city with

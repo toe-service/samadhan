@@ -26,8 +26,10 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 
 	// Used for the hashed-password login path (see LoginService) — looks up by email only, then
 	// the password itself is verified in Java via PasswordEncoder.matches(), not in SQL, since a
-	// bcrypt hash can't be compared with a plain "=".
-	@Query(value="select * from transfer_vendor where vendor_email=:userName ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
+	// bcrypt hash can't be compared with a plain "=". LOWER() on both sides so login/registration/
+	// forgot-password all treat "Name@Example.com" and "name@example.com" as the same account,
+	// regardless of the DB column's collation.
+	@Query(value="select * from transfer_vendor where LOWER(vendor_email)=LOWER(:userName) ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
 	TransferVendor findByVendorEmail(String userName);
 
 //	@Modifying
