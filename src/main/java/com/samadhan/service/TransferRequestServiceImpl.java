@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.security.SecureRandom;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 import com.samadhan.enums.BikeModelEnum;
@@ -92,6 +94,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 	 @Autowired
 	 private VendorAvailabilityService vendorAvailabilityService;
+
+	 @PersistenceContext
+	 private EntityManager entityManager;
 
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -943,6 +948,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			List<TransferRequestDetails> all = vendorVehicles.isEmpty()
 					? new ArrayList<>()
 					: getrideTransferByVehicle(vendorVehicles.get(0).getId());
+			maskCustomerContactForPendingRides(all);
 			return buildPagedResponseInMemory(all, normalizedStatus, pickupDate, safePage, safeSize);
 		}
 
@@ -950,6 +956,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		Page<TransferRequestDetails> pageResult =
 				transferRepo.showRidestoVendorsPaged(vendorId, normalizedStatus, pickupDate, pageable);
 		RideStatusCounts counts = transferRepo.countRidesByStatusForVendor(vendorId);
+		maskCustomerContactForPendingRides(pageResult.getContent());
 
 		RideFeedResponse response = new RideFeedResponse();
 		response.setRides(pageResult.getContent());
@@ -964,6 +971,41 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		response.setTodayPickupCount(counts != null && counts.getTodayPickup() != null ? counts.getTodayPickup() : 0);
 		response.setImmediateCount(counts != null && counts.getImmediateCount() != null ? counts.getImmediateCount() : 0);
 		return response;
+	}
+
+	// A PENDING request hasn't been accepted by anyone yet, so *every* vendor's feed shows it —
+	// leaking the customer's real number here would let any vendor (or a driver browsing the
+	// same feed) contact the customer directly before ever doing any work, bypassing the
+	// platform entirely. Once a vendor actually accepts it, the status moves off PENDING and the
+	// number becomes visible again (the assigned driver genuinely needs it for pickup).
+	//
+	// entityManager.detach() first because these entities came from a plain (non-@Transactional)
+	// read — with Spring Boot's default open-in-view, they'd otherwise stay attached to the
+	// request's shared persistence context, and blanking a field on an attached entity risks
+	// Hibernate dirty-checking it back into the database on some later transaction's commit.
+	// Detaching makes this mutation purely cosmetic, never persisted.
+	private void maskCustomerContactForPendingRides(List<TransferRequestDetails> rides) {
+		for (TransferRequestDetails ride : rides) {
+			if (ride.getTransferStatus() != rideStatusEnum.PENDING) {
+				continue;
+			}
+			entityManager.detach(ride);
+			UserDetails userDetails = ride.getUserDetails();
+			if (userDetails != null) {
+				entityManager.detach(userDetails);
+				userDetails.setUserContactNumber(maskPhoneNumber(userDetails.getUserContactNumber()));
+			}
+		}
+	}
+
+	private String maskPhoneNumber(String phone) {
+		if (phone == null || phone.length() < 4) {
+			return phone;
+		}
+		int visible = 2;
+		return phone.substring(0, visible)
+				+ "X".repeat(phone.length() - visible * 2)
+				+ phone.substring(phone.length() - visible);
 	}
 
 	private RideFeedResponse buildPagedResponseInMemory(

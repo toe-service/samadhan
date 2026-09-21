@@ -826,27 +826,55 @@ public class PaymentController {
 
 	
 	@PostMapping("/wallet/payment-success")
-	public String paymentSuccess(
-	        @RequestBody WalletPaymentRequest request)
+	public ResponseEntity<?> paymentSuccess(
+	        @RequestBody WalletPaymentRequest request,
+	        HttpServletRequest httpRequest)
 	        throws Exception {
+
+	    // Same signature check the subscription endpoints already use — without it, this endpoint
+	    // would credit a wallet for a "payment" that was never actually made against Razorpay.
+	    if (!isValidPaymentSignature(request.getRazorpayOrderId(), request.getRazorpayPaymentId(), request.getRazorpaySignature())) {
+	        return ResponseEntity.badRequest().body("Invalid Signature");
+	    }
+
+	    // The caller's own JWT must be the vendor being credited — otherwise any authenticated
+	    // vendor/driver/customer could top up someone else's wallet using their own genuine payment.
+	    String authHeader = httpRequest.getHeader("Authorization");
+	    String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+	    Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+	    if (tokenVendorId == null || !tokenVendorId.equals(request.getVendorId())) {
+	        throw new AccessDeniedException("You are not authorized to credit this vendor's wallet");
+	    }
+
+	    // The signature only proves razorpayOrderId/razorpayPaymentId are a genuine matched pair —
+	    // it says nothing about the amount, so a client could still claim any amount it likes for a
+	    // real payment. Re-fetching the order from Razorpay and crediting *that* amount (not the
+	    // client-supplied one) closes that gap.
+	    RazorpayClient client = new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+	    Order order = client.orders.fetch(request.getRazorpayOrderId());
+	    Integer orderAmountPaise = order.get("amount");
+	    if (orderAmountPaise == null) {
+	        return ResponseEntity.badRequest().body("Could not verify order amount");
+	    }
+	    double verifiedAmount = orderAmountPaise / 100.0;
 
 	    VendorWallet wallet =
 	            VendorWalletRepo.findByVendor(
 	                    request.getVendorId());
-	    
+
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(request.getVendorId());
+	    if (vendor.isEmpty()) {
+	        throw new ResourceNotFoundException("Vendor not found with id: " + request.getVendorId());
+	    }
 
 	    if (wallet == null) {
-	    	
-//	        throw new RuntimeException(
-//	                "Wallet not found");
 	    	 wallet = new VendorWallet();
-	    	 wallet.setBalance(request.getAmount());
+	    	 wallet.setBalance(verifiedAmount);
 	    }else {
 
 	    wallet.setBalance(
 	            wallet.getBalance()
-	            + request.getAmount());
+	            + verifiedAmount);
 	    }
 	    wallet.setVendor(vendor.get());
 	    VendorWalletRepo.save(wallet);
@@ -854,10 +882,8 @@ public class PaymentController {
 	    WalletTransaction txn =
 	            new WalletTransaction();
 
-	    txn.setAmount(request.getAmount());
+	    txn.setAmount(verifiedAmount);
 	    txn.setTransactionType("CREDIT");
-//	    txn.setReferenceId(
-//	            Long.parseLong(request.getRazorpayPaymentId()));
 	    txn.setDescription(
 	            "Wallet Recharge");
 
@@ -865,7 +891,7 @@ public class PaymentController {
 
 	    walletTransactionRepository.save(txn);
 
-	    return "SUCCESS";
+	    return ResponseEntity.ok("SUCCESS");
 	}
 	
 	@PostMapping("/subscription/renew")

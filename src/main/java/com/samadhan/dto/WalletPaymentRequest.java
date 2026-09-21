@@ -5,6 +5,8 @@ public class WalletPaymentRequest {
     private Long vendorId;
     private Double amount;
     private String razorpayPaymentId;
+    private String razorpayOrderId;
+    private String razorpaySignature;
 
     public Long getVendorId() {
         return vendorId;
@@ -28,5 +30,21 @@ public class WalletPaymentRequest {
 
     public void setRazorpayPaymentId(String razorpayPaymentId) {
         this.razorpayPaymentId = razorpayPaymentId;
+    }
+
+    public String getRazorpayOrderId() {
+        return razorpayOrderId;
+    }
+
+    public void setRazorpayOrderId(String razorpayOrderId) {
+        this.razorpayOrderId = razorpayOrderId;
+    }
+
+    public String getRazorpaySignature() {
+        return razorpaySignature;
+    }
+
+    public void setRazorpaySignature(String razorpaySignature) {
+        this.razorpaySignature = razorpaySignature;
     }
 }

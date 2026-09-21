@@ -16,12 +16,14 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	@Query(value="select * from vehicle where transfer_id=:vendorId and ongoing_status=:isActive and (is_active IS NULL OR is_active = 1)",nativeQuery=true)
 	List<Vehicle> findByActiveVendorId(Long vendorId, boolean isActive);
 
-	@Query(value="select * from vehicle where user_name=:userName and password=:password",nativeQuery=true)
+	// LOWER() on the username side only — password stays an exact match, only the login
+	// identifier should be case-insensitive.
+	@Query(value="select * from vehicle where LOWER(user_name)=LOWER(:userName) and password=:password",nativeQuery=true)
 	Vehicle findByUserNamePassword(String userName, String password);
 
 	// LIMIT 1 guards against pre-existing duplicate user_name rows throwing
 	// NonUniqueResultException — see the same fix applied to TransferVendorRepository.
-	@Query(value="select * from vehicle where user_name=:userName ORDER BY id ASC LIMIT 1",nativeQuery=true)
+	@Query(value="select * from vehicle where LOWER(user_name)=LOWER(:userName) ORDER BY id ASC LIMIT 1",nativeQuery=true)
 	Vehicle findByUserName(@Param("userName") String userName);
 
 
