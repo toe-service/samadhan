@@ -2,6 +2,7 @@ package com.samadhan.entity;
 
 import com.samadhan.enums.MediaType;
 import com.samadhan.enums.MediaUploadBy;
+import com.samadhan.enums.RideStage;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -26,6 +27,10 @@ public class TransferMedia {
     @Enumerated(EnumType.STRING)
     @Column(name = "media_upload_by", length = 20, nullable = false)
     private MediaUploadBy mediaUploadBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ride_stage", length = 20)
+    private RideStage rideStage;
 
     @Column(name = "original_file_name")
     private String originalFileName;
@@ -87,6 +92,14 @@ public class TransferMedia {
 
     public void setMediaUploadBy(MediaUploadBy mediaUploadBy) {
         this.mediaUploadBy = mediaUploadBy;
+    }
+
+    public RideStage getRideStage() {
+        return rideStage;
+    }
+
+    public void setRideStage(RideStage rideStage) {
+        this.rideStage = rideStage;
     }
 
     public String getOriginalFileName() {
