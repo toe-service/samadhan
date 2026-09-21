@@ -3,6 +3,7 @@ package com.samadhan.controller;
 import com.samadhan.entity.TransferMedia;
 import com.samadhan.enums.MediaType;
 import com.samadhan.enums.MediaUploadBy;
+import com.samadhan.enums.RideStage;
 import com.samadhan.service.TransferMediaCache;
 import com.samadhan.service.TransferMediaService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -53,7 +55,7 @@ class V1TransferMediaControllerTest {
         TransferMedia media = new TransferMedia();
         media.setId(100L);
 
-        when(transferMediaService.uploadMedia(eq(transferId), any(), eq(MediaType.PHOTO), eq(MediaUploadBy.AGENT))).thenReturn(media);
+        when(transferMediaService.uploadMedia(eq(transferId), any(), eq(MediaType.PHOTO), eq(MediaUploadBy.AGENT), isNull())).thenReturn(media);
 
         mockMvc.perform(multipart("/api/transfers/" + transferId + "/media")
                 .file(file)
@@ -63,7 +65,7 @@ class V1TransferMediaControllerTest {
                 .andExpect(jsonPath("$.mediaId").value(100L))
                 .andExpect(jsonPath("$.message").value("Uploaded Successfully"));
 
-        verify(transferMediaCache).evict(transferId, MediaUploadBy.AGENT);
+        verify(transferMediaCache).evict(transferId, MediaUploadBy.AGENT, null);
     }
 
     @Test
@@ -72,14 +74,14 @@ class V1TransferMediaControllerTest {
         Map<String, List<Map<String, Object>>> cachedData = new HashMap<>();
         cachedData.put("images", Collections.emptyList());
 
-        when(transferMediaCache.get(transferId, MediaUploadBy.AGENT)).thenReturn(cachedData);
+        when(transferMediaCache.get(transferId, MediaUploadBy.AGENT, null)).thenReturn(cachedData);
 
         mockMvc.perform(get("/api/transfers/" + transferId + "/media")
                 .param("mediaUploadBy", "AGENT"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.images").exists());
 
-        verify(transferMediaService, never()).getTransferMedia(any(), any());
+        verify(transferMediaService, never()).getTransferMedia(any(), any(), any());
     }
 
     @Test
@@ -88,14 +90,14 @@ class V1TransferMediaControllerTest {
         Map<String, List<Map<String, Object>>> serviceData = new HashMap<>();
         serviceData.put("images", Collections.emptyList());
 
-        when(transferMediaCache.get(transferId, MediaUploadBy.AGENT)).thenReturn(null);
-        when(transferMediaService.getTransferMedia(transferId, MediaUploadBy.AGENT)).thenReturn(serviceData);
+        when(transferMediaCache.get(transferId, MediaUploadBy.AGENT, null)).thenReturn(null);
+        when(transferMediaService.getTransferMedia(transferId, MediaUploadBy.AGENT, null)).thenReturn(serviceData);
 
         mockMvc.perform(get("/api/transfers/" + transferId + "/media")
                 .param("mediaUploadBy", "AGENT"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.images").exists());
 
-        verify(transferMediaCache).put(transferId, MediaUploadBy.AGENT, serviceData);
+        verify(transferMediaCache).put(transferId, MediaUploadBy.AGENT, null, serviceData);
     }
 }
