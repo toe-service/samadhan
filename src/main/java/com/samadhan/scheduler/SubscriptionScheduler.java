@@ -1,6 +1,7 @@
 package com.samadhan.scheduler;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -20,17 +21,22 @@ import com.samadhan.repository.TransferVendorRepository;
 @EnableScheduling
 public class SubscriptionScheduler {
 
+    private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
+
     @Autowired
     private PaymentRepository subscriptionRepository;
 
     @Autowired
     private TransferVendorRepository vendorRepository;
 
-    @Scheduled(cron = "0 5 0 * * ?")		// Every day at 12:05 AM
+    @Scheduled(cron = "0 5 0 * * ?", zone = "Asia/Kolkata")		// Every day at 12:05 AM IST
     @Transactional
 	public void suspendExpiredVendors() {
 
-		LocalDate today = LocalDate.now();
+		// Pinned to IST, not the JVM default zone — endDate is a calendar date with no time-of-day,
+		// so which zone "today" is computed in decides which side of midnight a vendor's expiry
+		// falls on; a UTC-default server would flip vendors up to ~5.5 hours early/late otherwise.
+		LocalDate today = LocalDate.now(IST);
 
 		List<Subscription> expiredSubscriptions = subscriptionRepository.findByEndDateBeforeAndStatus(today);
 

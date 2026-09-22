@@ -3,6 +3,7 @@ package com.samadhan.scheduler;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import com.samadhan.util.FireBaseMessagingService;
 public class OverduePickupScheduler {
 
 	private static final Logger log = LoggerFactory.getLogger(OverduePickupScheduler.class);
+	private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
 	// How long a still-pending instant/immediate booking is given before being flagged overdue —
 	// these are meant to be picked up within minutes, not scheduled days out, so this is a much
@@ -57,10 +59,14 @@ public class OverduePickupScheduler {
 	@Autowired
 	private FireBaseMessagingService fireBaseMessagingService;
 
-	@Scheduled(cron = "0 */15 * * * ?")		// Every 15 minutes
+	@Scheduled(cron = "0 */15 * * * ?", zone = "Asia/Kolkata")		// Every 15 minutes, IST clock
 	public void notifyOverduePickups() {
-		LocalDate today = LocalDate.now();
-		LocalDateTime instantBookingCutoff = LocalDateTime.now().minusMinutes(INSTANT_BOOKING_OVERDUE_MINUTES);
+		// Pinned to IST, not the JVM default zone — pickup_schedule slots ("3 PM - 6 PM" etc, see
+		// SCHEDULE_SLOT_START_TIMES below) are India-local wall-clock times, so "now"/"today" must
+		// be computed in that same zone or every overdue/reminder comparison below is silently off
+		// by the UTC-IST offset on a UTC-default server.
+		LocalDate today = LocalDate.now(IST);
+		LocalDateTime instantBookingCutoff = LocalDateTime.now(IST).minusMinutes(INSTANT_BOOKING_OVERDUE_MINUTES);
 
 		List<TransferRequestDetails> overdue =
 				transferRequestRepository.findOverduePendingUnassigned(today, instantBookingCutoff);
@@ -75,15 +81,15 @@ public class OverduePickupScheduler {
 						request.getId(), e.getMessage(), e);
 				continue;
 			}
-			request.setOverdueNotifiedAt(LocalDateTime.now());
+			request.setOverdueNotifiedAt(LocalDateTime.now(IST));
 			transferRequestRepository.save(request);
 		}
 	}
 
-	@Scheduled(cron = "0 */15 * * * ?")		// Every 15 minutes
+	@Scheduled(cron = "0 */15 * * * ?", zone = "Asia/Kolkata")		// Every 15 minutes, IST clock
 	public void sendPrePickupReminders() {
-		LocalDate today = LocalDate.now();
-		LocalDateTime now = LocalDateTime.now();
+		LocalDate today = LocalDate.now(IST);
+		LocalDateTime now = LocalDateTime.now(IST);
 
 		List<TransferRequestDetails> candidates =
 				transferRequestRepository.findScheduledPendingUnassignedToday(today);
