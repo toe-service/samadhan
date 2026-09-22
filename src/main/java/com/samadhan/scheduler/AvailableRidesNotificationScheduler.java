@@ -1,6 +1,7 @@
 package com.samadhan.scheduler;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import com.samadhan.util.FireBaseMessagingService;
 public class AvailableRidesNotificationScheduler {
 
 	private static final Logger log = LoggerFactory.getLogger(AvailableRidesNotificationScheduler.class);
+	private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
 	@Autowired
 	private VendorAvailabilityRepository vendorAvailabilityRepository;
@@ -37,9 +39,11 @@ public class AvailableRidesNotificationScheduler {
 	@Autowired
 	private FireBaseMessagingService fireBaseMessagingService;
 
-	@Scheduled(cron = "0 0 9 * * ?")		// Once daily, 9 AM
+	@Scheduled(cron = "0 0 9 * * ?", zone = "Asia/Kolkata")		// Once daily, 9 AM IST
 	public void notifyAvailableRidesForTomorrow() {
-		LocalDate today = LocalDate.now();
+		// Pinned to IST, not the JVM default zone — see SubscriptionScheduler for why date-only
+		// "today" computations need this.
+		LocalDate today = LocalDate.now(IST);
 		LocalDate tomorrow = today.plusDays(1);
 
 		List<AvailableRideSummaryProjection> tomorrowsRoutes =
