@@ -36,6 +36,7 @@ import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.security.TokenApi;
 import com.samadhan.service.TransferRequestService;
 
@@ -227,9 +228,10 @@ TokenApi tokenApi;
 	  @PutMapping(value = "/requestTransferUpdate")
 	  public TransferRequestDetails requestTransferUpdate(@RequestParam Long transferId,
 			  							@RequestParam(required = false) Long driverId,@RequestParam(required = false) Integer vehicleId,
-			  							@RequestParam(required = false) Integer rideStatusflag, @RequestParam(required = false) String userType) throws JsonProcessingException {
+			  							@RequestParam(required = false) Integer rideStatusflag, @RequestParam(required = false) String userType,
+			  							@RequestParam(required = false) Integer otp) throws JsonProcessingException, OtpMismatchException {
 	        System.out.println("hi");
-	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId,vehicleId,rideStatusflag, userType);
+	        TransferRequestDetails rideTransfer = transferRequestService.requestTransferUpdate(transferId, driverId,vehicleId,rideStatusflag, userType, otp);
 	        return rideTransfer;
 	  }
 	  
