@@ -17,6 +17,7 @@ import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.exception.OtpMismatchException;
 
 
 public interface TransferRequestService{
@@ -32,7 +33,7 @@ public interface TransferRequestService{
 
 	public TransferRequestDetails getRidesByTransferId(Long transferId);
 
-	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId, Integer rideStatusflag, String userType);
+	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId, Integer rideStatusflag, String userType, Integer otp) throws OtpMismatchException;
 
 	public boolean otpVerify(Long transferId, int otp, boolean flag, String userType);
 

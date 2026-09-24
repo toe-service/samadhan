@@ -22,6 +22,7 @@ import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.exception.RequestAlreadyAcceptedException;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
@@ -457,7 +458,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		// NPEing on that path (vehicleId is a boxed Integer — unboxing null blows up).
 		boolean vehicleCommittedNow = transferdetails.getServiceType() != null && vehicleId != null;
 
-		if(transferApproval==1 && vehicleCommittedNow && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
+		if(transferApproval==1 && vehicleCommittedNow) {
 		VendorWallet wallet = vendorWalletForGate;
 
 		double acceptanceFee = calculateAcceptanceFee(transferVendor, transferdetails);
@@ -595,7 +596,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		// TRANSFER_SERVICE claimed by a vendor with no vehicle yet skips the
 		// vehicleCommittedNow branch above, so it needs its own acceptance-fee charge here —
 		// same fee/rate as BOOKVEHICLE/HOMESHIFTING, just charged on this path instead.
-		if (userType != null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
+		{
 			VendorWallet wallet = vendorWalletForGate;
 
 			double acceptanceFee = calculateAcceptanceFee(transferVendor, transferdetails);
@@ -685,7 +686,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	@Override
 	@Transactional
 	public TransferRequestDetails requestTransferUpdate(Long transferId, Long driverId, Integer vehicleId,
-			Integer rideStatus, String userType) {
+			Integer rideStatus, String userType, Integer inputotp) throws OtpMismatchException {
 
 		TransferRequestDetails transfer = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
@@ -735,6 +736,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
  
 		//Ride start
 		if (rideStatus != null && rideStatus == 0) {
+			if (transfer.getOtp() == null || inputotp == null || !transfer.getOtp().equals(inputotp)) {
+				throw new OtpMismatchException("Invalid OTP");
+			}
+
 			if (!vehicleRepo.existsById(Long.valueOf(vehicleId))) {
 				throw new ResourceNotFoundException("Vehicle not found with id: " + vehicleId);
 			}
