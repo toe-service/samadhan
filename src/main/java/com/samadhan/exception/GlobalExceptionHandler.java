@@ -99,6 +99,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(VehicleLimitExceededException.class)
+    public ResponseEntity<Object> handleVehicleLimitExceeded(VehicleLimitExceededException ex) {
+        logger.warn("Vehicle limit exceeded: {}", ex.getMessage());
+        return ResponseEntity.status(403).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "403",
+                        new Error("VehicleLimit", ex.getMessage())
+                )
+        );
+    }
+
     // Someone else already accepted/claimed this request before this call landed — a normal
     // race in a broadcast-then-first-accept model, not a server fault.
     @ExceptionHandler(RequestAlreadyAcceptedException.class)
