@@ -44,6 +44,8 @@ import com.samadhan.repository.VendorWalletRepository;
 import com.samadhan.repository.WalletTransactionRepo;
 import com.samadhan.service.PaymentService;
 import com.samadhan.service.StorageService;
+import com.samadhan.util.GeoUtils;
+import com.samadhan.util.GstInvoiceUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
@@ -132,6 +134,9 @@ public class PaymentController {
 
 	 @Autowired
 	 StorageService storageService;
+
+	 @Autowired
+	 com.samadhan.service.LocationService locationService;
 
 	 // Confirms a payment-verification callback actually came from Razorpay (not a client
 	 // fabricating a "success" response without ever paying), using the SDK's own constant-time
@@ -264,6 +269,7 @@ public class PaymentController {
 	 
 	 
 	 @GetMapping("/generateInvoice")
+	 @Transactional
 	 public ResponseEntity<byte[]> generateInvoice(
 	         @RequestParam Long transferId, HttpServletRequest httpRequest) throws Exception {
 
@@ -304,6 +310,41 @@ public class PaymentController {
 	     String vendorContact = sellerVendor.getVendorContactNumber();
 	     boolean vendorGstRegistered = vendorGst != null && !vendorGst.isBlank();
 
+	     // CGST+SGST vs IGST: compare the vendor's own state (from their GSTIN's state code) against
+	     // the pickup location's state (place of supply for an unregistered/individual recipient is
+	     // where the goods are handed over for transport, not the vendor's own address — Section
+	     // 12(8), IGST Act). If either state can't be confidently determined (no GSTIN, geocoding
+	     // failed, coordinates missing), fail open to CGST+SGST rather than guessing IGST — that
+	     // matches today's existing (pre-this-change) behavior for the common case, rather than
+	     // silently switching tax heads on an assumption.
+	     String vendorState = vendorGstRegistered ? GstInvoiceUtil.stateForGstin(vendorGst) : null;
+	     String pickupState = null;
+	     Double pickupLat = GeoUtils.parseCoord(transfer.getSourceLatitude());
+	     Double pickupLng = GeoUtils.parseCoord(transfer.getSourceLongitude());
+	     if (vendorGstRegistered && pickupLat != null && pickupLng != null) {
+	         pickupState = locationService.getState(pickupLat, pickupLng);
+	     }
+	     boolean interState = vendorGstRegistered && vendorState != null && pickupState != null
+	             && !vendorState.equalsIgnoreCase(pickupState);
+
+	     // Sequential per-vendor GST document numbering, assigned once and reused on every
+	     // re-download — see TransferRequestDetails#invoiceNumber and TransferVendor#invoiceSequence.
+	     String invoiceNumber = transfer.getInvoiceNumber();
+	     if (invoiceNumber == null) {
+	         String financialYear = GstInvoiceUtil.currentFinancialYear(LocalDate.now());
+	         if (!financialYear.equals(sellerVendor.getInvoiceFinancialYear())) {
+	             sellerVendor.setInvoiceFinancialYear(financialYear);
+	             sellerVendor.setInvoiceSequence(0);
+	         }
+	         int nextSequence = sellerVendor.getInvoiceSequence() + 1;
+	         sellerVendor.setInvoiceSequence(nextSequence);
+	         transferVendorRepo.save(sellerVendor);
+
+	         invoiceNumber = String.format("INV/%s/%05d", financialYear, nextSequence);
+	         transfer.setInvoiceNumber(invoiceNumber);
+	         transferRepository.save(transfer);
+	     }
+
 	     // Loaded once here and embedded in the footer below; a fetch failure shouldn't block
 	     // invoice generation, so the invoice still renders (without a signature image) if the
 	     // stored key is missing or the bucket read fails.
@@ -330,8 +371,11 @@ public class PaymentController {
 	     }
 
 	     Cell headerRight = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT);
-	     headerRight.add(new Paragraph("TAX INVOICE").setFont(bold).setFontSize(18).setFontColor(brand));
-	     headerRight.add(new Paragraph("Invoice No: INV-" + transfer.getId()).setFont(normal).setFontSize(9));
+	     // Rule 49, CGST Rules: an unregistered supplier can't charge GST, so they issue a "Bill of
+	     // Supply", not a "Tax Invoice" — only a GST-registered vendor's document is a real tax invoice.
+	     headerRight.add(new Paragraph(vendorGstRegistered ? "TAX INVOICE" : "BILL OF SUPPLY")
+	             .setFont(bold).setFontSize(18).setFontColor(brand));
+	     headerRight.add(new Paragraph("Invoice No: " + invoiceNumber).setFont(normal).setFontSize(9));
 	     headerRight.add(new Paragraph("Invoice Date: " + LocalDate.now()).setFont(normal).setFontSize(9));
 
 	     headerBand.addCell(headerLeft);
@@ -368,12 +412,20 @@ public class PaymentController {
 
 	     //================ SUPPLY DETAILS =================
 
+	     // Place of supply: the pickup location's state when it could be determined (that's the
+	     // actual GST place-of-supply for an unregistered/individual recipient — see the interState
+	     // comment above), falling back to the vendor's own registered state, then their address,
+	     // rather than leaving the field blank.
+	     String placeOfSupply = pickupState != null ? pickupState : (vendorState != null ? vendorState : vendorAddress);
+
 	     Table invoiceInfo = new Table(UnitValue.createPercentArray(new float[]{50, 50}));
 	     invoiceInfo.setWidth(UnitValue.createPercentValue(100));
 	     invoiceInfo.addCell(plainCell("Pickup Date: " + safeText(transfer.getPickupDate() != null ? transfer.getPickupDate().toString() : null), normal));
 	     invoiceInfo.addCell(plainCell("Pickup Slot: " + safeText(transfer.getPickupSchedule()), normal));
-	     invoiceInfo.addCell(plainCell("Place of Supply: " + safeText(vendorAddress), normal));
-	     invoiceInfo.addCell(plainCell("Reverse Charge Applicable: No", normal));
+	     invoiceInfo.addCell(plainCell("Place of Supply: " + safeText(placeOfSupply), normal));
+	     if (vendorGstRegistered) {
+	         invoiceInfo.addCell(plainCell("Reverse Charge Applicable: No", normal));
+	     }
 	     document.add(invoiceInfo);
 
 	     document.add(new Paragraph("\n"));
@@ -389,6 +441,21 @@ public class PaymentController {
 	     double sgst = totalGst / 2.0;
 	     double grandTotal = transfer.getRideCost();
 
+	     // TODO: SAC 9965 (Goods Transport by Road) is used for every service type below — worth
+	     // confirming with an accountant whether HOMESHIFTING (packers-and-movers-style household
+	     // goods relocation) should actually use a different SAC code; not changed here since an
+	     // incorrect substitute would be worse than the current single-code default.
+	     String primaryChargeDescription;
+	     if (transfer.getServiceType() == serviceTypeEnum.BOOKVEHICLE) {
+	         primaryChargeDescription = "Vehicle Booking Charges";
+	     } else if (transfer.getServiceType() == serviceTypeEnum.HOMESHIFTING) {
+	         primaryChargeDescription = "Home Shifting Charges";
+	     } else if (transfer.getServiceType() == serviceTypeEnum.TRANSFERSERVICE) {
+	         primaryChargeDescription = "Parcel / Vehicle Transfer Charges";
+	     } else {
+	         primaryChargeDescription = "Ride Charges";
+	     }
+
 	     Table table = new Table(UnitValue.createPercentArray(new float[]{6, 40, 12, 18}));
 	     table.setWidth(UnitValue.createPercentValue(100));
 
@@ -399,7 +466,7 @@ public class PaymentController {
 
 	     int sno = 1;
 	     table.addCell(dataCell(String.valueOf(sno++), normal, TextAlignment.CENTER));
-	     table.addCell(dataCell("Ride Charges", normal, TextAlignment.LEFT));
+	     table.addCell(dataCell(primaryChargeDescription, normal, TextAlignment.LEFT));
 	     table.addCell(dataCell("9965", normal, TextAlignment.CENTER));
 	     table.addCell(dataCell(money.format(rideCharges), normal, TextAlignment.RIGHT));
 
@@ -427,22 +494,48 @@ public class PaymentController {
 	     totals.setWidth(UnitValue.createPercentValue(100));
 	     totals.setHorizontalAlignment(HorizontalAlignment.RIGHT);
 
-	     totals.addCell(totalsCell("Taxable Value", normal, false));
-	     totals.addCell(totalsCell(money.format(taxableValue), normal, false));
+	     if (vendorGstRegistered) {
+	         totals.addCell(totalsCell("Taxable Value", normal, false));
+	         totals.addCell(totalsCell(money.format(taxableValue), normal, false));
 
-	     totals.addCell(totalsCell("CGST @ 9%", normal, false));
-	     totals.addCell(totalsCell(money.format(cgst), normal, false));
+	         if (interState) {
+	             totals.addCell(totalsCell("IGST @ 18%", normal, false));
+	             totals.addCell(totalsCell(money.format(totalGst), normal, false));
+	         } else {
+	             totals.addCell(totalsCell("CGST @ 9%", normal, false));
+	             totals.addCell(totalsCell(money.format(cgst), normal, false));
 
-	     totals.addCell(totalsCell("SGST @ 9%", normal, false));
-	     totals.addCell(totalsCell(money.format(sgst), normal, false));
+	             totals.addCell(totalsCell("SGST @ 9%", normal, false));
+	             totals.addCell(totalsCell(money.format(sgst), normal, false));
+	         }
+	     } else {
+	         // Bill of Supply — an unregistered supplier can't legally charge GST, so no tax
+	         // breakup is shown at all, just the total value of the supply.
+	         totals.addCell(totalsCell("Total Value", normal, false));
+	         totals.addCell(totalsCell(money.format(grandTotal), normal, false));
+	     }
 
 	     totals.addCell(totalsCell("Grand Total", bold, true));
 	     totals.addCell(totalsCell(money.format(grandTotal), bold, true));
 
 	     document.add(totals);
 
-	     document.add(new Paragraph("\nNote: Tax shown as CGST + SGST, assuming intra-state supply.")
-	             .setFont(normal).setFontSize(8).setFontColor(ColorConstants.GRAY));
+	     document.add(new Paragraph("\n" + GstInvoiceUtil.amountInWords(grandTotal))
+	             .setFont(bold).setFontSize(9));
+
+	     if (vendorGstRegistered) {
+	         String taxNote = interState
+	                 ? "Note: Inter-state supply (" + safeText(vendorState) + " to " + safeText(pickupState) + ") — IGST charged."
+	                 : "Note: Intra-state supply — CGST + SGST charged.";
+	         document.add(new Paragraph("\n" + taxNote)
+	                 .setFont(normal).setFontSize(8).setFontColor(ColorConstants.GRAY));
+	     } else {
+	         document.add(new Paragraph("\nThis is a Bill of Supply. No GST has been charged as the supplier is not registered under GST.")
+	                 .setFont(normal).setFontSize(8).setFontColor(ColorConstants.GRAY));
+	     }
+
+	     document.add(new Paragraph("\nDeclaration: We certify that the particulars given above are true and correct.")
+	             .setFont(normal).setFontSize(8).setFontColor(ColorConstants.DARK_GRAY));
 
 	     document.add(new Paragraph("\n\n"));
 

@@ -132,7 +132,14 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="source")
 	 private String source;
-	 
+
+	 // Assigned once, the first time PaymentController#generateInvoice is called for this ride —
+	 // stays fixed on every re-download after that. Not derived from the ride's own id: GST
+	 // invoice numbers must be a clean sequential series per supplier (vendor), so this is built
+	 // from TransferVendor's own per-vendor/per-financial-year counter instead.
+	 @Column(name="invoice_number")
+	 private String invoiceNumber;
+
 	 @Column(name="dimension_unit")
 	 private DimensionUnit dimensionUnit;
 	 
@@ -444,6 +451,14 @@ public class TransferRequestDetails {
 
 	public void setSourceLongitude(String sourceLongitude) {
 		this.sourceLongitude = sourceLongitude;
+	}
+
+	public String getInvoiceNumber() {
+		return invoiceNumber;
+	}
+
+	public void setInvoiceNumber(String invoiceNumber) {
+		this.invoiceNumber = invoiceNumber;
 	}
 
 	public UserDetails getUserDetails() {

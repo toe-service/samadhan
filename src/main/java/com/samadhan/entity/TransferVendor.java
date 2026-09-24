@@ -64,7 +64,17 @@ public class TransferVendor {
 	 
 	 @Column(name="gst_number")
 	 private String gstNumber;
-	 
+
+	 // Per-vendor GST invoice numbering (PaymentController#generateInvoice) — a clean sequential
+	 // series per supplier per financial year, reset to 0 whenever invoiceFinancialYear no longer
+	 // matches the current FY. Not shared across vendors: each vendor is its own GST "supplier",
+	 // so their invoice series must be independent of everyone else's on the platform.
+	 @Column(name="invoice_sequence")
+	 private Integer invoiceSequence = 0;
+
+	 @Column(name="invoice_financial_year")
+	 private String invoiceFinancialYear;
+
 	 @OneToMany(mappedBy = "transferVendor")
 	 @JsonIgnore
 	 private List<TransferRequestDetails> transferRequests;
@@ -287,12 +297,37 @@ public class TransferVendor {
 		this.vendorStatus = vendorStatus;
 	}
 
+	// In good standing on either the free trial or a paid plan — Free_SUBSCRIPTION covers the
+	// 15-day trial, ACTIVE covers a paid plan. SUBSCRIPTION_PENDING (trial expired, not yet paid)
+	// and SUSPENDED (paid plan lapsed) both fall through to false. Shared by every
+	// subscription-gated business rule (wallet fee rate, fleet size cap, ...) so they all agree
+	// on what "subscriber" means without duplicating this check in each service.
+	public boolean isSubscriber() {
+		return vendorStatus == VendorStatusEnum.Free_SUBSCRIPTION || vendorStatus == VendorStatusEnum.ACTIVE;
+	}
+
 	public String getGstNumber() {
 		return gstNumber;
 	}
 
 	public void setGstNumber(String gstNumber) {
 		this.gstNumber = gstNumber;
+	}
+
+	public Integer getInvoiceSequence() {
+		return invoiceSequence;
+	}
+
+	public void setInvoiceSequence(Integer invoiceSequence) {
+		this.invoiceSequence = invoiceSequence;
+	}
+
+	public String getInvoiceFinancialYear() {
+		return invoiceFinancialYear;
+	}
+
+	public void setInvoiceFinancialYear(String invoiceFinancialYear) {
+		this.invoiceFinancialYear = invoiceFinancialYear;
 	}
 
 	public Boolean getIsIndividual() {

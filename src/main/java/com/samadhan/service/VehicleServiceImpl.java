@@ -15,17 +15,29 @@ import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.VehicleLimitExceededException;
 import com.samadhan.repository.TransferRequestRepository;
+import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VehicleRepository;
 
 @Service
 public class VehicleServiceImpl implements VehicleService{
+
+	// Fleet-size caps: an individual (owner-operator) account is meant to be a single vehicle, not
+	// a fleet — anything past that requires becoming a full (non-individual) vendor. A non-
+	// individual vendor without an active subscription is capped at a small fleet; an active
+	// subscriber has no cap. See TransferVendor#isSubscriber for what "active subscription" means.
+	private static final int INDIVIDUAL_VEHICLE_LIMIT = 1;
+	private static final int NON_SUBSCRIBER_VEHICLE_LIMIT = 3;
 
 	@Autowired
 	VehicleRepository vehicleRepo;
 
 	@Autowired
 	TransferRequestRepository transferRequestRepository;
+
+	@Autowired
+	TransferVendorRepository transferVendorRepository;
 
 	@Autowired
 	org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
@@ -52,6 +64,10 @@ public class VehicleServiceImpl implements VehicleService{
 	public Vehicle createVehicle(String vehicleNumber, String vehicleContactNumber, String currentLocation,
 			VendorPickupVehicleEnum vendorVehicle, VehicleCategoryEnum vehicleCategory, String vehicleLatitude,
 			String vehicleLongitude, String fcmToken, Long transferVendorId, MultipartFile rcFile) {
+
+		if (transferVendorId != null) {
+			enforceVehicleLimit(transferVendorId);
+		}
 
 		Vehicle vehicle = new Vehicle();
 
@@ -97,6 +113,34 @@ public class VehicleServiceImpl implements VehicleService{
 		}
 
 		return vehicle;
+	}
+
+	// Checked before the new vehicle is even built — a vendor that's about to hit their fleet
+	// cap should never get a partially-created row. Counts only active vehicles (findByVendorId
+	// already filters is_active), so a previously deactivated vehicle doesn't count against the
+	// cap — matches the soft-delete convention used everywhere else in this class.
+	private void enforceVehicleLimit(Long transferVendorId) {
+		TransferVendor vendor = transferVendorRepository.findById(transferVendorId).orElse(null);
+		if (vendor == null) {
+			return;
+		}
+
+		int activeVehicleCount = vehicleRepo.findByVendorId(transferVendorId).size();
+
+		if (Boolean.TRUE.equals(vendor.getIsIndividual())) {
+			if (activeVehicleCount >= INDIVIDUAL_VEHICLE_LIMIT) {
+				throw new VehicleLimitExceededException(
+						"Individual accounts are limited to " + INDIVIDUAL_VEHICLE_LIMIT + " vehicle. "
+						+ "Please buy a subscription to add more vehicles, and convert this account from Individual to Vendor.");
+			}
+			return;
+		}
+
+		if (!vendor.isSubscriber() && activeVehicleCount >= NON_SUBSCRIBER_VEHICLE_LIMIT) {
+			throw new VehicleLimitExceededException(
+					"Non-subscribers are limited to " + NON_SUBSCRIBER_VEHICLE_LIMIT + " vehicles. "
+					+ "Please buy a subscription to add more vehicles.");
+		}
 	}
 
 	@Override
