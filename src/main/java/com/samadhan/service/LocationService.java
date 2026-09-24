@@ -62,6 +62,43 @@ public class LocationService {
         return result;
     }
 
+	// Used by PaymentController#generateInvoice to decide CGST+SGST vs IGST — needs the actual
+	// state, not a guess parsed out of a free-text address string. CityUtils.extractCity's own
+	// comment already warns that TransferRequestDetails.source/destination don't reliably follow
+	// a parseable "...,City,State,Country" shape, so this reuses the same structured Google
+	// geocode lookup (and cache) as getLocation above instead, reading administrative_area_level_1
+	// from address_components rather than string-splitting the formatted address.
+	@Cacheable(value = "StateCache", key = "#lat + '-' + #lng")
+	public String getState(double lat, double lng) {
+
+		String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="
+				+ lat + "," + lng + "&key=" + apiKey;
+
+		RestTemplate restTemplate = new RestTemplate();
+
+		try {
+			String response = restTemplate.getForObject(url, String.class);
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode root = mapper.readTree(response);
+			JsonNode results = root.path("results");
+			if (results.size() == 0) {
+				return null;
+			}
+
+			for (JsonNode component : results.get(0).path("address_components")) {
+				for (JsonNode type : component.path("types")) {
+					if ("administrative_area_level_1".equals(type.asText())) {
+						return component.get("long_name").asText();
+					}
+				}
+			}
+			return null;
+		} catch (Exception e) {
+			logger.warn("Failed to resolve state for lat={}, lng={}: {}", lat, lng, e.getMessage());
+			return null;
+		}
+	}
+
 	@Cacheable(value = "SearchLocationCache", key = "#input")
 	public List<String> searchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {
 		 

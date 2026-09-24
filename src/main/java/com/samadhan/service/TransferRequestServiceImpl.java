@@ -460,7 +460,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if(transferApproval==1 && vehicleCommittedNow && (userType !=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser")))) {
 		VendorWallet wallet = vendorWalletForGate;
 
-		double acceptanceFee = calculateAcceptanceFee(transferdetails);
+		double acceptanceFee = calculateAcceptanceFee(transferVendor, transferdetails);
 
 		if(wallet.getBalance() - acceptanceFee < -200){
 		     throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
@@ -598,7 +598,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if (userType != null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
 			VendorWallet wallet = vendorWalletForGate;
 
-			double acceptanceFee = calculateAcceptanceFee(transferdetails);
+			double acceptanceFee = calculateAcceptanceFee(transferVendor, transferdetails);
 
 			if (wallet.getBalance() - acceptanceFee < -200) {
 				throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
@@ -647,18 +647,32 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 //		return transferRidesByUserId;
 //	}
 
-	private double calculateAcceptanceFee(TransferRequestDetails transferdetails) {
+	// There are actually THREE wallet-fee charging events, not two: calculateAcceptanceFee is
+	// called both at accept (requestTransferApproval, "Ride Acceptance Fee") and again at ride
+	// start (requestTransferUpdate rideStatus==0, "Ride Start Fee") — see both call sites below —
+	// then calculateCompletioneFee once at OTP completion. So ACCEPTANCE_RATE is actually charged
+	// twice per completed ride. Non-subscriber: 2.5% + 2.5% + 5% = 10% total (this is exactly the
+	// original flat rate, unchanged — only the subscriber rate below is new). Subscriber: same
+	// 1:1:2 accept:start:end ratio scaled down to 8% total = 2% + 2% + 4%.
+	private static final double NON_SUBSCRIBER_ACCEPTANCE_RATE = 0.025;
+	private static final double NON_SUBSCRIBER_COMPLETION_RATE = 0.05;
+	private static final double SUBSCRIBER_ACCEPTANCE_RATE = 0.02;
+	private static final double SUBSCRIBER_COMPLETION_RATE = 0.04;
+
+	private double calculateAcceptanceFee(TransferVendor vendor, TransferRequestDetails transferdetails) {
 
 		double rideCost=transferdetails.getRideCost();
+		double rate = (vendor != null && vendor.isSubscriber()) ? SUBSCRIBER_ACCEPTANCE_RATE : NON_SUBSCRIBER_ACCEPTANCE_RATE;
 
-		return Math.round(rideCost * 0.025 * 100.0) / 100.0;
+		return Math.round(rideCost * rate * 100.0) / 100.0;
 	}
 
-	private double calculateCompletioneFee(TransferRequestDetails transferdetails) {
+	private double calculateCompletioneFee(TransferVendor vendor, TransferRequestDetails transferdetails) {
 
 		double rideCost=transferdetails.getRideCost();
+		double rate = (vendor != null && vendor.isSubscriber()) ? SUBSCRIBER_COMPLETION_RATE : NON_SUBSCRIBER_COMPLETION_RATE;
 
-		return Math.round(rideCost * 0.050 * 100.0) / 100.0;
+		return Math.round(rideCost * rate * 100.0) / 100.0;
 	}
 
 	@Override
@@ -740,7 +754,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
 
-			double acceptanceFee = calculateAcceptanceFee(transfer);
+			double acceptanceFee = calculateAcceptanceFee(transferVendor, transfer);
 
 			if (wallet.getBalance() - acceptanceFee < -200) {
 			    throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
@@ -813,7 +827,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			VendorWallet wallet = walletRepository.findByVendor(vendorId);
 
-			double acceptanceFee = calculateCompletioneFee(transferdetails);
+			double acceptanceFee = calculateCompletioneFee(transferVendor, transferdetails);
 
 			if (wallet.getBalance() - acceptanceFee < -200) {
 			    throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
