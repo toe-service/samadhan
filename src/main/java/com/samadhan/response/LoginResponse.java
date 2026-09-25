@@ -6,6 +6,7 @@ public class LoginResponse {
 	    private Long vehicleId;
 	    private Long driverId;
 	    private Long vendorId;
+	    private String vendorName;
 	    private String token;
 	    private String refreshToken;
 	    private Long expiresIn;
@@ -35,6 +36,12 @@ public class LoginResponse {
 		}
 		public void setVendorId(Long vendorId) {
 			this.vendorId = vendorId;
+		}
+		public String getVendorName() {
+			return vendorName;
+		}
+		public void setVendorName(String vendorName) {
+			this.vendorName = vendorName;
 		}
 		public String getUsername() {
 			return username;
