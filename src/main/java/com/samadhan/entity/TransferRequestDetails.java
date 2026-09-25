@@ -214,6 +214,9 @@ public class TransferRequestDetails {
 	 
 	 @Column(name="closure_otp")
 	 private Integer  closureotp;
+
+	 @Column(name="start_otp")
+	 private Integer startOtp;
 	 
 	 @OneToOne(cascade = CascadeType.MERGE)
 	 @JoinColumn(name = "vehicle_id", referencedColumnName = "id")
@@ -539,6 +542,14 @@ public class TransferRequestDetails {
 
 	public void setOtp(Integer otp) {
 		this.otp = otp;
+	}
+
+	public Integer getStartOtp() {
+		return startOtp;
+	}
+
+	public void setStartOtp(Integer startOtp) {
+		this.startOtp = startOtp;
 	}
 
 //	public Integer getVehicleId() {

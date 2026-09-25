@@ -445,6 +445,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			if (vendorWalletForGate != null && vendorWalletForGate.getBalance() < -200) {
 				throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
 			}
+
+			// Generated on every accept, whoever accepts (vehicle or vendor) and whatever the
+			// service type, and compared against later at ride-start (requestTransferUpdate
+			// rideStatus==0). Separate from the existing otp column, which is unrelated.
+			int startOtp = 1000 + SECURE_RANDOM.nextInt(9000);
+			transferdetails.setStartOtp(startOtp);
 		}
 
 		// The acceptance fee is charged whenever a vehicle is being committed right now —
@@ -736,7 +742,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
  
 		//Ride start
 		if (rideStatus != null && rideStatus == 0) {
-			if (transfer.getOtp() == null || inputotp == null || !transfer.getOtp().equals(inputotp)) {
+			if (transfer.getStartOtp() == null || inputotp == null || !transfer.getStartOtp().equals(inputotp)) {
 				throw new OtpMismatchException("Invalid OTP");
 			}
 
