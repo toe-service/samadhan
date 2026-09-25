@@ -161,6 +161,10 @@ public class VehicleServiceImpl implements VehicleService{
 			return null;
 		}
 
+		if (vehicle.getTransferVendor() != null) {
+			vehicle.setVendorName(vehicle.getTransferVendor().getVendorName());
+		}
+
 		String storedPassword = vehicle.getPassword();
 
 		if (com.samadhan.util.PasswordUtil.isBcryptHash(storedPassword)) {

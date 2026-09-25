@@ -8,6 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,6 +33,12 @@ public class Vehicle {
 	@JoinColumn(name = "transfer_id")
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private TransferVendor transferVendor;
+
+	// Populated only on login (VehicleServiceImpl#loginVehicle) from transferVendor.getVendorName()
+	// — transferVendor itself is write-only (see above) to avoid serializing the vendor's own
+	// sensitive fields (password, wallet, etc.), so the vehicle app gets just the name it needs.
+	@Transient
+	private String vendorName;
 	
 	@Column(name="user_name")
 	private String userName;
@@ -136,6 +143,14 @@ public class Vehicle {
 
 	public void setTransferVendor(TransferVendor transferVendor) {
 		this.transferVendor = transferVendor;
+	}
+
+	public String getVendorName() {
+		return vendorName;
+	}
+
+	public void setVendorName(String vendorName) {
+		this.vendorName = vendorName;
 	}
 
 	public String getUserName() {
