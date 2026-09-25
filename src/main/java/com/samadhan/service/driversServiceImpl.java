@@ -253,6 +253,7 @@ public class driversServiceImpl implements driversService {
 	        res.setUserType("vehicle");
 	       vehicle.setFcmToken(fcmToken);
 	       res.setVendorId(vehicle.getTransferVendor().getId());
+	       res.setVendorName(vehicle.getTransferVendor().getVendorName());
 	        vehicleRepo.save(vehicle);
 	        String token = tokenApi.generateToken(
 	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId(), 15);
