@@ -1135,12 +1135,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	// ones), the vehicle currently available (not mid-job) and holding an FCM token — so a vehicle
 	// only sees a pending ride in its feed if it would actually have been notified about it.
 	private boolean isEligiblePendingRide(Vehicle vehicle, TransferRequestDetails ride) {
-		boolean vehicleEligibleForNewRides = !vehicle.getOngoingStatus()
-				&& vehicle.getFcmToken() != null
-				&& !vehicle.getFcmToken().isEmpty();
+//		boolean vehicleEligibleForNewRides = !vehicle.getOngoingStatus()
+//				&& vehicle.getFcmToken() != null
+//				&& !vehicle.getFcmToken().isEmpty();
 
 		VendorPickupVehicleEnum requestedType = ride.getVendorPickupVehicle();
-		if (requestedType == null || !vehicleEligibleForNewRides) {
+//		if (requestedType == null || !vehicleEligibleForNewRides) {
+		if (requestedType == null) {
 			return false;
 		}
 
