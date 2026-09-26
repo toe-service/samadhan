@@ -34,6 +34,7 @@ import com.samadhan.enums.DimensionUnit;
 import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.PaymentTypeEnum;
 import com.samadhan.enums.SubscriptionPeriodEnum;
+import com.samadhan.enums.UserRole;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.serviceTypeEnum;
@@ -282,12 +283,21 @@ public class PaymentController {
 	                 "This request has no vendor assigned yet — an invoice can only be generated once a vendor has taken this ride.");
 	     }
 
-	     // Only the vendor who actually fulfilled this ride can pull its invoice — otherwise any
-	     // authenticated vendor could download any other vendor's customer/revenue data by ID.
+	     // Only the vendor who actually fulfilled this ride, or the customer who booked it, can pull
+	     // this invoice — otherwise any authenticated vendor/user could download someone else's
+	     // customer/revenue data by ID.
 	     String authHeader = httpRequest.getHeader("Authorization");
 	     String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-	     Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
-	     if (tokenVendorId == null || !tokenVendorId.equals(sellerVendor.getId())) {
+	     Long tokenUserId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+	     String tokenRole = jwt != null ? tokenApi.extractUserRole(jwt) : null;
+
+	     boolean isFulfillingVendor = UserRole.VENDOR.getValue().equalsIgnoreCase(tokenRole)
+	             && tokenUserId != null && tokenUserId.equals(sellerVendor.getId());
+	     boolean isBookingCustomer = UserRole.USER.getValue().equalsIgnoreCase(tokenRole)
+	             && tokenUserId != null && transfer.getUserDetails() != null
+	             && tokenUserId.equals(transfer.getUserDetails().getId());
+
+	     if (!isFulfillingVendor && !isBookingCustomer) {
 	         throw new AccessDeniedException("You are not authorized to view this invoice");
 	     }
 
