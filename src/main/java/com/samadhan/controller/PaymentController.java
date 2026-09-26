@@ -148,7 +148,7 @@ public class PaymentController {
 			 attributes.put("razorpay_order_id", razorpayOrderId);
 			 attributes.put("razorpay_payment_id", razorpayPaymentId);
 			 attributes.put("razorpay_signature", razorpaySignature);
-			 return com.razorpay.Utils.verifyPaymentSignature(attributes, "ClYfhcDqxmBDr3ZftMyzuxu1");
+			 return com.razorpay.Utils.verifyPaymentSignature(attributes, paymentService.getSecret());
 		 } catch (Exception e) {
 			 logger.warn("Payment signature verification failed for order {}: {}", razorpayOrderId, e.getMessage());
 			 return false;
@@ -673,7 +673,7 @@ public class PaymentController {
 
 	@GetMapping("/verify-payment/{invoiceId}")
 	public String checkPayment(@PathVariable String invoiceId) throws RazorpayException {
-		RazorpayClient razorpayClient = Utils.getPaymentClient();
+		RazorpayClient razorpayClient = paymentService.getPaymentClient();
 		com.razorpay.Invoice fetch = razorpayClient.invoices.fetch(invoiceId);
 		return "invoice data "+fetch.toJson();
 	}
@@ -791,7 +791,7 @@ public class PaymentController {
 	    options.put("receipt", "subscription_" + vendorId);
 
 	    RazorpayClient client =
-	            new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+	            paymentService.getPaymentClient();
 
 	    Order order = client.orders.create(options);
 
@@ -859,7 +859,7 @@ public class PaymentController {
 	    options.put("receipt", "subscription_" + vendorId);
 
 	    RazorpayClient client =
-	            new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+	            paymentService.getPaymentClient();
 
 	    Order order = client.orders.create(options);
 
@@ -911,7 +911,7 @@ public class PaymentController {
 	        @RequestParam Double amount) throws Exception {
 
 	    RazorpayClient client =
-	        new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+	        paymentService.getPaymentClient();
 
 	    JSONObject orderRequest = new JSONObject();
 	    orderRequest.put("amount", (int)(amount * 100));
@@ -953,7 +953,7 @@ public class PaymentController {
 	    // it says nothing about the amount, so a client could still claim any amount it likes for a
 	    // real payment. Re-fetching the order from Razorpay and crediting *that* amount (not the
 	    // client-supplied one) closes that gap.
-	    RazorpayClient client = new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+	    RazorpayClient client = paymentService.getPaymentClient();
 	    Order order = client.orders.fetch(request.getRazorpayOrderId());
 	    Integer orderAmountPaise = order.get("amount");
 	    if (orderAmountPaise == null) {
@@ -1010,7 +1010,7 @@ public class PaymentController {
 		    options.put("receipt", "subscription_" + vendorId);
 
 		    RazorpayClient client =
-		            new RazorpayClient("rzp_test_SxdhjKRBQOSQoN", "ClYfhcDqxmBDr3ZftMyzuxu1");
+		            paymentService.getPaymentClient();
 
 		    Order order = client.orders.create(options);
 
