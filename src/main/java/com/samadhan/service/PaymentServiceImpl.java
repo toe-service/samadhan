@@ -56,6 +56,13 @@ public class PaymentServiceImpl {
         return new RazorpayClient(key,secret);
     }
 
+    // Exposed so PaymentController can HMAC-verify payment callbacks against the same
+    // configured secret the client above is built from, instead of a hardcoded one — a live
+    // key and a test secret would make every signature check fail.
+    public String getSecret() {
+        return secret;
+    }
+
 
 //    public List<SubscriptionResponse> getAllSubscriptions() {
 //        return Arrays.stream(SubscriptionPrice.values())
