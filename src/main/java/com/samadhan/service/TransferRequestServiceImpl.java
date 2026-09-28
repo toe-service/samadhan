@@ -742,7 +742,8 @@ public class TransferRequestServiceImpl implements TransferRequestService{
  
 		//Ride start
 		if (rideStatus != null && rideStatus == 0) {
-			if (transfer.getStartOtp() == null || inputotp == null || !transfer.getStartOtp().equals(inputotp)) {
+			boolean otpProvided = inputotp != null && inputotp > 0;
+			if (otpProvided && !inputotp.equals(transfer.getStartOtp())) {
 				throw new OtpMismatchException("Invalid OTP");
 			}
 
