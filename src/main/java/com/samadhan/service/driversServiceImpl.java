@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.exception.AccountDisabledException;
 import com.samadhan.exception.InvalidCredentialsException;
 import com.samadhan.exception.NotFoundException;
 
@@ -203,6 +204,10 @@ public class driversServiceImpl implements driversService {
 			return null;
 		}
 
+		if (Boolean.FALSE.equals(driver.getIsActive())) {
+			throw new AccountDisabledException("This driver account has been disabled");
+		}
+
 		String storedPassword = driver.getPassword();
 
 		if (com.samadhan.util.PasswordUtil.isBcryptHash(storedPassword)) {
@@ -228,6 +233,9 @@ public class driversServiceImpl implements driversService {
 	    Driver driver = driverRepo.findByUserNamePassword(username, password);
 
 	    if (driver != null) {
+	        if (Boolean.FALSE.equals(driver.getIsActive())) {
+	            throw new AccountDisabledException("This driver account has been disabled");
+	        }
 	        LoginResponse res = new LoginResponse();
 	        res.setUsername(driver.getDriverContactNumber());
 	        res.setDriverId(driver.getId());
@@ -247,6 +255,9 @@ public class driversServiceImpl implements driversService {
 	    Vehicle vehicle = vehicleRepo.findByUserNamePassword(username, password);
 
 	    if (vehicle != null) {
+	        if (Boolean.FALSE.equals(vehicle.getIsActive())) {
+	            throw new AccountDisabledException("This vehicle account has been disabled");
+	        }
 	        LoginResponse res = new LoginResponse();
 	        res.setUsername(vehicle.getUserName());
 	        res.setVehicleId(vehicle.getId());
@@ -281,14 +292,6 @@ public class driversServiceImpl implements driversService {
 	}
 
 
-	@Override
-	public Driver deleteDriver(Long driverId) {
-		 Driver driver = driverRepo.findById(driverId)
-		            .orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
-		 driverRepo.delete(driver);
-		return driver;
-	}
-
 	// Soft delete — marks the driver inactive instead of removing the row, so transfer/ride
 	// history tied to this driver stays intact. Same pattern as VehicleServiceImpl#deactivateVehicle.
 	@Override
@@ -296,6 +299,15 @@ public class driversServiceImpl implements driversService {
 		Driver driver = driverRepo.findById(driverId)
 				.orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
 		driver.setIsActive(false);
+		return driverRepo.save(driver);
+	}
+
+	// Reverses deactivateDriver — re-enables a previously disabled driver.
+	@Override
+	public Driver activateDriver(Long driverId) {
+		Driver driver = driverRepo.findById(driverId)
+				.orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
+		driver.setIsActive(true);
 		return driverRepo.save(driver);
 	}
 

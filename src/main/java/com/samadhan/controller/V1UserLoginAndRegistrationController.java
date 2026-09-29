@@ -7,9 +7,12 @@ import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.CarModelEnum;
 import com.samadhan.enums.UserRole;
+import com.samadhan.exception.AccountDisabledException;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.InvalidCredentialsException;
 import com.samadhan.exception.OtpMismatchException;
+import com.samadhan.repository.DriverRepository;
+import com.samadhan.repository.VehicleRepository;
 import com.samadhan.request.IdentifierForgotPasswordRequest;
 import com.samadhan.request.IdentifierResetPasswordRequest;
 import com.samadhan.request.RefreshTokenRequest;
@@ -63,6 +66,12 @@ public class V1UserLoginAndRegistrationController {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private DriverRepository driverRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
 
 
     @PostMapping("/user-otp-verify")
@@ -277,6 +286,24 @@ public class V1UserLoginAndRegistrationController {
         RefreshToken existingRefreshToken = refreshTokenService.findByToken(refreshTokenRequest.getRefreshToken());
         refreshTokenService.verifyExpiration(existingRefreshToken);
 
+        // A driver/vehicle disabled after this refresh token was issued must not be able to mint
+        // a fresh access token with it — closes the gap left by JwtAuthenticationFilter, which
+        // only re-checks isActive on requests carrying an access token, not on this endpoint.
+        String role = existingRefreshToken.getUserRole();
+        Long userId = existingRefreshToken.getUserId();
+        boolean disabled = false;
+        if (UserRole.DRIVER.getValue().equalsIgnoreCase(role)) {
+            Driver driver = driverRepository.findById(userId).orElse(null);
+            disabled = driver != null && Boolean.FALSE.equals(driver.getIsActive());
+        } else if (UserRole.VEHICLE.getValue().equalsIgnoreCase(role)) {
+            Vehicle vehicle = vehicleRepository.findById(userId).orElse(null);
+            disabled = vehicle != null && Boolean.FALSE.equals(vehicle.getIsActive());
+        }
+        if (disabled) {
+            refreshTokenService.revokeToken(refreshTokenRequest.getRefreshToken());
+            throw new AccountDisabledException("This account has been disabled");
+        }
+
         String newAccessToken = tokenApi.generateToken(
                 existingRefreshToken.getUserName(), existingRefreshToken.getUserRole(),
                 existingRefreshToken.getUserId(), 15);
@@ -350,18 +377,18 @@ public class V1UserLoginAndRegistrationController {
     // Public (see SecurityConfig — no JWT available here) — for the vendor website's "delete my
     // vehicle" page. Since there's no token to prove ownership, the vehicle's own login
     // username/password stand in as the credential, verified the same way vehicle-login does.
-    // Hard delete, same as VehicleController#deleteVehicle: rejected with a ConflictException if
-    // the vehicle has transfer/ride history.
+    // Soft delete, same as VehicleController#deleteVehicle: marks the vehicle inactive instead of
+    // removing the row, so transfer/ride history stays intact.
     @PostMapping("/vehicle-delete")
     public ResponseEntity<ResponseObject<?>> deleteVehiclePublic(
-            @RequestParam String UserName, @RequestParam String password) throws ConflictException {
+            @RequestParam String UserName, @RequestParam String password) {
 
         Vehicle vehicle = vehicleService.loginVehicle(UserName, password);
         if (vehicle == null) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
 
-        vehicleService.deleteVehicle(vehicle.getId());
+        vehicleService.deactivateVehicle(vehicle.getId());
         ResponseObject<String> success = ResponseUtil.populateResponseObject(
                 "Vehicle deleted successfully.", "SUCCESS", null);
         return ResponseEntity.ok(success);

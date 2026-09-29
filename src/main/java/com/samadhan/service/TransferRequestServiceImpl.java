@@ -22,6 +22,7 @@ import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.exception.AccountDisabledException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.exception.RequestAlreadyAcceptedException;
 import com.samadhan.exception.ResourceNotFoundException;
@@ -558,31 +559,35 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				 throw new AccessDeniedException("Vehicle " + vehicleId + " does not belong to vendor " + vendorId);
 			 }
 
+			 if (Boolean.FALSE.equals(vehicle.getIsActive())) {
+				 throw new AccountDisabledException("Vehicle " + vehicleId + " is disabled and cannot be assigned");
+			 }
+
 			 // "Assign only that vehicle" — a vehicle can only be assigned if it's actually near
 			 // the pickup, same distance-scales-with-ride-length rule as
 			 // TransferRequestRepository.getVehicleFeed / VehicleRepository.findNearbyVehicles,
 			 // so a fleet vendor can't assign a vehicle that's nowhere near the job just because
 			 // it's in the same fleet. Skipped (fail-open) when either location isn't recorded,
 			 // to avoid breaking assignment for vehicles/requests that predate location tracking.
-			 if (vehicle.getVehicleLatitude() != null && vehicle.getVehicleLongitude() != null
-					 && transferdetails.getSourceLatitude() != null && transferdetails.getSourceLongitude() != null) {
-				 double distanceKm = PaymentServiceImpl.calculateDistance(
-						 Double.parseDouble(vehicle.getVehicleLatitude().trim()),
-						 Double.parseDouble(vehicle.getVehicleLongitude().trim()),
-						 Double.parseDouble(transferdetails.getSourceLatitude().trim()),
-						 Double.parseDouble(transferdetails.getSourceLongitude().trim()));
-				 Double rideDistanceKm = transferdetails.getDistanceKm();
-				 double allowedKm = rideDistanceKm == null ? 30
-						 : rideDistanceKm < 20 ? 3
-						 : rideDistanceKm <= 50 ? 10
-						 : rideDistanceKm < 100 ? 25
-						 : 30;
-				 if (distanceKm > allowedKm) {
-					 throw new VehicleTooFarException(
-							 "Vehicle " + vehicleId + " is " + Math.round(distanceKm)
-							 + "km from the pickup point, outside the " + allowedKm + "km limit for this ride.");
-				 }
-			 }
+//			 if (vehicle.getVehicleLatitude() != null && vehicle.getVehicleLongitude() != null
+//					 && transferdetails.getSourceLatitude() != null && transferdetails.getSourceLongitude() != null) {
+//				 double distanceKm = PaymentServiceImpl.calculateDistance(
+//						 Double.parseDouble(vehicle.getVehicleLatitude().trim()),
+//						 Double.parseDouble(vehicle.getVehicleLongitude().trim()),
+//						 Double.parseDouble(transferdetails.getSourceLatitude().trim()),
+//						 Double.parseDouble(transferdetails.getSourceLongitude().trim()));
+//				 Double rideDistanceKm = transferdetails.getDistanceKm();
+//				 double allowedKm = rideDistanceKm == null ? 30
+//						 : rideDistanceKm < 20 ? 3
+//						 : rideDistanceKm <= 50 ? 10
+//						 : rideDistanceKm < 100 ? 25
+//						 : 30;
+//				 if (distanceKm > allowedKm) {
+//					 throw new VehicleTooFarException(
+//							 "Vehicle " + vehicleId + " is " + Math.round(distanceKm)
+//							 + "km from the pickup point, outside the " + allowedKm + "km limit for this ride.");
+//				 }
+//			 }
 
 			 int otp = 1000 + SECURE_RANDOM.nextInt(9000);
 			 transferdetails.setVehicleId(vehicle);
@@ -705,6 +710,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			Driver driver = driverRepo.findById(driverId)
 					.orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + driverId));
 
+			if (Boolean.FALSE.equals(driver.getIsActive())) {
+				throw new AccountDisabledException("Driver " + driverId + " is disabled and cannot be assigned");
+			}
+
 			transfer.setDriver(driver);
 			transfer.setDriverAssignDateTime(dateTime);
 			// Stamp the actual pickup time here: this is when a driver is assigned and the
@@ -733,6 +742,9 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 			 Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+			if (Boolean.FALSE.equals(vehicle.getIsActive())) {
+				throw new AccountDisabledException("Vehicle " + vehicleId + " is disabled and cannot be assigned");
+			}
 			transfer.setVehicleId(vehicle);
 			transfer.setVehicleAssignDateTime(dateTime);
 			transfer.setOtp(otp);
@@ -1120,6 +1132,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		 Vehicle vehicle = vehicleRepo.findById(vehicleId)
 		            .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 
+		 if (Boolean.FALSE.equals(vehicle.getIsActive())) {
+			 throw new AccountDisabledException("Vehicle " + vehicleId + " is disabled");
+		 }
+
 		List<TransferRequestDetails> getRidesByVehicle = transferRepo.getVehicleFeed(vehicleId);
 		System.out.println("getRidesByVehicle" + getRidesByVehicle);
 
@@ -1180,6 +1196,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		if ("PENDING".equals(normalizedStatus)) {
 			Vehicle vehicle = vehicleRepo.findById(vehicleId)
 					.orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
+
+			if (Boolean.FALSE.equals(vehicle.getIsActive())) {
+				throw new AccountDisabledException("Vehicle " + vehicleId + " is disabled");
+			}
 
 			List<TransferRequestDetails> eligible = transferRepo.getVehiclePendingFeed(vehicleId).stream()
 					.filter(ride -> isEligiblePendingRide(vehicle, ride))

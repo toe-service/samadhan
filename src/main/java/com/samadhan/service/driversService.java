@@ -34,8 +34,8 @@ public interface driversService {
 
 	Driver updateLocation(String address, Long id);
 
-	Driver deleteDriver(Long driverId);
-
 	Driver deactivateDriver(Long driverId);
+
+	Driver activateDriver(Long driverId);
 
 }

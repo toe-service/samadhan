@@ -70,6 +70,18 @@ public class GlobalExceptionHandler {
          );
     }
     
+    @ExceptionHandler(AccountDisabledException.class)
+    public ResponseEntity<Object> handleAccountDisabled(AccountDisabledException ex) {
+        logger.warn("Account disabled: {}", ex.getMessage());
+        return ResponseEntity.status(403).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "403",
+                        new Error("AccountDisabled", ex.getMessage())
+                )
+        );
+    }
+
     @ExceptionHandler(WalletLowBalanceException.class)
     public ResponseEntity<Object> handleSubscriptionSuspended(
     		WalletLowBalanceException ex) {

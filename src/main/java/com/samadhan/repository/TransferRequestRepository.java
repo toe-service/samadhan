@@ -554,9 +554,6 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	@Query(value="select * from transfer_request_details where id=:transferId AND transfer_id=:vendorId" ,nativeQuery = true)
 	Boolean IsExist(Long transferId, Long vendorId);
 
-	@Query(value="select count(*) from transfer_request_details where vehicle_id=:vehicleId", nativeQuery = true)
-	long countByVehicleId(@Param("vehicleId") Long vehicleId);
-
 	// Backhaul matching candidates: PENDING, unassigned requests picking up on or before the
 	// latest expected_date across a vendor's active postings (any earlier pickup date matches
 	// too, including "Immediate"/today ones — not just the exact date). Fetched ONCE per
