@@ -14,9 +14,8 @@ import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
-import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.AccountDisabledException;
 import com.samadhan.exception.VehicleLimitExceededException;
-import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VehicleRepository;
 
@@ -32,9 +31,6 @@ public class VehicleServiceImpl implements VehicleService{
 
 	@Autowired
 	VehicleRepository vehicleRepo;
-
-	@Autowired
-	TransferRequestRepository transferRequestRepository;
 
 	@Autowired
 	TransferVendorRepository transferVendorRepository;
@@ -161,6 +157,10 @@ public class VehicleServiceImpl implements VehicleService{
 			return null;
 		}
 
+		if (Boolean.FALSE.equals(vehicle.getIsActive())) {
+			throw new AccountDisabledException("This vehicle account has been disabled");
+		}
+
 		if (vehicle.getTransferVendor() != null) {
 			vehicle.setVendorName(vehicle.getTransferVendor().getVendorName());
 		}
@@ -214,17 +214,25 @@ public class VehicleServiceImpl implements VehicleService{
 		return vehicleRepo.save(vehicle);
 	}
 
+	// Reverses deactivateVehicle — re-enables a previously disabled vehicle.
 	@Override
-	public void deleteVehicle(Long vehicleId) throws ConflictException {
+	public Vehicle activateVehicle(Long vehicleId) {
 		Vehicle vehicle = vehicleRepo.findById(vehicleId)
 				.orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
+		vehicle.setIsActive(true);
+		return vehicleRepo.save(vehicle);
+	}
 
-		if (transferRequestRepository.countByVehicleId(vehicleId) > 0) {
-			throw new ConflictException(
-					"Cannot delete a vehicle with existing transfer/ride history. Deactivate it instead.");
+	// Reverses deactivateVehicleForVendor — same ownership check as its deactivate counterpart.
+	@Override
+	public Vehicle activateVehicleForVendor(Long vehicleId, Long vendorId) {
+		Vehicle vehicle = vehicleRepo.findById(vehicleId)
+				.orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
+		if (vehicle.getTransferVendor() == null || !vendorId.equals(vehicle.getTransferVendor().getId())) {
+			throw new AccessDeniedException("Vehicle " + vehicleId + " does not belong to vendor " + vendorId);
 		}
-
-		vehicleRepo.delete(vehicle);
+		vehicle.setIsActive(true);
+		return vehicleRepo.save(vehicle);
 	}
 
 }

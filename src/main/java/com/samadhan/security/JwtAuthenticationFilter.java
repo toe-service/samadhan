@@ -1,5 +1,10 @@
 package com.samadhan.security;
 
+import com.samadhan.entity.Driver;
+import com.samadhan.entity.Vehicle;
+import com.samadhan.enums.UserRole;
+import com.samadhan.repository.DriverRepository;
+import com.samadhan.repository.VehicleRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,13 +29,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private TokenApi tokenApi;
 
+    @Autowired
+    private DriverRepository driverRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
             String jwt = extractJwtFromRequest(request);
 
-            if (StringUtils.hasText(jwt) && tokenApi.validateToken(jwt)) {
+            if (StringUtils.hasText(jwt) && tokenApi.validateToken(jwt) && !isDisabledDriverOrVehicle(jwt)) {
                 String username = tokenApi.extractUsername(jwt);
                 String userRole = tokenApi.extractUserRole(jwt);
 
@@ -52,6 +63,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    // Re-checks isActive against the DB on every request for driver/vehicle-role tokens, so a
+    // disabled driver/vehicle is cut off immediately instead of waiting for its access token to
+    // expire naturally. USER/VENDOR tokens skip this (no added DB call) since disabling isn't
+    // exposed for those roles today.
+    private boolean isDisabledDriverOrVehicle(String jwt) {
+        String userRole = tokenApi.extractUserRole(jwt);
+        Long userId = tokenApi.extractUserId(jwt);
+        if (userId == null) {
+            return false;
+        }
+
+        if (UserRole.DRIVER.getValue().equalsIgnoreCase(userRole)) {
+            Driver driver = driverRepository.findById(userId).orElse(null);
+            return driver != null && Boolean.FALSE.equals(driver.getIsActive());
+        }
+
+        if (UserRole.VEHICLE.getValue().equalsIgnoreCase(userRole)) {
+            Vehicle vehicle = vehicleRepository.findById(userId).orElse(null);
+            return vehicle != null && Boolean.FALSE.equals(vehicle.getIsActive());
+        }
+
+        return false;
     }
 
     private String extractJwtFromRequest(HttpServletRequest request) {

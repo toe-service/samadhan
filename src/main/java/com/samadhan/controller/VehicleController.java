@@ -72,14 +72,12 @@ public class VehicleController {
 	}
 
 	// Authenticated (default security rule — see SecurityConfig). Soft delete: marks the vehicle
-	// inactive instead of removing the row, same as DELETE /v1/vehicle/{vehicleId} — this used to
-	// hard-delete (rejected via ConflictException if the vehicle had transfer/ride history), but
-	// that risked losing ride/wallet history for any vehicle with none yet at delete time, and
-	// still left it discoverable elsewhere. Deactivated vehicles are now excluded from every
-	// vendor/vehicle-facing listing (VehicleRepository.findByVendorId/findByActiveVendorId/
-	// findNearbyVehicles). NOTE: this is intentionally separate from VehicleService.deleteVehicle,
-	// which the public POST /v1/vehicle-delete endpoint still uses unchanged. The JWT's own userId
-	// claim must match the vehicleId being deleted, same ownership check as
+	// inactive instead of removing the row, same as DELETE /v1/vehicle/{vehicleId} and the public
+	// POST /v1/vehicle-delete (all three now go through deactivateVehicle — there is no hard-delete
+	// path left). Deactivated vehicles are excluded from every vendor/vehicle-facing listing
+	// (VehicleRepository.findByVendorId/findByActiveVendorId/findNearbyVehicles), rejected at
+	// login, and rejected when assigned to a transfer request. The JWT's own userId claim must
+	// match the vehicleId being deactivated, same ownership check as
 	// V1UserLoginAndRegistrationController#deleteVehicle.
 	@DeleteMapping(value = "/{vehicleId}")
 	public ResponseEntity<ResponseObject<?>> deleteVehicle(

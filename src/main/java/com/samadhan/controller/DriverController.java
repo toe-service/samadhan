@@ -164,8 +164,8 @@ public class DriverController {
 	
 	// Soft delete: marks the driver inactive instead of removing the row, so ride history tied to
 	// this driver stays intact. Deactivated drivers are excluded from every vendor/agent-facing
-	// listing (DriverRepository.findByVendorId/findAllDriversByfilters). Not a public endpoint
-	// (see SecurityConfig) — driversService.deleteDriver (the hard-delete path) is left untouched.
+	// listing (DriverRepository.findByVendorId/findAllDriversByfilters), rejected at login, and
+	// rejected when assigned to a transfer request. Not a public endpoint (see SecurityConfig).
 	@DeleteMapping(value = "/delete-driver")
 	public Driver deleteDriver(@RequestParam Long driverId) {
 
@@ -173,16 +173,32 @@ public class DriverController {
 		return resp;
 	}
 
+	// Reverses delete-driver above.
+	@PostMapping(value = "/enable-driver")
+	public Driver enableDriver(@RequestParam Long driverId) {
+
+		Driver resp = driversService.activateDriver(driverId);
+		return resp;
+	}
+
 	// Vendor-facing soft delete for the "All Vehicles" fleet management page. Not a public
-	// endpoint (see SecurityConfig) — separate from VehicleService.deleteVehicle (the public
-	// POST /v1/vehicle-delete hard-delete path, left untouched) and from VehicleController's own
-	// JWT-authenticated deactivateVehicle (which checks a vehicle's own token, not a vendor's).
-	// Deactivated vehicles are excluded from every vendor-facing listing
-	// (VehicleRepository.findByVendorId/findByActiveVendorId/findNearbyVehicles).
+	// endpoint (see SecurityConfig) — separate from VehicleController's own JWT-authenticated
+	// deactivateVehicle (which checks a vehicle's own token, not a vendor's). Deactivated vehicles
+	// are excluded from every vendor-facing listing
+	// (VehicleRepository.findByVendorId/findByActiveVendorId/findNearbyVehicles), rejected at
+	// login, and rejected when assigned to a transfer request.
 	@DeleteMapping(value = "/delete-vehicle")
 	public Vehicle deleteVehicle(@RequestParam Long vehicleId, @RequestParam Long vendorId) {
 
 		Vehicle resp = vehicleService.deactivateVehicleForVendor(vehicleId, vendorId);
+		return resp;
+	}
+
+	// Reverses delete-vehicle above.
+	@PostMapping(value = "/enable-vehicle")
+	public Vehicle enableVehicle(@RequestParam Long vehicleId, @RequestParam Long vendorId) {
+
+		Vehicle resp = vehicleService.activateVehicleForVendor(vehicleId, vendorId);
 		return resp;
 	}
 
