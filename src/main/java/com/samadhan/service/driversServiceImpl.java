@@ -240,10 +240,15 @@ public class driversServiceImpl implements driversService {
 	        res.setUsername(driver.getDriverContactNumber());
 	        res.setDriverId(driver.getId());
 	        res.setUserType("driver");
+	        // Agents created from the vendor website (AllDrivers.jsx "Add Agent") never collect an
+	        // email — driverEmail is null for them. refresh_tokens.user_name is NOT NULL, so using
+	        // driverEmail here throws a DataIntegrityViolationException on login. driverContactNumber
+	        // is always set (required at creation) and is already this driver's identifier elsewhere
+	        // (res.setUsername above, loginDriver()), so use it here too instead of the email.
 	        String token = tokenApi.generateToken(
-	                driver.getDriverEmail(), UserRole.DRIVER.getValue(), driver.getId(), 15);
+	                driver.getDriverContactNumber(), UserRole.DRIVER.getValue(), driver.getId(), 15);
 	        RefreshToken refreshToken = refreshTokenService.createRefreshToken(
-	                driver.getDriverEmail(), UserRole.DRIVER.getValue(), driver.getId());
+	                driver.getDriverContactNumber(), UserRole.DRIVER.getValue(), driver.getId());
 	        res.setToken(token);
 	        res.setRefreshToken(refreshToken.getToken());
 	        res.setExpiresIn(900000L);
