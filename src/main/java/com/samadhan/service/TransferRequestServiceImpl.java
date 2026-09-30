@@ -742,10 +742,20 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setVehicleId(vehicle);
 			transfer.setVehicleAssignDateTime(dateTime);
 			transfer.setOtp(otp);
+			if (transfer.getStartOtp() == null) {
+				// Vendor-created rides (BOOKVEHICLE/HOMESHIFTING) are born already ACCEPTED,
+				// skipping requestTransferApproval entirely — the only other place startOtp is
+				// generated — so they'd otherwise never get one and the driver app could never
+				// start the ride via OTP. Generated here instead, the first time a vehicle
+				// actually gets committed to such a ride. Guarded on null so reassigning the
+				// vehicle on an already-accepted (User/WebUser) ride doesn't invalidate an OTP
+				// the customer/driver may already have.
+				transfer.setStartOtp(1000 + SECURE_RANDOM.nextInt(9000));
+			}
 			transfer.setTransferStatus(rideStatusEnum.VEHICLEASSIGNED);
 			transferRepo.save(transfer);
 		}
- 
+
 		//Ride start
 		if (rideStatus != null && rideStatus == 0) {
 			boolean otpProvided = inputotp != null && inputotp > 0;
