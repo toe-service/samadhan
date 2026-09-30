@@ -25,6 +25,13 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 	@Query(value="SELECT * FROM driver WHERE transfer_id=:vendorId AND (is_active IS NULL OR is_active = 1)" ,nativeQuery = true)
 	List<Driver> findByVendorId(Long vendorId);
 
+	// Unlike findByVendorId above, includes disabled drivers — used by the vendor's own agent
+	// management page so a previously disabled driver stays visible (with an Enable action)
+	// instead of disappearing with no way back. Same pattern as
+	// VehicleRepository#findAllByVendorIdIncludingInactive.
+	@Query(value="SELECT * FROM driver WHERE transfer_id=:vendorId" ,nativeQuery = true)
+	List<Driver> findAllByVendorIdIncludingInactive(Long vendorId);
+
 	@Query(value="SELECT * FROM driver WHERE driver_contact_number=:userName AND password=:password" ,nativeQuery = true)
 	Driver findByUserNamePassword(String userName, String password);
 
