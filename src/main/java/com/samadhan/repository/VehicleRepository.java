@@ -13,6 +13,12 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	@Query(value="select * from vehicle where transfer_id=:vendorId and (is_active IS NULL OR is_active = 1)",nativeQuery=true)
 	List<Vehicle> findByVendorId(Long vendorId);
 
+	// Unlike findByVendorId above, includes disabled vehicles — used by the vendor's own fleet
+	// management page so a previously disabled vehicle stays visible (with an Enable action)
+	// instead of disappearing with no way back.
+	@Query(value="select * from vehicle where transfer_id=:vendorId",nativeQuery=true)
+	List<Vehicle> findAllByVendorIdIncludingInactive(Long vendorId);
+
 	@Query(value="select * from vehicle where transfer_id=:vendorId and ongoing_status=:isActive and (is_active IS NULL OR is_active = 1)",nativeQuery=true)
 	List<Vehicle> findByActiveVendorId(Long vendorId, boolean isActive);
 

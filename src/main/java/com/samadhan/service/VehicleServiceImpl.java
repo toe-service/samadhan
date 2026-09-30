@@ -51,7 +51,7 @@ public class VehicleServiceImpl implements VehicleService{
 		boolean isOngoing=false;
 		vehicleByVendor=vehicleRepo.findByActiveVendorId(vendorId, isOngoing);
 		}else {
-		vehicleByVendor=vehicleRepo.findByVendorId(vendorId);
+		vehicleByVendor=vehicleRepo.findAllByVendorIdIncludingInactive(vendorId);
 		}
 		return vehicleByVendor;
 	}
