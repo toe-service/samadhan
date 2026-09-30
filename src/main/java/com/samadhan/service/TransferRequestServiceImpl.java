@@ -122,13 +122,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		TransferVendor vendor = null;
 		TransferRequestDetails transferRequest=new TransferRequestDetails();
-		
-		if(serviceType == serviceTypeEnum.BOOKVEHICLE &&
-				"Vendor".equalsIgnoreCase(userType)) {
 
-			throw new ResourceNotFoundException("Vendor cannot create Book Vehicle request.");
-		}
-		
 		if(vendorId != null){
 		    vendor = transferVendorRepo.findById(vendorId)
 		            .orElseThrow(() -> new ResourceNotFoundException(
