@@ -762,8 +762,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			
 			transfer.setTransferStatus(rideStatusEnum.ONGOING);
 			transferRepo.save(transfer);
-			
-			if(userType!=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
+
+			// Gated on the ride's OWN stored creator (set once at requestRideTransfer time), not
+			// the userType this call happened to be made with — the driver/vehicle app that hits
+			// this endpoint always sends userType=User regardless of who actually created the
+			// ride, so trusting the caller-supplied value here charged vendor-created rides too.
+			String rideCreatorType = transfer.getUserType();
+			if(rideCreatorType!=null && (rideCreatorType.equalsIgnoreCase("User") || rideCreatorType.equalsIgnoreCase("WebUser"))) {
 
 			// Already have this loaded on transfer — no need to re-fetch the same vendor by
 			// the ID we just read off it.
@@ -835,8 +840,12 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			}
 			transferdetails.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transferdetails);
-			
-			if(userType!=null && (userType.equalsIgnoreCase("User") || userType.equalsIgnoreCase("WebUser"))) {
+
+			// Same fix as requestTransferUpdate's Ride Start Fee gate above: use the ride's own
+			// stored creator, not the userType this particular call was made with (the driver app
+			// always sends userType=User regardless of who actually created the ride).
+			String rideCreatorType = transferdetails.getUserType();
+			if(rideCreatorType!=null && (rideCreatorType.equalsIgnoreCase("User") || rideCreatorType.equalsIgnoreCase("WebUser"))) {
 
 			// Already have this loaded on transferdetails — no need to re-fetch the same
 			// vendor by the ID we just read off it.
