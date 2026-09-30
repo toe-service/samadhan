@@ -190,7 +190,7 @@ public class driversServiceImpl implements driversService {
 
 	@Override
 	public List<Driver> getAllDriversByVendor(Long vendorId) {
-		List<Driver> drivers = driverRepo.findByVendorId(vendorId);
+		List<Driver> drivers = driverRepo.findAllByVendorIdIncludingInactive(vendorId);
 		return drivers;
 	}
 
