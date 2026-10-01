@@ -28,10 +28,12 @@ import com.samadhan.response.TransferVendorLoginResponse;
 import com.samadhan.response.UserOtpVerifyResponse;
 import com.samadhan.security.RefreshTokenService;
 import com.samadhan.security.TokenApi;
+import com.samadhan.service.LocationService;
 import com.samadhan.service.LoginService;
 import com.samadhan.service.UserService;
 import com.samadhan.service.VehicleService;
 import com.samadhan.service.driversService;
+import com.samadhan.util.CityUtils;
 import com.samadhan.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +74,9 @@ public class V1UserLoginAndRegistrationController {
 
     @Autowired
     private VehicleRepository vehicleRepository;
+
+    @Autowired
+    private LocationService locationService;
 
 
     @PostMapping("/user-otp-verify")
@@ -156,12 +161,16 @@ public class V1UserLoginAndRegistrationController {
 
     }
     
+    // lat/lng are optional so older app builds that don't send them yet still log in fine — see
+    // VehicleServiceImpl#loginVehicle for what they're used for (refreshing the vehicle's live
+    // position on every login instead of only once at registration).
     @PostMapping("/vehicle-login")
     public ResponseEntity<ResponseObject<Vehicle>> loginVehicle(
-    		@RequestParam String UserName, @RequestParam String password) throws ConflictException {
+    		@RequestParam String UserName, @RequestParam String password,
+    		@RequestParam(required = false) Double lat, @RequestParam(required = false) Double lng) throws ConflictException {
       //  logger.info("User Login request is {}", userLoginRequest);
 //        loginService.registerUser(userRegisterRequest);
-        Vehicle vehicle =vehicleService.loginVehicle(UserName, password);
+        Vehicle vehicle =vehicleService.loginVehicle(UserName, password, lat, lng);
         ResponseObject<Vehicle> success = ResponseUtil.populateResponseObject(vehicle, "SUCCESS", null);
         return ResponseEntity.ok(success);
 
@@ -239,12 +248,15 @@ public class V1UserLoginAndRegistrationController {
 		return ResponseEntity.ok(success);
 	}
 
+    // lat/lng are optional — when this login resolves to a vehicle, refreshes its live position
+    // (see driversServiceImpl#loginRole). This is the actual login the vehicle/driver app calls.
     @PostMapping("/role-login")
-    public ResponseEntity<?> loginRole(@RequestParam String UserName, @RequestParam String password,@RequestParam(required = false) String fcmToken
+    public ResponseEntity<?> loginRole(@RequestParam String UserName, @RequestParam String password,@RequestParam(required = false) String fcmToken,
+    		@RequestParam(required = false) Double lat, @RequestParam(required = false) Double lng
 	) throws ConflictException {
 
     	logger.info("fcmToken "+fcmToken);
-    	LoginResponse data = driverservice.loginRole(UserName, password, fcmToken);
+    	LoginResponse data = driverservice.loginRole(UserName, password, fcmToken, lat, lng);
       
 		ResponseObject<?> success = ResponseUtil.populateResponseObject(data, "SUCCESS", null);
 
@@ -350,6 +362,37 @@ public class V1UserLoginAndRegistrationController {
         return ResponseEntity.ok(success);
     }
 
+    // Lets the customer app report the user's current city, resolved server-side the same way
+    // VehicleController#updateRoleLocation resolves a vehicle's — reverse-geocode via
+    // LocationService, then CityUtils.extractCity's "3rd segment from the end" heuristic — so
+    // this ends up in the exact same format as VendorAvailability.fromCity, which is what
+    // AvailableRidesNotificationScheduler actually matches deviceCity against. Call this whenever
+    // the app has a fresh GPS fix (app open, location-permission grant, etc.) — same JWT
+    // ownership check as #deleteUser above.
+    @PatchMapping("/user/{userId}/device-city")
+    public ResponseEntity<ResponseObject<?>> updateDeviceCity(
+            @PathVariable Long userId, @RequestParam double lat, @RequestParam double lng,
+            HttpServletRequest httpRequest) {
+
+        String authHeader = httpRequest.getHeader("Authorization");
+        String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        Long tokenUserId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+        if (tokenUserId == null || !tokenUserId.equals(userId)) {
+            throw new AccessDeniedException("You are not authorized to update this user's location");
+        }
+
+        java.util.Map<String, Object> resp = locationService.getLocation(lat, lng);
+        String address = (String) resp.get("address");
+        String city = CityUtils.extractCity(address);
+
+        userService.updateDeviceCity(userId, city);
+
+        ResponseObject<String> success = ResponseUtil.populateResponseObject(
+                "Device city updated successfully.", "SUCCESS", null);
+        return ResponseEntity.ok(success);
+    }
+
     // Authenticated (default security rule — see SecurityConfig). Soft delete: marks the
     // vehicle inactive instead of removing the row, same pattern as #deleteUser above — the
     // JWT's own userId claim (set from vehicle.getId() at vehicle-login/role-login) must match
@@ -383,7 +426,7 @@ public class V1UserLoginAndRegistrationController {
     public ResponseEntity<ResponseObject<?>> deleteVehiclePublic(
             @RequestParam String UserName, @RequestParam String password) {
 
-        Vehicle vehicle = vehicleService.loginVehicle(UserName, password);
+        Vehicle vehicle = vehicleService.loginVehicle(UserName, password, null, null);
         if (vehicle == null) {
             throw new InvalidCredentialsException("Invalid username or password");
         }

@@ -76,4 +76,15 @@ public class UserServiceImpl implements UserService{
 		user.setFcmToken(fcmToken);
 		userrepo.save(user);
 	}
+
+	@Override
+	public void updateDeviceCity(Long userId, String deviceCity) {
+		if (deviceCity == null || deviceCity.isBlank()) {
+			return;
+		}
+		UserDetails user = userrepo.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+		user.setDeviceCity(deviceCity);
+		userrepo.save(user);
+	}
 }

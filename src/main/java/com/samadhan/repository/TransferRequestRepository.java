@@ -618,4 +618,23 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	List<TransferRequestDetails> findScheduledPendingUnassignedToday(@Param("today") LocalDate today);
 
+	// Feeds the vendor dashboard's notification bell (NotificationProvider.jsx polls
+	// GET /transfer/pickupRemindersDueSoon) — requests whose pre-pickup reminder
+	// (OverduePickupScheduler#sendPrePickupReminders, same pickup_reminder_sent_at column above)
+	// was just pushed to nearby vehicles. Still-open to any eligible vendor (not yet claimed —
+	// same transfer_status/vehicle_id/transfer_id gate as findScheduledPendingUnassignedToday), so
+	// every vendor polling this sees the same "pickup coming up, still unclaimed" set their own
+	// nearby vehicles were just pushed, right in their own dashboard.
+	@Query(value =
+	        "SELECT * FROM transfer_request_details trd " +
+	        "WHERE trd.pickup_reminder_sent_at IS NOT NULL " +
+	        "AND trd.pickup_reminder_sent_at >= :since " +
+	        "AND trd.transfer_status = 0 " +
+	        "AND trd.vehicle_id IS NULL " +
+	        "AND trd.transfer_id IS NULL " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
+	        "ORDER BY trd.pickup_reminder_sent_at DESC",
+	        nativeQuery = true)
+	List<TransferRequestDetails> findRecentPickupReminders(@Param("since") LocalDateTime since);
+
 }

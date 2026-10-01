@@ -337,8 +337,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			}
 		}
 
-		fireBaseMessagingService.notifyVehicles(transferRequest);
-		
+		// A vendor-created request is already ACCEPTED and locked to that vendor at this point —
+		// nothing for a nearby vehicle to "accept" here, since only the creating vendor can ever
+		// assign one of their own vehicles to it (see requestTransferUpdate's ownership check).
+		// Broadcasting the usual RIDE_REQUEST push would just ping every other nearby vendor's
+		// fleet about a job they can never actually take. Not applied to the cancel-triggered
+		// re-notify below (line ~536) — once a request is cancelled, transferVendor is cleared and
+		// it's genuinely back in the open pool, regardless of who originally created it.
+		if (!"Vendor".equalsIgnoreCase(userType)) {
+			fireBaseMessagingService.notifyVehicles(transferRequest);
+		}
+
 //		List<TransferVendor> vendors = transferVendorRepo.findAllActiveVendors();
 //		
 //		for (TransferVendor vendorr : vendors) {
@@ -909,6 +918,17 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		System.out.println("transferRidesByDriverId" + transferRidesByDriverId);
 		
 		return transferRidesByDriverId;
+	}
+
+	// Feeds the vendor dashboard's notification bell — see TransferRequestRepository#
+	// findRecentPickupReminders. withinMinutes is a lookback window on pickup_reminder_sent_at,
+	// not the reminder lead time itself (that's OverduePickupScheduler#PICKUP_REMINDER_LEAD_MINUTES);
+	// it only needs to be comfortably wider than the dashboard's own poll interval so a reminder
+	// sent between two polls is never missed.
+	@Override
+	public List<TransferRequestDetails> getRecentPickupReminders(int withinMinutes) {
+		LocalDateTime since = LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).minusMinutes(withinMinutes);
+		return transferRepo.findRecentPickupReminders(since);
 	}
 
 	@Override

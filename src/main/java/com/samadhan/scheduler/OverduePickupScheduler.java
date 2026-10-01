@@ -22,8 +22,9 @@ import com.samadhan.util.FireBaseMessagingService;
 // when the request was first created, so vendors get another chance to see it:
 //   - notifyOverduePickups: reactive — fires once the pickup window has already fully passed.
 //   - sendPrePickupReminders: proactive — fires PICKUP_REMINDER_LEAD_MINUTES before a scheduled
-//     window opens (e.g. 2:30 PM for a "3 PM - 6 PM" slot), so there's a chance to get it accepted
-//     before it becomes overdue in the first place.
+//     window opens (e.g. 2:45 PM for a "3 PM - 6 PM" slot), so there's a chance to get it accepted
+//     before it becomes overdue in the first place. Also surfaced in the vendor dashboard's
+//     notification bell — see TransferRequestRepository#findRecentPickupReminders.
 // Each request is only notified once per check (tracked via overdue_notified_at /
 // pickup_reminder_sent_at), not repeatedly on every run.
 @Component
@@ -38,7 +39,7 @@ public class OverduePickupScheduler {
 	private static final int INSTANT_BOOKING_OVERDUE_MINUTES = 30;
 
 	// How far ahead of a scheduled pickup window's start to send the proactive reminder.
-	private static final int PICKUP_REMINDER_LEAD_MINUTES = 30;
+	private static final int PICKUP_REMINDER_LEAD_MINUTES = 15;
 
 	// The only values pickup_schedule can actually hold for a non-instant booking — see the live
 	// <select> in CreateTransfer.jsx/BookVehicle.jsx/HomeShifting.jsx on the frontend, all three of

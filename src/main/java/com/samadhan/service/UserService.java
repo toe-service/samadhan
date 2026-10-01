@@ -16,4 +16,9 @@ public interface UserService {
 	// daily notification. No-ops silently if fcmToken is null (caller didn't send one).
 	public void updateFcmToken(Long userId, String fcmToken);
 
+	// Saves the user's current city (see PATCH /v1/user/{userId}/device-city) — the other half of
+	// AvailableRidesNotificationScheduler's matching, alongside updateFcmToken above. No-ops
+	// silently if deviceCity couldn't be resolved (caller's reverse-geocode came back empty).
+	public void updateDeviceCity(Long userId, String deviceCity);
+
 }

@@ -30,9 +30,13 @@ public interface driversService {
 
 	Driver loginDriver(String userName, String password);
 
-	LoginResponse loginRole(String userName, String password, String fcmToken);
+	// lat/lng are optional — when present and this login resolves to a vehicle, refreshes its
+	// live position (vehicle_latitude/vehicle_longitude, plus reverse-geocoded currentLocation)
+	// the same way VehicleServiceImpl#loginVehicle does. This is the login the vehicle app
+	// actually calls, so that's where this needs to live, not the separate /vehicle-login path.
+	LoginResponse loginRole(String userName, String password, String fcmToken, Double lat, Double lng);
 
-	Driver updateLocation(String address, Long id);
+	Driver updateLocation(String address, Long id, String lat, String lng);
 
 	Driver deactivateDriver(Long driverId);
 
