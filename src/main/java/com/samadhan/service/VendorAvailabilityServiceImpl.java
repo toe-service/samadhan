@@ -224,6 +224,16 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			throw new AccessDeniedException("You are not authorized to edit this availability posting");
 		}
 
+		// Same subscription gate postAvailability applies when the posting is first created — a
+		// vendor whose trial/plan has since lapsed shouldn't be able to keep an existing posting
+		// fresh by editing it either, since that's effectively still soliciting new rides on it.
+		TransferVendor vendor = availability.getTransferVendor();
+		if (vendor.getVendorStatus().name().equals("SUSPENDED")) {
+			throw new SubscriptionSuspendedException("Your subscription is suspended. Please contact support or renew your subscription.");
+		} else if (vendor.getVendorStatus().name().equals("SUBSCRIPTION_PENDING")) {
+			throw new SubscriptionSuspendedException("Your free subscription Period is over. Buy your subscription.");
+		}
+
 		availability.setFromLocation(request.fromLocation);
 		availability.setFromLatitude(request.fromLatitude);
 		availability.setFromLongitude(request.fromLongitude);
