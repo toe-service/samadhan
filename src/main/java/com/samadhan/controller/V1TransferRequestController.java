@@ -178,6 +178,16 @@ TokenApi tokenApi;
 				  transferRequestService.showRidestoVendorsPaged(transferId, status, parsedPickupDate, page, size);
 		  return ResponseEntity.ok(showRidestoVendors);
 	    }
+
+	  // Feeds the vendor dashboard notification bell (NotificationProvider.jsx) with still-open
+	  // requests whose pre-pickup reminder (OverduePickupScheduler#sendPrePickupReminders) was
+	  // pushed to nearby vehicles within the last withinMinutes. Same list for every vendor who
+	  // polls it, since these requests are not claimed by or targeted to any one vendor yet.
+	  @GetMapping(value = "/pickupRemindersDueSoon")
+	  public List<TransferRequestDetails> pickupRemindersDueSoon(
+	  		@RequestParam(defaultValue = "20") int withinMinutes) {
+	  	return transferRequestService.getRecentPickupReminders(withinMinutes);
+	  }
 	  
 //	  @PostMapping("/dispatchVehicleRequest/{requestId}")
 //	  public ResponseEntity<String> dispatchVehicleRequest(@PathVariable Long requestId) {

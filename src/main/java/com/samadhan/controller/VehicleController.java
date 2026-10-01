@@ -55,10 +55,10 @@ public class VehicleController {
 		String address = (String) resp.get("address");
 
 		if(userType.equalsIgnoreCase("vehicle")) {
-		Vehicle vehicle=vehicleService.updateLocation(address,Id);
+		Vehicle vehicle=vehicleService.updateLocation(address,Id,String.valueOf(lat),String.valueOf(lng));
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(vehicle, "SUCCESS", null));
 		}else {
-		Driver driver=driverService.updateLocation(address,Id);
+		Driver driver=driverService.updateLocation(address,Id,String.valueOf(lat),String.valueOf(lng));
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(driver, "SUCCESS", null));
 		}
 

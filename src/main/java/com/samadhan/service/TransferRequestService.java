@@ -41,6 +41,8 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId);
 
+	public List<TransferRequestDetails> getRecentPickupReminders(int withinMinutes);
+
 	public com.samadhan.dto.RideFeedResponse showRidestoVendorsPaged(
 			Long transferId, String statusFilter, LocalDate pickupDate, int page, int size);
 

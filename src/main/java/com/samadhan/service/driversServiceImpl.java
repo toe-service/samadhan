@@ -60,6 +60,9 @@ public class driversServiceImpl implements driversService {
     @Autowired
     org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
+    @Autowired
+    LocationService locationService;
+
     @Override
     public Driver getById(Long id) {
 
@@ -227,7 +230,7 @@ public class driversServiceImpl implements driversService {
 
 
 	@Override
-	public LoginResponse loginRole(String username, String password, String fcmToken) {
+	public LoginResponse loginRole(String username, String password, String fcmToken, Double lat, Double lng) {
 
 	    // 🔹 Check Driver
 	    Driver driver = driverRepo.findByUserNamePassword(username, password);
@@ -270,6 +273,25 @@ public class driversServiceImpl implements driversService {
 	       vehicle.setFcmToken(fcmToken);
 	       res.setVendorId(vehicle.getTransferVendor().getId());
 	       res.setVendorName(vehicle.getTransferVendor().getVendorName());
+
+	       // Refreshes the vehicle's live position on every login — previously vehicle_latitude/
+	       // vehicle_longitude were only ever written once, at registration, so findNearbyVehicles
+	       // (behind both ride-notification matching and the vendor's own vehicle feed) was
+	       // matching against a position that could go stale for the vehicle's entire lifetime.
+	       // Also mirrors it into currentLocation (human-readable) same as
+	       // VehicleController#updateRoleLocation. Optional — older app builds that don't send
+	       // lat/lng yet just skip this and log in as before.
+	       if (lat != null && lng != null) {
+	           vehicle.setVehicleLatitude(String.valueOf(lat));
+	           vehicle.setVehicleLongitude(String.valueOf(lng));
+
+	           java.util.Map<String, Object> locationResult = locationService.getLocation(lat, lng);
+	           Object address = locationResult.get("address");
+	           if (address != null) {
+	               vehicle.setCurrentLocation((String) address);
+	           }
+	       }
+
 	        vehicleRepo.save(vehicle);
 	        String token = tokenApi.generateToken(
 	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId(), 15);
@@ -288,10 +310,19 @@ public class driversServiceImpl implements driversService {
 
 
 	@Override
-	public Driver updateLocation(String address, Long id) {
+	public Driver updateLocation(String address, Long id, String lat, String lng) {
 		 Driver driver = driverRepo.findById(id)
 		            .orElseThrow(() -> new RuntimeException("Driver not found with id: " + id));
 		 driver.setCurrentLocation(address);
+		 // Same gap as the vehicle side — driver_latitude/driver_longitude (what
+		 // findAllDriversByfilters matches on) went unset by this endpoint despite it receiving
+		 // lat/lng on every call.
+		 if (lat != null) {
+			 driver.setDriverLatitude(lat);
+		 }
+		 if (lng != null) {
+			 driver.setDriverLongitude(lng);
+		 }
 		 driverRepo.save(driver);
 		return driver;
 	}

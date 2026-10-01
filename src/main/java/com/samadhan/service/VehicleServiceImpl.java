@@ -38,6 +38,9 @@ public class VehicleServiceImpl implements VehicleService{
 	@Autowired
 	org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
+	@Autowired
+	LocationService locationService;
+
 	private final StorageService storageService;
 
 	public VehicleServiceImpl(StorageService storageService) {
@@ -140,17 +143,27 @@ public class VehicleServiceImpl implements VehicleService{
 	}
 
 	@Override
-	public Vehicle updateLocation(String address, Long vehicleId) {
-		
+	public Vehicle updateLocation(String address, Long vehicleId, String lat, String lng) {
+
 		Vehicle vehicle = vehicleRepo.findById(vehicleId)
 		            .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
 		vehicle.setCurrentLocation(address);
+		// Previously only the human-readable address was saved here — vehicle_latitude/
+		// vehicle_longitude (what findNearbyVehicles actually matches on) went untouched by this
+		// endpoint despite it receiving lat/lng on every call. Same gap as loginRole had, fixed
+		// the same way.
+		if (lat != null) {
+			vehicle.setVehicleLatitude(lat);
+		}
+		if (lng != null) {
+			vehicle.setVehicleLongitude(lng);
+		}
 		vehicleRepo.save(vehicle);
 		return vehicle;
 	}
 
 	@Override
-	public Vehicle loginVehicle(String userName, String password) {
+	public Vehicle loginVehicle(String userName, String password, Double lat, Double lng) {
 		Vehicle vehicle = vehicleRepo.findByUserName(userName);
 
 		if (vehicle == null || vehicle.getPassword() == null) {
@@ -166,20 +179,43 @@ public class VehicleServiceImpl implements VehicleService{
 		}
 
 		String storedPassword = vehicle.getPassword();
+		boolean passwordMatches;
 
 		if (com.samadhan.util.PasswordUtil.isBcryptHash(storedPassword)) {
-			return passwordEncoder.matches(password, storedPassword) ? vehicle : null;
+			passwordMatches = passwordEncoder.matches(password, storedPassword);
+		} else if (storedPassword.equals(password)) {
+			passwordMatches = true;
+			// Legacy plaintext password — transparently migrate to a bcrypt hash on successful
+			// login, same as TransferVendor login (see LoginService#loginTransfervendor).
+			vehicle.setPassword(passwordEncoder.encode(password));
+		} else {
+			passwordMatches = false;
 		}
 
-		if (!storedPassword.equals(password)) {
+		if (!passwordMatches) {
 			return null;
 		}
 
-		// Legacy plaintext password — transparently migrate to a bcrypt hash on successful login,
-		// same as TransferVendor login (see LoginService#loginTransfervendor).
-		vehicle.setPassword(passwordEncoder.encode(password));
-		vehicleRepo.save(vehicle);
-		return vehicle;
+		// Refreshes the vehicle's live position on every login — previously vehicle_latitude/
+		// vehicle_longitude were only ever written once, at registration (createVehicle above),
+		// so findNearbyVehicles (the query behind both ride-notification matching and the
+		// vendor's own vehicle feed) was matching against a position that could go stale for the
+		// vehicle's entire lifetime. Also mirrors it into currentLocation (human-readable, via
+		// the same reverse-geocode as VehicleController#updateRoleLocation) so the vendor
+		// dashboard's display stays in sync too. Optional — null/null from callers (e.g. the
+		// public vehicle-delete flow) that only need to verify credentials just skip this.
+		if (lat != null && lng != null) {
+			vehicle.setVehicleLatitude(String.valueOf(lat));
+			vehicle.setVehicleLongitude(String.valueOf(lng));
+
+			Map<String, Object> locationResult = locationService.getLocation(lat, lng);
+			Object address = locationResult.get("address");
+			if (address != null) {
+				vehicle.setCurrentLocation((String) address);
+			}
+		}
+
+		return vehicleRepo.save(vehicle);
 	}
 
 	@Override

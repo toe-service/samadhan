@@ -17,9 +17,13 @@ public interface VehicleService {
 			VendorPickupVehicleEnum vendorVehicle, VehicleCategoryEnum vehicleCategory, String vehicleLatitude,
 			String vehicleLongitude, String fcmToken, Long transferVendorId, MultipartFile rcFile);
 
-	Vehicle updateLocation(String address, Long vehicleId);
+	Vehicle updateLocation(String address, Long vehicleId, String lat, String lng);
 
-	Vehicle loginVehicle(String userName, String password);
+	// lat/lng are optional — when present (a real vehicle-app login), refreshes the vehicle's live
+	// position (vehicle_latitude/vehicle_longitude, plus the reverse-geocoded currentLocation)
+	// alongside authenticating it. Pass null/null from callers that only need to verify
+	// credentials (e.g. the public vehicle-delete flow).
+	Vehicle loginVehicle(String userName, String password, Double lat, Double lng);
 
 	Vehicle registerVehicle(Vehicle vehicle);
 
