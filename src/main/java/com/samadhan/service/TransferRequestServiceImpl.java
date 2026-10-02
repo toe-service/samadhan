@@ -643,6 +643,26 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			logger.warn("Failed to clear posting-match rows after accepting request {}: {}", transferId, e.getMessage(), e);
 		}
 
+		// Nothing previously told the customer's own app that a vendor/vehicle had actually
+		// accepted their request — the REST data (transferStatus, transferVendor, vehicleId) was
+		// always correct and available immediately via GET /transfer/rideTransfer/{id}, but a
+		// client that waits on a push to know when to stop polling/showing "searching" had no
+		// signal to act on. Best-effort, like every other notification call in this method — a
+		// failure here must not fail the accept itself.
+		if (transferdetails.getUserDetails() != null && transferdetails.getUserDetails().getFcmToken() != null) {
+			try {
+				fireBaseMessagingService.sendPushNotification(
+						transferdetails.getUserDetails().getFcmToken(),
+						"Vendor found!",
+						"A vendor has accepted your request and is on the way.",
+						java.util.Map.of(
+								"type", "RIDE_ACCEPTED",
+								"transferId", String.valueOf(transferdetails.getId())));
+			} catch (Exception e) {
+				logger.warn("Failed to send accept notification to customer for request {}: {}", transferId, e.getMessage(), e);
+			}
+		}
+
 		 // 👇 New: tell every other vehicle's app to stop ringing
 //	    try {
 //	        fireBaseMessagingService.notifyRideTaken(transferdetails);
