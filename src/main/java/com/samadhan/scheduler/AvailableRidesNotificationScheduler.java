@@ -59,7 +59,7 @@ public class AvailableRidesNotificationScheduler {
 
 			String title = "Vehicles available tomorrow!";
 			String body = String.format(
-					"%d vehicle%s traveling %s → %s tomorrow. Shift your goods and get 10%% off!",
+					"%d vehicle%s traveling %s → %s tomorrow. Shift your goods!",
 					route.getVehicleCount(), route.getVehicleCount() == 1 ? "" : "s",
 					route.getFromCity(), route.getToCity());
 
