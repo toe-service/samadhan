@@ -647,21 +647,20 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		// accepted their request — the REST data (transferStatus, transferVendor, vehicleId) was
 		// always correct and available immediately via GET /transfer/rideTransfer/{id}, but a
 		// client that waits on a push to know when to stop polling/showing "searching" had no
-		// signal to act on. Best-effort, like every other notification call in this method — a
-		// failure here must not fail the accept itself.
-		if (transferdetails.getUserDetails() != null && transferdetails.getUserDetails().getFcmToken() != null) {
-			try {
-				fireBaseMessagingService.sendPushNotification(
-						transferdetails.getUserDetails().getFcmToken(),
-						"Vendor found!",
-						"A vendor has accepted your request and is on the way.",
-						java.util.Map.of(
-								"type", "RIDE_ACCEPTED",
-								"transferId", String.valueOf(transferdetails.getId())));
-			} catch (Exception e) {
-				logger.warn("Failed to send accept notification to customer for request {}: {}", transferId, e.getMessage(), e);
-			}
-		}
+		// signal to act on. Names whoever actually accepted: the vehicle itself when a
+		// vehicle/driver took it directly (acceptedBy="Vehicle"), otherwise the vendor — "a vendor
+		// accepted" was too generic to be useful once the customer is looking at the notification.
+		// "...and is on the way" only makes sense for a vehicle accepting its own immediate/instant
+		// job — a vehicle accepting a SCHEDULED pickup, or a vendor accepting at all (who still has
+		// to assign/dispatch a vehicle before anything is actually "on the way"), drops that clause.
+		boolean acceptedByVehicle = "Vehicle".equalsIgnoreCase(acceptedBy) && transferdetails.getVehicleId() != null;
+		String acceptedByLabel = acceptedByVehicle
+				? "Vehicle " + transferdetails.getVehicleId().getVehicleNumber()
+				: "Vendor " + transferVendor.getVendorName();
+		boolean isImmediate = Boolean.TRUE.equals(transferdetails.getInstantBooking());
+		String acceptedMessage = acceptedByLabel + " has accepted your request"
+				+ (acceptedByVehicle && isImmediate ? " and is on the way." : ".");
+		notifyCustomer(transferdetails, "RIDE_ACCEPTED", "Vendor found!", acceptedMessage, acceptedByLabel);
 
 		 // 👇 New: tell every other vehicle's app to stop ringing
 //	    try {
@@ -710,6 +709,37 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		return Math.round(rideCost * rate * 100.0) / 100.0;
 	}
 
+	// Shared by every customer-facing status-change push in this class (accept, agent-assigned,
+	// handover, ride-start, ride-complete) — same null-check/try-catch every call site would
+	// otherwise repeat. Best-effort: a failed/missing push must never fail the status transition
+	// itself, so this only ever logs on failure.
+	private void notifyCustomer(TransferRequestDetails transfer, String type, String title, String body) {
+		notifyCustomer(transfer, type, title, body, null);
+	}
+
+	// `who` (agent name, vendor name, or vehicle number depending on the event) is sent as its own
+	// data field — not just baked into `body` — so a client that's already open and shows its own
+	// in-app toast (rather than just the OS notification banner) can display the same specific
+	// detail instead of falling back to generic text.
+	private void notifyCustomer(TransferRequestDetails transfer, String type, String title, String body, String who) {
+		if (transfer.getUserDetails() == null || transfer.getUserDetails().getFcmToken() == null) {
+			return;
+		}
+		try {
+			java.util.Map<String, String> data = new java.util.HashMap<>();
+			data.put("type", type);
+			data.put("transferId", String.valueOf(transfer.getId()));
+			if (who != null) {
+				data.put("who", who);
+			}
+			fireBaseMessagingService.sendPushNotification(
+					transfer.getUserDetails().getFcmToken(), title, body, data);
+		} catch (Exception e) {
+			logger.warn("Failed to send {} notification to customer for request {}: {}",
+					type, transfer.getId(), e.getMessage(), e);
+		}
+	}
+
 	@Override
 	public TransferRequestDetails getRidesByTransferId(Long transferId) {
 
@@ -746,6 +776,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transfer.setOtp(otp);
 			transfer.setTransferStatus(rideStatusEnum.READYFORPICKUP);
 			transferRepo.save(transfer);
+
+			notifyCustomer(transfer, "AGENT_ASSIGNED", "Agent assigned",
+					driver.getDriverName() + " has been assigned and is on the way to pick up your shipment.",
+					driver.getDriverName());
 		}
 
 		// 🔹 Vehicle Assignment
@@ -835,21 +869,29 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			walletTransaction.setTransferRequestDetail(transfer);
 			
 			walletTransactionRepo.save(walletTransaction);
-			
+
 			}
 
-			
-			
+			// Placed after the wallet-fee block (which can throw WalletLowBalanceException) rather
+			// than right after the status save above — this is a @Transactional method, so a throw
+			// from the fee block rolls the DB change back, but a push already sent wouldn't un-send
+			// itself. Only notify once the whole start operation has actually succeeded.
+			notifyCustomer(transfer, "VEHICLE_ONBOARDED", "Vehicle onboarded",
+					"Your ride has started — the vehicle is on the way.");
+
 		} else if (rideStatus != null && rideStatus == 1) {
 			Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
-			
+
 			vehicle.setOngoingStatus(true);
 			vehicleRepo.save(vehicle);
 			transfer.setRideendTime(dateTime);
 			transfer.setVehicleLastLocation(vehicle.getCurrentLocation());
 			transfer.setTransferStatus(rideStatusEnum.COMPLETED);
 			transferRepo.save(transfer);
+
+			notifyCustomer(transfer, "RIDE_COMPLETED", "Ride completed",
+					"Your ride has been completed successfully.");
 		}
 
 //		transferRepo.save(transfer);
@@ -912,8 +954,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			walletTransaction.setTransferRequestDetail(transferdetails);
 			
 			walletTransactionRepo.save(walletTransaction);
-			
+
 			}
+
+			// Placed after the wallet-fee block (which can throw WalletLowBalanceException) — see
+			// the equivalent comment in requestTransferUpdate's ride-start branch for why.
+			notifyCustomer(transferdetails, "RIDE_COMPLETED", "Ride completed",
+					"Your ride has been completed successfully.");
 
 			return true;
 				}
@@ -922,6 +969,10 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			transferdetails.setHandoveredDateTime(dateTime);
 			transferdetails.setTransferStatus(rideStatusEnum.HANDOVER);
 			transferRepo.save(transferdetails);
+
+			notifyCustomer(transferdetails, "HANDOVER", "Picked up",
+					"Your shipment has been picked up and handed over to the vendor.");
+
 			return true;
 				}
 			}
