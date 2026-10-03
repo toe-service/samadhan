@@ -3,6 +3,7 @@ package com.samadhan.config;
 import com.samadhan.security.JwtAccessDeniedHandler;
 import com.samadhan.security.JwtAuthenticationEntryPoint;
 import com.samadhan.security.JwtAuthenticationFilter;
+import com.samadhan.security.RateLimitFilter;
 import com.samadhan.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +36,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private RateLimitFilter rateLimitFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -108,6 +112,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/vehicle/**").authenticated()
                 .anyRequest().authenticated()
                 .and()
+                // Rate limit runs first (before auth even gets a chance to parse a JWT) so it
+                // covers permitAll endpoints too, not just authenticated ones.
+                .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }
