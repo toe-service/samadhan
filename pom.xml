@@ -171,6 +171,14 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 		</dependency>
+
+		<!-- Backs RateLimitFilter's per-IP request counters: expireAfterWrite bounds the map to
+		     only currently-active IPs instead of every distinct caller living in memory forever. -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>3.1.8</version>
+		</dependency>
     </dependencies>
 
 	<build>
