@@ -73,6 +73,14 @@ public class UserDetails {
 	@Column(name = "reset_otp_attempts")
 	private Integer resetOtpAttempts;
 
+	// Set to a fresh random value on every login, embedded in that login's JWT as its "jti" —
+	// JwtAuthenticationFilter compares the two on every authenticated request, so logging in
+	// again anywhere immediately invalidates every token from the previous login. See
+	// TokenApi#generateToken(..., sessionId) and JwtAuthenticationFilter#isSessionInvalid.
+	@JsonIgnore
+	@Column(name = "current_session_id")
+	private String currentSessionId;
+
 	// Set at login (see /v1/user-otp-verify) — the app's push token for the "Available Rides"
 	// daily notification. Null for a user who's never logged in since this was added, or who
 	// denied notification permission on their device.
