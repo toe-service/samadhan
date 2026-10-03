@@ -40,7 +40,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 	private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
 	private static final int CAPACITY = 60;
-	private static final Duration WINDOW = Duration.ofMinutes(1);
+	private static final Duration WINDOW = Duration.ofSeconds(30);
 
 	// Railway's own health check — rate-limiting this risks the platform mistaking a throttled
 	// health check for an unhealthy instance and restarting/rerouting it, a self-inflicted outage
