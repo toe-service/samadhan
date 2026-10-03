@@ -1002,6 +1002,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		return transferRepo.findRecentPickupReminders(since);
 	}
 
+	// Feeds the vendor dashboard's notification bell for already-overdue pickups — see
+	// TransferRequestRepository#findRecentOverduePickups.
+	@Override
+	public List<TransferRequestDetails> getRecentOverduePickups(int withinMinutes) {
+		LocalDateTime since = LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).minusMinutes(withinMinutes);
+		return transferRepo.findRecentOverduePickups(since);
+	}
+
 	@Override
 	public List<TransferRequestDetails> showRidestoVendors(Long transferId) {
 		TransferVendor vendorForFeed = transferVendorRepo.findById(transferId).orElse(null);

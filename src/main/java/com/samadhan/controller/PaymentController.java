@@ -94,8 +94,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import com.razorpay.Order;
+import com.razorpay.Payment;
 import com.razorpay.RazorpayClient;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -138,6 +140,13 @@ public class PaymentController {
 
 	 @Autowired
 	 com.samadhan.service.LocationService locationService;
+
+	 // Shared-secret gate for /pay/admin/reconcile-payment — a break-glass manual tool, not a
+	 // user-facing feature, so a full admin-role/login system felt like overkill. Blank by default
+	 // (same convention as pay.webhook.secret) so the endpoint simply refuses everything until this
+	 // is deliberately set.
+	 @Value("${admin.reconcile.key:}")
+	 private String adminReconcileKey;
 
 	 // Confirms a payment-verification callback actually came from Razorpay (not a client
 	 // fabricating a "success" response without ever paying), using the SDK's own constant-time
@@ -810,6 +819,13 @@ public class PaymentController {
 	                .body("Invalid Signature");
 	    }
 
+	    // Idempotency — see the identical check/comment in /wallet/payment-success. Here a replay
+	    // would re-activate the free period and insert a duplicate log row rather than double-credit
+	    // money, but it's still worth rejecting cleanly rather than silently re-running.
+	    if (walletTransactionRepository.existsByRazorpayPaymentId(req.getRazorpayPaymentId())) {
+	        return ResponseEntity.ok("Subscription Activated");
+	    }
+
 	    LocalDate localDate = LocalDate.now();
 	    LocalDate oneMonthsLater = localDate.plusMonths(1);
 
@@ -840,13 +856,15 @@ public class PaymentController {
 	    walletTransaction.setAmount(1.0);
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Purchased");
-	    
+	    walletTransaction.setRazorpayOrderId(req.getRazorpayOrderId());
+	    walletTransaction.setRazorpayPaymentId(req.getRazorpayPaymentId());
+
 	    walletTransactionRepository.save(walletTransaction);
 
 	    return ResponseEntity.ok(
 	            "Subscription Activated");
 	}
-	
+
 	@PostMapping("/subscription/createOrder")
 	public ResponseEntity<?> createOrder(
 	        @RequestParam Long vendorId,
@@ -878,8 +896,30 @@ public class PaymentController {
 	                .body("Invalid Signature");
 	    }
 
+	    // Idempotency — see the identical check/comment in /wallet/payment-success. Without this, a
+	    // replayed request would re-activate (harmless-ish, already-paying) but also insert another
+	    // duplicate "Subscription Purchased" log row every time it's replayed.
+	    if (walletTransactionRepository.existsByRazorpayPaymentId(req.getRazorpayPaymentId())) {
+	        return ResponseEntity.ok("Subscription Activated");
+	    }
+
 	    LocalDate localDate = LocalDate.now();
 	    String plan = req.getPlan();
+
+	    // The signature only proves SOME real payment happened for this razorpayOrderId — it says
+	    // nothing about which plan that payment was actually for. Without this check, a vendor
+	    // could pay for the cheapest plan, then submit that genuinely-valid signature here with
+	    // plan="TWELVE_MONTH" and get 12 months activated for the price of 1. Re-fetching the
+	    // order's real amount and checking it against what this plan should cost closes that gap —
+	    // same pattern /wallet/payment-success already uses for its own amount.
+	    RazorpayClient client = paymentService.getPaymentClient();
+	    Order order = client.orders.fetch(req.getRazorpayOrderId());
+	    Integer orderAmountPaise = order.get("amount");
+	    if (orderAmountPaise == null || orderAmountPaise != amountForPlan(plan)) {
+	        logger.warn("Subscription payment amount mismatch for vendor {}: order {} paid {} paise, plan {} costs {} paise",
+	                req.getVendorId(), req.getRazorpayOrderId(), orderAmountPaise, plan, amountForPlan(plan));
+	        return ResponseEntity.badRequest().body("Paid amount does not match the selected plan");
+	    }
 
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
 	    Subscription subscription=paymentRepo.findByVendorId(req.getVendorId());
@@ -898,6 +938,8 @@ public class PaymentController {
 	    walletTransaction.setAmount(amountForPlan(plan) / 100.0);
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Purchased");
+	    walletTransaction.setRazorpayOrderId(req.getRazorpayOrderId());
+	    walletTransaction.setRazorpayPaymentId(req.getRazorpayPaymentId());
 	    walletTransactionRepository.save(walletTransaction);
 
 	    return ResponseEntity.ok(
@@ -929,6 +971,7 @@ public class PaymentController {
 
 	
 	@PostMapping("/wallet/payment-success")
+	@Transactional
 	public ResponseEntity<?> paymentSuccess(
 	        @RequestBody WalletPaymentRequest request,
 	        HttpServletRequest httpRequest)
@@ -947,6 +990,16 @@ public class PaymentController {
 	    Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
 	    if (tokenVendorId == null || !tokenVendorId.equals(request.getVendorId())) {
 	        throw new AccessDeniedException("You are not authorized to credit this vendor's wallet");
+	    }
+
+	    // Idempotency: Razorpay issues one payment id per actual charge, so a second request
+	    // carrying the same one is necessarily a retry/replay of a request already processed
+	    // (client timeout-then-retry, a double-tap, or a captured request replayed) — not a second
+	    // real payment. Without this check, re-processing it would credit the wallet again for a
+	    // single real charge. Checked before the Razorpay call below so a known replay doesn't even
+	    // cost a network round-trip.
+	    if (walletTransactionRepository.existsByRazorpayPaymentId(request.getRazorpayPaymentId())) {
+	        return ResponseEntity.ok("SUCCESS");
 	    }
 
 	    // The signature only proves razorpayOrderId/razorpayPaymentId are a genuine matched pair —
@@ -991,12 +1044,400 @@ public class PaymentController {
 	            "Wallet Recharge");
 
 	    txn.setVendor(wallet.getVendor());
+	    txn.setRazorpayOrderId(request.getRazorpayOrderId());
+	    txn.setRazorpayPaymentId(request.getRazorpayPaymentId());
 
 	    walletTransactionRepository.save(txn);
 
 	    return ResponseEntity.ok("SUCCESS");
 	}
-	
+
+	// Safety net for "Razorpay charged the customer, but our server never got to record it" —
+	// e.g. the app is killed or loses its connection the instant after paying, before it can call
+	// /wallet/payment-success or /subscription/verifyPayment itself. Razorpay calls this
+	// independently, server-to-server, the moment it captures a payment, regardless of whether the
+	// client-side confirmation call ever happens. Whichever path (this webhook, or the client's own
+	// confirmation call) runs first does the real work; the existsByRazorpayPaymentId check below
+	// means the other is always a safe no-op — so configuring this does not create a double-credit
+	// risk on top of the normal flow.
+	//
+	// Requires one-time setup on your end, which I can't do myself: create a webhook in the
+	// Razorpay dashboard (Settings -> Webhooks) pointing at this endpoint's full URL, subscribed to
+	// the "payment.captured" event, then set RAZORPAY_WEBHOOK_SECRET on Railway to the secret
+	// Razorpay generates for it. Until that's done, pay.webhook.secret is blank and every request
+	// here is rejected (see isValidWebhookSignature) — safe to deploy before that setup is done.
+	//
+	// @RequestBody String (not a parsed DTO): signature verification needs the exact raw bytes
+	// Razorpay signed — re-serializing a parsed object could produce different whitespace/key
+	// ordering and make a genuine webhook fail verification.
+	@PostMapping("/webhook/razorpay")
+	public ResponseEntity<String> razorpayWebhook(
+	        @RequestBody String rawPayload,
+	        @RequestHeader(value = "X-Razorpay-Signature", required = false) String signature) {
+
+	    if (!isValidWebhookSignature(rawPayload, signature)) {
+	        logger.warn("Rejected /pay/webhook/razorpay call with invalid or missing signature");
+	        return ResponseEntity.status(400).body("Invalid signature");
+	    }
+
+	    try {
+	        JSONObject event = new JSONObject(rawPayload);
+	        String eventType = event.optString("event", "");
+
+	        if ("refund.processed".equals(eventType)) {
+	            return handleRefundProcessed(event);
+	        }
+
+	        if ("payment.failed".equals(eventType)) {
+	            return handlePaymentFailed(event);
+	        }
+
+	        // Only this event actually means "money has been captured" — webhooks fire for many
+	        // other event types (order.paid, refund.created, ...), and acting on anything but a
+	        // genuinely captured payment here would risk crediting for a payment that didn't
+	        // actually succeed.
+	        if (!"payment.captured".equals(eventType)) {
+	            return ResponseEntity.ok("Ignored event: " + eventType);
+	        }
+
+	        JSONObject paymentEntity = event.getJSONObject("payload")
+	                .getJSONObject("payment")
+	                .getJSONObject("entity");
+
+	        String paymentId = paymentEntity.getString("id");
+	        String orderId = paymentEntity.optString("order_id", null);
+
+	        // Same idempotency guard as every client-facing payment endpoint — if the client's own
+	        // confirmation call already processed this payment (the common case; this webhook is
+	        // only meant to catch the cases where it didn't), this is a no-op. Also covers Razorpay
+	        // redelivering the same webhook more than once, which it does by design.
+	        if (walletTransactionRepository.existsByRazorpayPaymentId(paymentId)) {
+	            return ResponseEntity.ok("Already processed");
+	        }
+
+	        if (orderId == null) {
+	            logger.warn("payment.captured webhook for payment {} has no order_id — cannot reconcile", paymentId);
+	            return ResponseEntity.ok("No order_id, nothing to reconcile");
+	        }
+
+	        // The payment entity doesn't carry the order's receipt — fetch the order itself, the
+	        // same call every other payment endpoint in this class already makes, to get the
+	        // authoritative receipt (which vendor, which kind of purchase) and amount.
+	        RazorpayClient client = paymentService.getPaymentClient();
+	        Order order = client.orders.fetch(orderId);
+	        String receipt = order.get("receipt");
+	        Integer amountPaise = order.get("amount");
+
+	        if (receipt == null || amountPaise == null) {
+	            logger.warn("payment.captured webhook for payment {} / order {}: missing receipt or amount, cannot reconcile",
+	                    paymentId, orderId);
+	            return ResponseEntity.ok("Missing receipt/amount, nothing to reconcile");
+	        }
+
+	        if (receipt.startsWith("wallet_")) {
+	            reconcileWalletRecharge(receipt, orderId, paymentId, amountPaise);
+	        } else if (receipt.startsWith("subscription_")) {
+	            reconcileSubscriptionPurchase(receipt, orderId, paymentId, amountPaise);
+	        } else {
+	            logger.warn("payment.captured webhook for payment {} / order {}: unrecognised receipt '{}'",
+	                    paymentId, orderId, receipt);
+	        }
+
+	        return ResponseEntity.ok("Processed");
+	    } catch (Exception e) {
+	        // Returning 200 even on an unexpected failure here is deliberate: Razorpay retries a
+	        // webhook on non-2xx responses, and a bug in this handler shouldn't turn into Razorpay
+	        // hammering this endpoint repeatedly. The exception is still logged for investigation —
+	        // this is a safety net on top of the normal flow, not the only place this payment could
+	        // still get reconciled (manually, or via the client's own confirmation call if it
+	        // eventually does go through).
+	        logger.error("Error processing Razorpay webhook: {}", e.getMessage(), e);
+	        return ResponseEntity.ok("Error logged");
+	    }
+	}
+
+	// The third scenario: money was taken AND correctly credited at the time, but is later taken
+	// back — Razorpay (or the merchant, via the Razorpay dashboard) issues a refund, or a
+	// chargeback is upheld. Without this, a reversed payment would leave the vendor permanently
+	// keeping a wallet credit (or subscription) for money they no longer actually paid.
+	//
+	// Wallet recharges are reversed automatically — deducting a refunded amount is unambiguous,
+	// even if it pushes the balance negative (that's the correct reflection of reality: the money
+	// really is gone). Subscription purchases are NOT auto-reverted — unwinding "this vendor has
+	// already been operating as ACTIVE for some number of days" is a business judgment call (do
+	// they keep access for days already used? does a later legitimate renewal's dates get
+	// affected?) that shouldn't be guessed at automatically. Those are logged at warning level
+	// instead, for manual review, with the refund still recorded for the audit trail.
+	private ResponseEntity<String> handleRefundProcessed(JSONObject event) {
+	    JSONObject refundEntity = event.getJSONObject("payload")
+	            .getJSONObject("refund")
+	            .getJSONObject("entity");
+
+	    String refundId = refundEntity.getString("id");
+	    String paymentId = refundEntity.optString("payment_id", null);
+	    int refundedAmountPaise = refundEntity.getInt("amount");
+
+	    if (walletTransactionRepository.existsByRazorpayRefundId(refundId)) {
+	        return ResponseEntity.ok("Refund already processed");
+	    }
+	    if (paymentId == null) {
+	        logger.warn("refund.processed webhook {} has no payment_id — cannot reconcile", refundId);
+	        return ResponseEntity.ok("No payment_id, nothing to reconcile");
+	    }
+
+	    Optional<WalletTransaction> original =
+	            walletTransactionRepository.findFirstByRazorpayPaymentIdOrderByIdAsc(paymentId);
+	    if (original.isEmpty()) {
+	        logger.warn("refund.processed webhook {} for payment {}: no matching transaction on file, cannot reconcile",
+	                refundId, paymentId);
+	        return ResponseEntity.ok("No matching transaction, nothing to reconcile");
+	    }
+
+	    applyReversal(original.get(), refundedAmountPaise / 100.0, paymentId, refundId, "Refund processed");
+	    return ResponseEntity.ok("Refund processed");
+	}
+
+	// The fourth, related scenario: a payment that LOOKED successful and was credited at the time,
+	// but the bank itself later fails/reverses it — e.g. a UPI or netbanking settlement that
+	// doesn't actually go through, which Razorpay can only find out asynchronously, after already
+	// reporting the payment as captured. This is NOT a merchant-initiated refund (no refund id
+	// exists for it) — Razorpay simply transitions the same payment to "failed" and fires this
+	// event. The ordinary case for payment.failed is just "a checkout attempt that never succeeded
+	// in the first place" — nothing was ever credited for those, so there's nothing to reverse;
+	// this only does something when we find a transaction already on file for this exact payment.
+	private ResponseEntity<String> handlePaymentFailed(JSONObject event) {
+	    JSONObject paymentEntity = event.getJSONObject("payload")
+	            .getJSONObject("payment")
+	            .getJSONObject("entity");
+
+	    String paymentId = paymentEntity.getString("id");
+
+	    Optional<WalletTransaction> original =
+	            walletTransactionRepository.findFirstByRazorpayPaymentIdOrderByIdAsc(paymentId);
+	    if (original.isEmpty()) {
+	        // The normal case — this payment never got far enough to be credited for in the first
+	        // place. Not logged at warning level; this is the expected outcome for most failed
+	        // checkout attempts, not something that needs attention.
+	        return ResponseEntity.ok("Payment failed before anything was credited — no action needed");
+	    }
+
+	    // No refund id exists for this kind of reversal, so idempotency is keyed on "has this
+	    // payment id already got a second (reversal) row" instead of a distinct reference id.
+	    if (walletTransactionRepository.countByRazorpayPaymentId(paymentId) > 1) {
+	        return ResponseEntity.ok("Already reversed");
+	    }
+
+	    int amountPaise = paymentEntity.optInt("amount", 0);
+	    applyReversal(original.get(), amountPaise / 100.0, paymentId, null,
+	            "Bank-side failure after apparent capture");
+	    return ResponseEntity.ok("Reversed a previously-credited payment that the bank later failed");
+	}
+
+	// Shared by handleRefundProcessed and handlePaymentFailed — both need to undo whatever
+	// `original` did, just for different reasons (a deliberate refund vs. a late bank failure) and
+	// with different reference ids available (a refund has its own id; a bank-side failure doesn't).
+	//
+	// Wallet recharges are reversed automatically — deducting the amount back out is unambiguous,
+	// even if it pushes the balance negative (that's the correct reflection of reality: the money
+	// really is gone). Subscription purchases are NOT auto-reverted — unwinding "this vendor has
+	// already been operating as ACTIVE for some number of days" is a business judgment call (do
+	// they keep access for days already used? does a later legitimate renewal's dates get
+	// affected?) that shouldn't be guessed at automatically. Those are logged at warning level
+	// instead, for manual review, with the reversal still recorded for the audit trail.
+	private void applyReversal(WalletTransaction original, double amount, String paymentId,
+	        String refundId, String reasonLabel) {
+	    TransferVendor vendor = original.getVendor();
+	    boolean isWalletRecharge = "CREDIT".equals(original.getTransactionType());
+
+	    WalletTransaction reversal = new WalletTransaction();
+	    reversal.setVendor(vendor);
+	    reversal.setAmount(amount);
+	    reversal.setRazorpayPaymentId(paymentId);
+	    reversal.setRazorpayRefundId(refundId);
+
+	    if (isWalletRecharge) {
+	        VendorWallet wallet = VendorWalletRepo.findByVendor(vendor.getId());
+	        if (wallet != null) {
+	            wallet.setBalance(wallet.getBalance() - amount);
+	            VendorWalletRepo.save(wallet);
+	        }
+	        reversal.setTransactionType("DEBIT");
+	        reversal.setDescription("Wallet Recharge Reverted — " + reasonLabel);
+	        walletTransactionRepository.save(reversal);
+	        logger.warn("{}: reversed {} from vendor {}'s wallet for payment {}",
+	                reasonLabel, amount, vendor.getId(), paymentId);
+	    } else {
+	        reversal.setTransactionType("Reverted - Subscription (manual review required)");
+	        reversal.setDescription("Original purchase: " + original.getTransactionType()
+	                + " — " + reasonLabel + " — subscription/vendor status NOT automatically changed, review manually");
+	        walletTransactionRepository.save(reversal);
+	        logger.warn("{} for a SUBSCRIPTION payment: vendor {}, amount {}, payment {} — "
+	                + "subscription/vendor status was NOT automatically changed, needs manual review",
+	                reasonLabel, vendor.getId(), amount, paymentId);
+	    }
+	}
+
+	// Manual "fix this one payment" tool for whenever the automatic safety nets above didn't
+	// (already-happened cases from before the webhook was configured, a webhook delivery that
+	// failed for some reason, or just wanting to double-check a specific payment on request).
+	// Usage: find the payment id on the Razorpay dashboard (Payments list) for whatever the vendor
+	// is disputing, then call:
+	//   POST /pay/admin/reconcile-payment?paymentId=pay_XXXXXXXXXXXX
+	//   Header: X-Admin-Key: <the ADMIN_RECONCILE_KEY value>
+	// It independently re-checks the payment's actual status with Razorpay (not just trusting the
+	// caller), so this can't be used to credit something that was never really paid. Safe to call
+	// on an already-processed payment — it'll just report that and do nothing.
+	@PostMapping("/admin/reconcile-payment")
+	public ResponseEntity<String> reconcilePayment(
+	        @RequestParam String paymentId,
+	        @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) throws RazorpayException {
+
+	    if (adminReconcileKey == null || adminReconcileKey.isBlank()
+	            || adminKey == null || !adminReconcileKey.equals(adminKey)) {
+	        throw new AccessDeniedException("Not authorized to use this endpoint");
+	    }
+
+	    if (walletTransactionRepository.existsByRazorpayPaymentId(paymentId)) {
+	        return ResponseEntity.ok("Already recorded — nothing to do. Check the wallet_transaction "
+	                + "table for razorpay_payment_id = " + paymentId + " to see the existing entry.");
+	    }
+
+	    RazorpayClient client = paymentService.getPaymentClient();
+	    Payment payment = client.payments.fetch(paymentId);
+	    String status = payment.get("status");
+	    if (!"captured".equals(status)) {
+	        return ResponseEntity.badRequest().body("Payment " + paymentId + " has status '" + status
+	                + "', not 'captured' — refusing to credit anything for a payment that wasn't actually captured.");
+	    }
+
+	    String orderId = payment.get("order_id");
+	    if (orderId == null) {
+	        return ResponseEntity.badRequest().body("Payment " + paymentId + " has no order_id — cannot determine "
+	                + "which vendor/purchase this was for.");
+	    }
+
+	    Order order = client.orders.fetch(orderId);
+	    String receipt = order.get("receipt");
+	    Integer amountPaise = order.get("amount");
+	    if (receipt == null || amountPaise == null) {
+	        return ResponseEntity.badRequest().body("Order " + orderId + " is missing receipt or amount — cannot reconcile.");
+	    }
+
+	    if (receipt.startsWith("wallet_")) {
+	        reconcileWalletRecharge(receipt, orderId, paymentId, amountPaise);
+	        return ResponseEntity.ok("Wallet recharge reconciled for payment " + paymentId + " (order " + orderId + ")");
+	    } else if (receipt.startsWith("subscription_")) {
+	        reconcileSubscriptionPurchase(receipt, orderId, paymentId, amountPaise);
+	        return ResponseEntity.ok("Subscription purchase reconciled for payment " + paymentId + " (order " + orderId + ")");
+	    }
+	    return ResponseEntity.badRequest().body("Unrecognised receipt '" + receipt + "' on order " + orderId);
+	}
+
+	private boolean isValidWebhookSignature(String rawPayload, String signature) {
+	    String webhookSecret = paymentService.getWebhookSecret();
+	    if (webhookSecret == null || webhookSecret.isBlank() || signature == null) {
+	        return false;
+	    }
+	    try {
+	        return com.razorpay.Utils.verifyWebhookSignature(rawPayload, signature, webhookSecret);
+	    } catch (Exception e) {
+	        logger.warn("Webhook signature verification failed: {}", e.getMessage());
+	        return false;
+	    }
+	}
+
+	// receipt is "wallet_<vendorId>" (see /wallet/create-order) — same crediting logic as
+	// /wallet/payment-success's happy path, just triggered independently by the webhook instead of
+	// the client's own confirmation call.
+	private void reconcileWalletRecharge(String receipt, String orderId, String paymentId, int amountPaise) {
+	    Long vendorId = Long.valueOf(receipt.substring("wallet_".length()));
+	    double amount = amountPaise / 100.0;
+
+	    Optional<TransferVendor> vendor = transferVendorRepo.findById(vendorId);
+	    if (vendor.isEmpty()) {
+	        logger.warn("Webhook reconciliation: vendor {} not found for wallet recharge, payment {}", vendorId, paymentId);
+	        return;
+	    }
+
+	    VendorWallet wallet = VendorWalletRepo.findByVendor(vendorId);
+	    if (wallet == null) {
+	        wallet = new VendorWallet();
+	        wallet.setBalance(amount);
+	    } else {
+	        wallet.setBalance(wallet.getBalance() + amount);
+	    }
+	    wallet.setVendor(vendor.get());
+	    VendorWalletRepo.save(wallet);
+
+	    WalletTransaction txn = new WalletTransaction();
+	    txn.setAmount(amount);
+	    txn.setTransactionType("CREDIT");
+	    txn.setDescription("Wallet Recharge (reconciled via webhook)");
+	    txn.setVendor(wallet.getVendor());
+	    txn.setRazorpayOrderId(orderId);
+	    txn.setRazorpayPaymentId(paymentId);
+	    walletTransactionRepository.save(txn);
+
+	    logger.warn("Webhook reconciled a wallet recharge the client-side confirmation call apparently missed: "
+	            + "vendor {}, amount {}, payment {}", vendorId, amount, paymentId);
+	}
+
+	// receipt is "subscription_<vendorId>" (see /subscription/createOrder and /subscription/renew
+	// — both use the same receipt format, so this can't distinguish a first purchase from a
+	// renewal from the receipt alone). Always applies the renewal-style start-date rule (extend
+	// from the later of today or the existing end date) rather than always resetting to today —
+	// safe either way: if there's no existing/active subscription that's exactly equivalent to
+	// starting from today, and if there IS still time left on an active one, extending it is the
+	// correct behavior regardless of which of the two flows actually triggered this payment.
+	private void reconcileSubscriptionPurchase(String receipt, String orderId, String paymentId, int amountPaise) {
+	    Long vendorId = Long.valueOf(receipt.substring("subscription_".length()));
+	    String plan = planForAmount(amountPaise);
+	    if (plan == null) {
+	        logger.warn("Webhook reconciliation: payment {} / order {} amount {} paise doesn't match any known plan price",
+	                paymentId, orderId, amountPaise);
+	        return;
+	    }
+
+	    Optional<TransferVendor> vendor = transferVendorRepo.findById(vendorId);
+	    if (vendor.isEmpty()) {
+	        logger.warn("Webhook reconciliation: vendor {} not found for subscription purchase, payment {}", vendorId, paymentId);
+	        return;
+	    }
+
+	    LocalDate today = LocalDate.now();
+	    Subscription subscription = paymentRepo.findByVendorId(vendorId);
+	    if (subscription == null) {
+	        subscription = new Subscription();
+	        subscription.setVendor(vendor.get());
+	    }
+	    LocalDate startDate = (subscription.getEndDate() != null && subscription.getEndDate().plusDays(1).isAfter(today))
+	            ? subscription.getEndDate().plusDays(1)
+	            : today;
+
+	    applyPlanToSubscription(subscription, plan, startDate);
+	    paymentRepo.save(subscription);
+	    transferVendorRepo.activateVendor(vendorId, 3);
+
+	    WalletTransaction txn = new WalletTransaction();
+	    txn.setAmount(amountPaise / 100.0);
+	    txn.setVendor(vendor.get());
+	    txn.setTransactionType("Subscription Purchased (reconciled via webhook)");
+	    txn.setRazorpayOrderId(orderId);
+	    txn.setRazorpayPaymentId(paymentId);
+	    walletTransactionRepository.save(txn);
+
+	    logger.warn("Webhook reconciled a subscription purchase the client-side confirmation call apparently missed: "
+	            + "vendor {}, plan {}, payment {}", vendorId, plan, paymentId);
+	}
+
+	private String planForAmount(int amountPaise) {
+	    if (amountPaise == amountForPlan("MONTHLY")) return "MONTHLY";
+	    if (amountPaise == amountForPlan("THREE_MONTH")) return "THREE_MONTH";
+	    if (amountPaise == amountForPlan("SIX_MONTH")) return "SIX_MONTH";
+	    if (amountPaise == amountForPlan("TWELVE_MONTH")) return "TWELVE_MONTH";
+	    return null;
+	}
+
 	@PostMapping("/subscription/renew")
 	public ResponseEntity<String> renewSubscription(
 	        @RequestParam Long vendorId,
@@ -1034,9 +1475,23 @@ public class PaymentController {
 	                .body("Invalid Signature");
 	    }
 
-	    LocalDate localDate = LocalDate.now();
+	    // Idempotency — see the identical check/comment in /wallet/payment-success.
+	    if (walletTransactionRepository.existsByRazorpayPaymentId(req.getRazorpayPaymentId())) {
+	        return ResponseEntity.ok("Subscription Renewed");
+	    }
 
+	    // Amount-vs-plan check — see the identical check/comment in /subscription/verifyPayment.
+	    RazorpayClient client = paymentService.getPaymentClient();
+	    Order order = client.orders.fetch(req.getRazorpayOrderId());
+	    Integer orderAmountPaise = order.get("amount");
 	    String plan = req.getPlan();
+	    if (orderAmountPaise == null || orderAmountPaise != amountForPlan(plan)) {
+	        logger.warn("Subscription renewal amount mismatch for vendor {}: order {} paid {} paise, plan {} costs {} paise",
+	                req.getVendorId(), req.getRazorpayOrderId(), orderAmountPaise, plan, amountForPlan(plan));
+	        return ResponseEntity.badRequest().body("Paid amount does not match the selected plan");
+	    }
+
+	    LocalDate localDate = LocalDate.now();
 
 	    Optional<TransferVendor> vendor=transferVendorRepo.findById(req.getVendorId());
 	    Subscription subscription=paymentRepo.findByVendorId(req.getVendorId());
@@ -1064,6 +1519,8 @@ public class PaymentController {
 	    walletTransaction.setVendor(vendor.get());
 	    walletTransaction.setTransactionType("Subscription Renewed Purchased");
 	    walletTransaction.setCreatedDate(localDate);
+	    walletTransaction.setRazorpayOrderId(req.getRazorpayOrderId());
+	    walletTransaction.setRazorpayPaymentId(req.getRazorpayPaymentId());
 	    walletTransactionRepository.save(walletTransaction);
 
 

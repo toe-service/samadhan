@@ -7,30 +7,30 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.repository.TransferRequestRepository;
-import com.samadhan.util.FireBaseMessagingService;
 
 // Makes sure a PENDING, unassigned request never just silently sits unpicked past its pickup
-// time. Two complementary checks, both re-running the same nearby-vehicle push notification used
-// when the request was first created, so vendors get another chance to see it:
-//   - notifyOverduePickups: reactive — fires once the pickup window has already fully passed.
+// time. Two complementary checks, both vendor-dashboard-only (neither pushes to nearby vehicle
+// devices — that used to happen here too, re-running the same notifyVehicles push used when the
+// request was first created, but that meant a vehicle that had already seen and passed on a
+// request got woken up again for it a second (or third) time; now it's surfaced only on the
+// vendor's own dashboard notification bell instead):
+//   - notifyOverduePickups: reactive — fires once the pickup window has already fully passed. See
+//     TransferRequestRepository#findRecentOverduePickups / GET /transfer/overduePickupsDueSoon.
 //   - sendPrePickupReminders: proactive — fires PICKUP_REMINDER_LEAD_MINUTES before a scheduled
 //     window opens (e.g. 2:45 PM for a "3 PM - 6 PM" slot), so there's a chance to get it accepted
-//     before it becomes overdue in the first place. Also surfaced in the vendor dashboard's
-//     notification bell — see TransferRequestRepository#findRecentPickupReminders.
+//     before it becomes overdue in the first place. See
+//     TransferRequestRepository#findRecentPickupReminders / GET /transfer/pickupRemindersDueSoon.
 // Each request is only notified once per check (tracked via overdue_notified_at /
 // pickup_reminder_sent_at), not repeatedly on every run.
 @Component
 public class OverduePickupScheduler {
 
-	private static final Logger log = LoggerFactory.getLogger(OverduePickupScheduler.class);
 	private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
 	// How long a still-pending instant/immediate booking is given before being flagged overdue —
@@ -57,9 +57,6 @@ public class OverduePickupScheduler {
 	@Autowired
 	private TransferRequestRepository transferRequestRepository;
 
-	@Autowired
-	private FireBaseMessagingService fireBaseMessagingService;
-
 	@Scheduled(cron = "0 */15 * * * ?", zone = "Asia/Kolkata")		// Every 15 minutes, IST clock
 	public void notifyOverduePickups() {
 		// Pinned to IST, not the JVM default zone — pickup_schedule slots ("3 PM - 6 PM" etc, see
@@ -72,16 +69,14 @@ public class OverduePickupScheduler {
 		List<TransferRequestDetails> overdue =
 				transferRequestRepository.findOverduePendingUnassigned(today, instantBookingCutoff);
 
+		// Deliberately NOT re-pushing to nearby vehicle devices here anymore (this used to call
+		// fireBaseMessagingService.notifyVehicles(request), same as the first-created push) — an
+		// overdue, still-unclaimed request is a vendor-side problem to chase (assign someone,
+		// follow up, or let it go), not something that should wake up every nearby vehicle's app a
+		// second time for a request they already saw and passed on. Vendors see it instead via
+		// GET /transfer/overduePickupsDueSoon on their own dashboard's notification bell — see
+		// TransferRequestRepository#findRecentOverduePickups.
 		for (TransferRequestDetails request : overdue) {
-			try {
-				fireBaseMessagingService.notifyVehicles(request);
-			} catch (Exception e) {
-				// Best-effort — leave overdue_notified_at unset so this request is retried on the
-				// next run instead of being silently skipped forever over a transient failure.
-				log.warn("Failed to send overdue-pickup notification for request {}: {}",
-						request.getId(), e.getMessage(), e);
-				continue;
-			}
 			request.setOverdueNotifiedAt(LocalDateTime.now(IST));
 			transferRequestRepository.save(request);
 		}
@@ -110,13 +105,11 @@ public class OverduePickupScheduler {
 				continue;
 			}
 
-			try {
-				fireBaseMessagingService.notifyVehicles(request);
-			} catch (Exception e) {
-				log.warn("Failed to send pre-pickup reminder for request {}: {}",
-						request.getId(), e.getMessage(), e);
-				continue;
-			}
+			// No push to nearby vehicle devices here anymore (this used to call
+			// fireBaseMessagingService.notifyVehicles(request), same as the first-created push) —
+			// vendor-dashboard-only now, same reasoning as notifyOverduePickups above. Vendors see
+			// it via GET /transfer/pickupRemindersDueSoon on their own dashboard's notification
+			// bell — see TransferRequestRepository#findRecentPickupReminders.
 			request.setPickupReminderSentAt(now);
 			transferRequestRepository.save(request);
 		}

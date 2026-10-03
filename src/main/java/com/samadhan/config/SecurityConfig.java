@@ -95,6 +95,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/location/latlong").permitAll()
                 .antMatchers(HttpMethod.GET, "/pay/bookVehicleCostList").permitAll()
                 .antMatchers(HttpMethod.GET, "/pay/rideCostCalculation").permitAll()
+                // Razorpay calls this server-to-server with no JWT — protected instead by its own
+                // HMAC signature check (isValidWebhookSignature), same security model as every
+                // other Razorpay callback in this app.
+                .antMatchers(HttpMethod.POST, "/pay/webhook/razorpay").permitAll()
+                // Not actually open to the public — gated by its own X-Admin-Key check
+                // (PaymentController#reconcilePayment), same reasoning as the webhook above: this
+                // isn't a vendor/user action, so requiring a vendor/user JWT doesn't fit it.
+                .antMatchers(HttpMethod.POST, "/pay/admin/reconcile-payment").permitAll()
                 .antMatchers(HttpMethod.POST, "/transfer/requestRideTransfer").permitAll()
                 .antMatchers(HttpMethod.POST, "/transferVendor/register-vendor").permitAll()
                 .antMatchers(HttpMethod.POST, "/transferVendor/password/forgot").permitAll()
