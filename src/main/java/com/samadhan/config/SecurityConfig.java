@@ -112,9 +112,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/vehicle/**").authenticated()
                 .anyRequest().authenticated()
                 .and()
-                // Rate limit runs first (before auth even gets a chance to parse a JWT) so it
-                // covers permitAll endpoints too, not just authenticated ones.
-                .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
+                // Both anchored on the same well-known filter class (UsernamePasswordAuthentication-
+                // Filter), not on each other — addFilterBefore(x, CustomFilter.class) throws a
+                // NullPointerException unless CustomFilter.class already has a registered order,
+                // which it won't if that registration hasn't happened yet earlier in this same
+                // chain. Registering rateLimitFilter first and jwtAuthenticationFilter second, both
+                // relative to this same anchor, relies on FilterComparator's stable sort to keep
+                // rateLimitFilter ahead — equal-order filters keep their registration order, so it
+                // still runs before auth even gets a chance to parse a JWT, covering permitAll
+                // endpoints too, not just authenticated ones.
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }
