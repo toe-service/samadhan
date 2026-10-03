@@ -93,6 +93,13 @@ public class VehicleServiceImpl implements VehicleService{
 		vehicle.setVehicleCategory(vehicleCategory);
 		vehicle.setVehicleLatitude(vehicleLatitude);
 		vehicle.setVehicleLongitude(vehicleLongitude);
+		// Keep fcm_token unique across vehicles — see VehicleRepository#clearFcmTokenFromOtherVehicles.
+		// This vehicle has no id yet (not saved until below), so there's no real id to exclude —
+		// 0L never collides with a real auto-increment id, so this just clears every existing
+		// holder of the token.
+		if (fcmToken != null && !fcmToken.isBlank()) {
+			vehicleRepo.clearFcmTokenFromOtherVehicles(fcmToken, 0L);
+		}
 		vehicle.setFcmToken(fcmToken);
 
 		if (transferVendorId != null) {

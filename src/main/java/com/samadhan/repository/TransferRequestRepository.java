@@ -637,4 +637,22 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	List<TransferRequestDetails> findRecentPickupReminders(@Param("since") LocalDateTime since);
 
+	// Same shape as findRecentPickupReminders above, but for OverduePickupScheduler#
+	// notifyOverduePickups instead — feeds GET /transfer/overduePickupsDueSoon, which surfaces an
+	// already-overdue, still-unclaimed request on the vendor dashboard's own notification bell.
+	// This is now the ONLY place an overdue pickup is surfaced — notifyOverduePickups no longer
+	// pushes to vehicle devices for this (see that method's comment for why: overdue pickups are a
+	// vendor-side concern, not something that should wake up every nearby vehicle's app again).
+	@Query(value =
+	        "SELECT * FROM transfer_request_details trd " +
+	        "WHERE trd.overdue_notified_at IS NOT NULL " +
+	        "AND trd.overdue_notified_at >= :since " +
+	        "AND trd.transfer_status = 0 " +
+	        "AND trd.vehicle_id IS NULL " +
+	        "AND trd.transfer_id IS NULL " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
+	        "ORDER BY trd.overdue_notified_at DESC",
+	        nativeQuery = true)
+	List<TransferRequestDetails> findRecentOverduePickups(@Param("since") LocalDateTime since);
+
 }

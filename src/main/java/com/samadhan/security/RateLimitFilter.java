@@ -44,8 +44,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
 	// Railway's own health check — rate-limiting this risks the platform mistaking a throttled
 	// health check for an unhealthy instance and restarting/rerouting it, a self-inflicted outage
-	// far worse than whatever this filter is meant to prevent.
-	private static final Set<String> EXCLUDED_PATHS = Set.of("/health");
+	// far worse than whatever this filter is meant to prevent. /pay/webhook/razorpay is excluded
+	// for the same class of reason: every webhook call comes from Razorpay's own servers, shared
+	// across every vendor's payments, so under enough payment volume they could trip this limit —
+	// and unlike a normal client, Razorpay only retries a failed webhook delivery a limited number
+	// of times before giving up, so losing one here isn't a "the user just refreshes" situation.
+	// It already has its own protection (the HMAC signature check), so losing this app's generic
+	// rate limit on top of that isn't a real exposure.
+	private static final Set<String> EXCLUDED_PATHS = Set.of("/health", "/pay/webhook/razorpay");
 
 	@Autowired
 	private ObjectMapper objectMapper;

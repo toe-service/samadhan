@@ -48,7 +48,15 @@ public class PaymentServiceImpl {
 
     @Value("${pay.secret}")
     private String secret;
-    
+
+    // Separate from `secret` above — Razorpay issues a distinct secret specifically for webhook
+    // payload signing, configured in the Razorpay dashboard's Webhooks section (not the API
+    // key/secret pair used to call Razorpay's APIs). Used to verify that an incoming
+    // /payment/webhook/razorpay POST genuinely came from Razorpay, not an arbitrary caller
+    // claiming a payment succeeded.
+    @Value("${pay.webhook.secret:}")
+    private String webhookSecret;
+
     @Autowired
     PaymentRepository PaymentRepo;
 
@@ -61,6 +69,10 @@ public class PaymentServiceImpl {
     // key and a test secret would make every signature check fail.
     public String getSecret() {
         return secret;
+    }
+
+    public String getWebhookSecret() {
+        return webhookSecret;
     }
 
 

@@ -3,12 +3,25 @@ package com.samadhan.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.samadhan.entity.Vehicle;
 
 public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
+
+	// Keeps fcm_token unique across vehicles: a token identifies one physical device/app install,
+	// and a device only ever has ONE current vehicle session on it, so if this same token is
+	// about to be assigned to `keepVehicleId`, any OTHER vehicle row still holding it is stale —
+	// that device logged into a different vehicle account since, and the old row's copy was never
+	// cleared. Without this, a push correctly targeted at the new vehicle's token would appear to
+	// land on the old vehicle too (same device, same token, two DB rows claiming it) — see the
+	// Eeco/Scooter/14ft-truck investigation this was built to fix.
+	@Modifying
+	@javax.transaction.Transactional
+	@Query(value = "UPDATE vehicle SET fcm_token = NULL WHERE fcm_token = :fcmToken AND id <> :keepVehicleId", nativeQuery = true)
+	void clearFcmTokenFromOtherVehicles(@Param("fcmToken") String fcmToken, @Param("keepVehicleId") Long keepVehicleId);
 
 	@Query(value="select * from vehicle where transfer_id=:vendorId and (is_active IS NULL OR is_active = 1)",nativeQuery=true)
 	List<Vehicle> findByVendorId(Long vendorId);

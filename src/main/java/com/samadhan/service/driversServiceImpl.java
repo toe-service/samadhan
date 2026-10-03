@@ -270,6 +270,11 @@ public class driversServiceImpl implements driversService {
 	        res.setUsername(vehicle.getUserName());
 	        res.setVehicleId(vehicle.getId());
 	        res.setUserType("vehicle");
+	       // Keep fcm_token unique across vehicles — see VehicleRepository#clearFcmTokenFromOtherVehicles
+	       // for why a stale copy on some other vehicle row needs clearing before this one claims it.
+	       if (fcmToken != null && !fcmToken.isBlank()) {
+	           vehicleRepo.clearFcmTokenFromOtherVehicles(fcmToken, vehicle.getId());
+	       }
 	       vehicle.setFcmToken(fcmToken);
 	       res.setVendorId(vehicle.getTransferVendor().getId());
 	       res.setVendorName(vehicle.getTransferVendor().getVendorName());
