@@ -129,6 +129,15 @@ public class TransferVendor {
 	 @Column(name = "reset_otp_attempts")
 	 private Integer resetOtpAttempts;
 
+	 // Set to a fresh random value on every login, embedded in that login's JWT as its "jti" —
+	 // JwtAuthenticationFilter compares the two on every authenticated request, so logging in
+	 // again anywhere immediately invalidates every token from the previous login, instead of
+	 // waiting for it to expire. See TokenApi#generateToken(..., sessionId) and
+	 // JwtAuthenticationFilter#isSessionInvalid.
+	 @JsonIgnore
+	 @Column(name = "current_session_id")
+	 private String currentSessionId;
+
 	 public String getResetOtpHash() {
 		 return resetOtpHash;
 	 }
@@ -151,6 +160,14 @@ public class TransferVendor {
 
 	 public void setResetOtpAttempts(Integer resetOtpAttempts) {
 		 this.resetOtpAttempts = resetOtpAttempts;
+	 }
+
+	 public String getCurrentSessionId() {
+		 return currentSessionId;
+	 }
+
+	 public void setCurrentSessionId(String currentSessionId) {
+		 this.currentSessionId = currentSessionId;
 	 }
 
 	 @OneToOne(mappedBy = "vendor", fetch = FetchType.LAZY)

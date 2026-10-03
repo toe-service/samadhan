@@ -45,6 +45,25 @@ public class TokenApi {
         return createToken(claims, userName, jwtId, tokenAliveMin);
     }
 
+    // Single-active-session support: sessionId is a fresh random value generated at login,
+    // stored on the account row (TransferVendor/UserDetails/Vehicle), and carried here as the
+    // JWT's "jti" instead of the shared literal "admin" every other token uses. Logging in again
+    // overwrites the stored value, so JwtAuthenticationFilter's per-request comparison starts
+    // failing for every token minted by the previous login — the whole mechanism this overload
+    // exists for. Only vendor/user/vehicle login (and their refresh) call this one; everything
+    // else keeps using the 4-arg overload above, unaffected.
+    public String generateToken(String userName, String userRole, Long userId, int tokenAliveMin, String sessionId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(alg_claim_field, encryptedClaimData);
+        claims.put("userRole", userRole != null ? userRole : "USER");
+        claims.put("userId", userId);
+        return createToken(claims, userName, sessionId, tokenAliveMin);
+    }
+
+    public String extractJti(String token) {
+        return extractClaim(token, Claims::getId);
+    }
+
 
     public Claims extractAllClaims(String token) throws ExpiredJwtException {
         return Jwts

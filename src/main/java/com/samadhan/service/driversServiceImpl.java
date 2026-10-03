@@ -292,9 +292,14 @@ public class driversServiceImpl implements driversService {
 	           }
 	       }
 
+	        // Single-active-session — see the equivalent comment in
+	        // V1UserLoginAndRegistrationController#loginUser (/user-otp-verify).
+	        String sessionId = java.util.UUID.randomUUID().toString();
+	        vehicle.setCurrentSessionId(sessionId);
+
 	        vehicleRepo.save(vehicle);
 	        String token = tokenApi.generateToken(
-	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId(), 15);
+	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId(), 15, sessionId);
 	        RefreshToken refreshToken = refreshTokenService.createRefreshToken(
 	                vehicle.getUserName(), UserRole.VEHICLE.getValue(), vehicle.getId());
 	        res.setToken(token);

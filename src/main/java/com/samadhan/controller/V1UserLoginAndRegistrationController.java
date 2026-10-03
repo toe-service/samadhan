@@ -12,6 +12,8 @@ import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.InvalidCredentialsException;
 import com.samadhan.exception.OtpMismatchException;
 import com.samadhan.repository.DriverRepository;
+import com.samadhan.repository.TransferVendorRepository;
+import com.samadhan.repository.UserRepository;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.request.IdentifierForgotPasswordRequest;
 import com.samadhan.request.IdentifierResetPasswordRequest;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1")
@@ -76,6 +79,12 @@ public class V1UserLoginAndRegistrationController {
     private VehicleRepository vehicleRepository;
 
     @Autowired
+    private TransferVendorRepository transferVendorRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private LocationService locationService;
 
 
@@ -92,11 +101,20 @@ public class V1UserLoginAndRegistrationController {
         }
 
         String userRole = userDetails.getUserRole() != null ? userDetails.getUserRole() : "USER";
-        String jwtToken = tokenApi.generateToken(userDetails.getUserContactNumber(), userRole, userDetails.getId(), 15);
+
+        // Single-active-session: a fresh id each login, stored on the account and embedded as
+        // this token's jti — see JwtAuthenticationFilter#isSessionInvalid. Overwriting the
+        // previous value here is exactly what forces any session from an earlier login to fail
+        // its very next request.
+        String sessionId = UUID.randomUUID().toString();
+        userDetails.setCurrentSessionId(sessionId);
+
+        String jwtToken = tokenApi.generateToken(userDetails.getUserContactNumber(), userRole, userDetails.getId(), 15, sessionId);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(
                 userDetails.getUserContactNumber(), userRole, userDetails.getId());
 
         userDetails.setLastLogin(System.currentTimeMillis());
+        userRepository.save(userDetails);
 
         // Saves the device's push token (if the app sent one) for the "Available Rides" daily
         // notification — same fcmToken-at-login pattern as /v1/role-login for drivers/vehicles.
@@ -270,8 +288,13 @@ public class V1UserLoginAndRegistrationController {
 
         TransferVendor transferv = loginService.loginTransfervendor(UserName, password);
 
+        // Single-active-session — see the equivalent comment in /user-otp-verify above.
+        String sessionId = UUID.randomUUID().toString();
+        transferv.setCurrentSessionId(sessionId);
+        transferVendorRepository.save(transferv);
+
         String jwtToken = tokenApi.generateToken(
-                transferv.getVendorEmail(), UserRole.VENDOR.getValue(), transferv.getId(), 15);
+                transferv.getVendorEmail(), UserRole.VENDOR.getValue(), transferv.getId(), 15, sessionId);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(
                 transferv.getVendorEmail(), UserRole.VENDOR.getValue(), transferv.getId());
 
@@ -316,9 +339,31 @@ public class V1UserLoginAndRegistrationController {
             throw new AccountDisabledException("This account has been disabled");
         }
 
-        String newAccessToken = tokenApi.generateToken(
-                existingRefreshToken.getUserName(), existingRefreshToken.getUserRole(),
-                existingRefreshToken.getUserId(), 15);
+        // VENDOR/USER/VEHICLE tokens must carry the account's CURRENT currentSessionId as their
+        // jti, not the old shared "admin" literal the 4-arg overload uses — otherwise a refreshed
+        // token would immediately fail JwtAuthenticationFilter's session check on its very next
+        // use. This only re-reads whatever is already stored; it doesn't change it, so a refresh
+        // from the session that's actually still current keeps working exactly as before, while
+        // an old session's refresh token was already deleted by whatever login superseded it (see
+        // RefreshTokenService#createRefreshToken's deleteByUserIdAndUserRole) and never reaches
+        // this far at all. DRIVER keeps the old 4-arg overload, unaffected.
+        String currentSessionId = null;
+        if (UserRole.VENDOR.getValue().equalsIgnoreCase(role)) {
+            currentSessionId = transferVendorRepository.findById(userId)
+                    .map(TransferVendor::getCurrentSessionId).orElse(null);
+        } else if (UserRole.USER.getValue().equalsIgnoreCase(role)) {
+            currentSessionId = userRepository.findById(userId)
+                    .map(UserDetails::getCurrentSessionId).orElse(null);
+        } else if (UserRole.VEHICLE.getValue().equalsIgnoreCase(role)) {
+            currentSessionId = vehicleRepository.findById(userId)
+                    .map(Vehicle::getCurrentSessionId).orElse(null);
+        }
+
+        String newAccessToken = currentSessionId != null
+                ? tokenApi.generateToken(existingRefreshToken.getUserName(), existingRefreshToken.getUserRole(),
+                        existingRefreshToken.getUserId(), 15, currentSessionId)
+                : tokenApi.generateToken(existingRefreshToken.getUserName(), existingRefreshToken.getUserRole(),
+                        existingRefreshToken.getUserId(), 15);
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(
                 existingRefreshToken.getUserName(), existingRefreshToken.getUserRole(),
                 existingRefreshToken.getUserId());
