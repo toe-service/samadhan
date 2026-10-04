@@ -77,6 +77,32 @@ public class Vehicle {
 		this.currentSessionId = currentSessionId;
 	}
 
+	// Running average of every customer rating (TransferRequestDetails#rating) left on a ride this
+	// vehicle fulfilled — updated incrementally in TransferRequestServiceImpl#rateRide rather than
+	// recomputed with an AVG() query on every read, since this is read far more often (vehicle
+	// lists, public page) than it's written (once per rated ride).
+	@Column(name = "avg_rating")
+	private Double avgRating;
+
+	@Column(name = "rating_count")
+	private Integer ratingCount;
+
+	public Double getAvgRating() {
+		return avgRating;
+	}
+
+	public void setAvgRating(Double avgRating) {
+		this.avgRating = avgRating;
+	}
+
+	public Integer getRatingCount() {
+		return ratingCount;
+	}
+
+	public void setRatingCount(Integer ratingCount) {
+		this.ratingCount = ratingCount;
+	}
+
 	public String getResetOtpHash() {
 		return resetOtpHash;
 	}

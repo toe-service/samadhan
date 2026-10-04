@@ -170,6 +170,31 @@ public class TransferVendor {
 		 this.currentSessionId = currentSessionId;
 	 }
 
+	 // Running average of every customer rating (TransferRequestDetails#rating) left on a ride this
+	 // vendor fulfilled (whether accepted directly or via an assigned vehicle) — same incremental-
+	 // update reasoning as Vehicle#avgRating, updated in TransferRequestServiceImpl#rateRide.
+	 @Column(name = "avg_rating")
+	 private Double avgRating;
+
+	 @Column(name = "rating_count")
+	 private Integer ratingCount;
+
+	 public Double getAvgRating() {
+		 return avgRating;
+	 }
+
+	 public void setAvgRating(Double avgRating) {
+		 this.avgRating = avgRating;
+	 }
+
+	 public Integer getRatingCount() {
+		 return ratingCount;
+	 }
+
+	 public void setRatingCount(Integer ratingCount) {
+		 this.ratingCount = ratingCount;
+	 }
+
 	 @OneToOne(mappedBy = "vendor", fetch = FetchType.LAZY)
 	 @JsonManagedReference
 	 private Subscription subscription;
