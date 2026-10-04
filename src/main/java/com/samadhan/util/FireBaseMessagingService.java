@@ -148,6 +148,7 @@ public class FireBaseMessagingService {
                     .putData("pickupDate", request.getPickupDate() != null ? request.getPickupDate().toString() : "")
                     .putData("pickupSchedule", request.getPickupSchedule() != null ? request.getPickupSchedule() : "")
                     .putData("helperCount", request.getHelperCount() != null ? String.valueOf(request.getHelperCount()) : "0")
+                    .putData("requiredVehicle", request.getVendorPickupVehicle() != null ? request.getVendorPickupVehicle().getDisplayName() : "")
                     .putData("title", "New Booking Available")
                     .putData("body", request.getSource() + " → " + request.getDestination())
 	                .setAndroidConfig(
