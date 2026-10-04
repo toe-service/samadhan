@@ -1417,11 +1417,30 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	// tied to it, which wiped the financial audit trail for a request that already had fees
 	// charged against it (see TransferRequestDetails.isDeleted). The row and its history now stay
 	// in place; every vendor/vehicle/user/driver-facing feed query excludes is_deleted=1 rows.
+	//
+	// userId comes from the caller's own JWT (see V1TransferRequestController#requestTransferDelete),
+	// not a request param — otherwise any authenticated user/vendor/vehicle could delete (hide)
+	// any OTHER customer's request just by knowing its id. Restricted to PENDING (nothing accepted/
+	// started/completed yet) for the same reason the ownership check exists: once a vendor or
+	// vehicle has committed to this request, or it's already finished, deleting it would silently
+	// erase real history (and whatever fees were already charged against it) from every feed that
+	// filters on is_deleted — a cancellation past that point should go through
+	// requestTransferApproval's transferApproval=3 path instead, which actually unwinds the
+	// assignment rather than just hiding the row.
 	@Override
 	@Transactional
-	public TransferRequestDetails requestTransferDelete(Long transferId) {
+	public TransferRequestDetails requestTransferDelete(Long transferId, Long userId) {
 		TransferRequestDetails transfer = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
+
+		if (transfer.getUserDetails() == null || userId == null || !userId.equals(transfer.getUserDetails().getId())) {
+			throw new AccessDeniedException("You are not authorized to delete this request");
+		}
+
+		if (transfer.getTransferStatus() != rideStatusEnum.PENDING) {
+			throw new IllegalStateException("Only a still-pending, unaccepted request can be deleted");
+		}
+
 		transfer.setIsDeleted(true);
 		transferRepo.save(transfer);
 

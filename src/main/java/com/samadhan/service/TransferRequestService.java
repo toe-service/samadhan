@@ -54,7 +54,7 @@ public interface TransferRequestService{
 
 	public com.samadhan.dto.VehicleRideFeedResponse getRideTransferByVehiclePaged(Long vehicleId, String status, int page, int size);
 
-	public TransferRequestDetails requestTransferDelete(Long transferId);
+	public TransferRequestDetails requestTransferDelete(Long transferId, Long userId);
 
 	public TransferRequestDetails requestRideTransfer(ParcelTypeEnum parcelType, CarModelEnum carModel,
 			String pickuplatitude, String pickuplongitude, String destinationlatitude, String destinationlongitude,

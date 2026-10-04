@@ -272,9 +272,17 @@ TokenApi tokenApi;
 	        return rideTransfer;
 	  }
 	  
+	  // userId is taken from the caller's own JWT, not a request param — otherwise any
+	  // authenticated user/vendor/vehicle could delete (hide) any other customer's request just
+	  // by knowing its id. See TransferRequestServiceImpl#requestTransferDelete for the matching
+	  // ownership + status checks.
 	  @DeleteMapping("/requestTransferDelete/{transferId}")
-	  public ResponseEntity<String> requestTransferDelete(@PathVariable Long transferId) {
-	      transferRequestService.requestTransferDelete(transferId);
+	  public ResponseEntity<String> requestTransferDelete(@PathVariable Long transferId, HttpServletRequest httpRequest) {
+	      String authHeader = httpRequest.getHeader("Authorization");
+	      String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+	      Long userId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+	      transferRequestService.requestTransferDelete(transferId, userId);
 	      return ResponseEntity.ok("Deleted successfully");
 	  }
 	  
