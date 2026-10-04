@@ -16,6 +16,8 @@ import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.util.PasswordUtil;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -24,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -32,11 +33,25 @@ import java.util.stream.IntStream;
 @Service
 public class LoginService {
 
+    private static final Logger log = LoggerFactory.getLogger(LoginService.class);
+
     @Value("${sms.service.provider.url}")
     private String smsProviderUrl;
 
     @Value("${sms.client.token}")
     private String smsProviderKey;
+
+    @Value("${fast2sms.sender-id}")
+    private String fast2smsSenderId;
+
+    @Value("${fast2sms.message-id}")
+    private String fast2smsMessageId;
+
+    @Value("${fast2sms.route}")
+    private String fast2smsRoute;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Autowired
     private UserRepository userRepository;
@@ -110,36 +125,25 @@ public class LoginService {
 
     public Integer generateAndSendOtp(String mobileNumber) {
         Integer otp = generateOtp();
-        sendOtpSms(mobileNumber, "Four digit OTP to login in Transfer Service is " + otp);
+        sendOtpSms(mobileNumber, otp);
         return otp;
     }
 
-    private void sendOtpSms(String mobileNumber, String message) {
-        try{
-            JSONObject obj = new JSONObject();
-            obj.put("route", "q"); // this will cost 5 rupees per sms
-//            obj.put("route", "otp");
-            obj.put("message", message);
-            obj.put("numbers", mobileNumber);
-            obj.put("authorization", smsProviderKey);
-            obj.put("flash", "0");
+    private void sendOtpSms(String mobileNumber, Integer otp) {
+        JSONObject body = new JSONObject();
+        body.put("route", fast2smsRoute);
+        body.put("sender_id", fast2smsSenderId);
+        body.put("message", fast2smsMessageId);
+        body.put("variables_values", String.valueOf(otp));
+        body.put("numbers", mobileNumber);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.add("authorization", smsProviderKey);
-            headers.set("Content-Type", "application/json"); // optional - in case you auth in headers
-            HttpEntity<JSONObject> entity = new HttpEntity<>(obj, headers);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("authorization", smsProviderKey);
+        HttpEntity<JSONObject> entity = new HttpEntity<>(body, headers);
 
-
-            ResponseEntity<JSONObject> respEntity = new RestTemplate()
-                    .exchange(smsProviderUrl, HttpMethod.POST, entity, JSONObject.class);
-
-            System.out.println("url is " + smsProviderUrl);
-            System.out.println("mobile number and message is "+mobileNumber+" | "+message);
-        } catch (Exception exp){
-            throw exp;
-        }
+        ResponseEntity<JSONObject> resp = restTemplate.exchange(smsProviderUrl, HttpMethod.POST, entity, JSONObject.class);
+        log.info("Fast2SMS response: status={} body={}", resp.getStatusCode(), resp.getBody());
     }
 
     private Integer generateOtp() {
@@ -204,9 +208,7 @@ public class LoginService {
 		vendor.setResetOtpAttempts(0);
 		transferVendorRepository.save(vendor);
 
-		sendOtpSms(vendor.getVendorContactNumber(),
-				"Your OTP to reset your TransferEaze vendor password is " + otp + ". It is valid for "
-						+ RESET_OTP_VALID_MINUTES + " minutes.");
+		sendOtpSms(vendor.getVendorContactNumber(), otp);
 	}
 
 	public void resetVendorPassword(String vendorEmail, Integer otp, String newPassword) throws OtpMismatchException {
@@ -288,9 +290,7 @@ public class LoginService {
 		user.setResetOtpAttempts(0);
 		userRepository.save(user);
 
-		sendOtpSms(user.getUserContactNumber(),
-				"Your OTP to reset your TransferEaze password is " + otp + ". It is valid for "
-						+ RESET_OTP_VALID_MINUTES + " minutes.");
+		sendOtpSms(user.getUserContactNumber(), otp);
 	}
 
 	public void resetUserPassword(String userEmail, Integer otp, String newPassword) throws OtpMismatchException {
@@ -345,9 +345,7 @@ public class LoginService {
 		driver.setResetOtpAttempts(0);
 		driverRepository.save(driver);
 
-		sendOtpSms(driver.getDriverContactNumber(),
-				"Your OTP to reset your TransferEaze agent password is " + otp + ". It is valid for "
-						+ RESET_OTP_VALID_MINUTES + " minutes.");
+		sendOtpSms(driver.getDriverContactNumber(), otp);
 	}
 
 	public void resetDriverPassword(String driverContactNumber, Integer otp, String newPassword)
@@ -403,9 +401,7 @@ public class LoginService {
 		vehicle.setResetOtpAttempts(0);
 		vehicleRepository.save(vehicle);
 
-		sendOtpSms(vehicle.getVehicleContactNumber(),
-				"Your OTP to reset your TransferEaze vehicle password is " + otp + ". It is valid for "
-						+ RESET_OTP_VALID_MINUTES + " minutes.");
+		sendOtpSms(vehicle.getVehicleContactNumber(), otp);
 	}
 
 	public void resetVehiclePassword(String userName, Integer otp, String newPassword) throws OtpMismatchException {
