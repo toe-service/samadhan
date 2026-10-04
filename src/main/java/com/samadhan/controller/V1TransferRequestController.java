@@ -188,7 +188,16 @@ TokenApi tokenApi;
 	  		@RequestParam(defaultValue = "20") int withinMinutes) {
 	  	return transferRequestService.getRecentPickupReminders(withinMinutes);
 	  }
-	  
+
+	  // Feeds the vendor dashboard notification bell with requests whose pickup window has already
+	  // passed unclaimed (OverduePickupScheduler#notifyOverduePickups) — vendor-side only, no push
+	  // to vehicle devices for this one (see that scheduler method's comment for why).
+	  @GetMapping(value = "/overduePickupsDueSoon")
+	  public List<TransferRequestDetails> overduePickupsDueSoon(
+	  		@RequestParam(defaultValue = "20") int withinMinutes) {
+	  	return transferRequestService.getRecentOverduePickups(withinMinutes);
+	  }
+
 //	  @PostMapping("/dispatchVehicleRequest/{requestId}")
 //	  public ResponseEntity<String> dispatchVehicleRequest(@PathVariable Long requestId) {
 //
