@@ -1818,34 +1818,39 @@ public class PaymentServiceImpl {
 	    switch (vehicle) {
 
 	        // ---------- Small Vehicle ----------
+	        // Repriced to be competitive with Uber/Porter-style parcel delivery for short in-city
+	        // trips (previously ~Rs104 for a 6.5-7km scooter parcel vs. Uber's ~Rs60-70 for the same
+	        // trip) while still leaving the vendor/driver a workable net after the wallet fee. Only
+	        // this small-vehicle tier was repriced — Open Body Truck / Closed Container / Trailer
+	        // below are B2B freight pricing with no comparable market reference to benchmark against.
 	        case SCOOTER:
 	        case TWO_WHEELER:
-	            return new VehicleRateConfig(50, 2, 8, 6, 5);
+	            return new VehicleRateConfig(30, 1, 6, 5, 4);
 
 	        case E_LOADER:
-	            return new VehicleRateConfig(70, 1, 10, 8, 7);
+	            return new VehicleRateConfig(45, 1, 8, 7, 6);
 
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(80, 1, 13, 11, 9);
+	            return new VehicleRateConfig(55, 1, 10, 9, 8);
 
 	        case EECO:
-	            return new VehicleRateConfig(200, 2, 18, 15, 13);
+	            return new VehicleRateConfig(130, 1, 14, 12, 10);
 
 	        case TATA_ACE:
-	            return new VehicleRateConfig(300, 2, 20, 18, 15);
+	            return new VehicleRateConfig(230, 1, 16, 14, 12);
 
 	        // ---------- Open Body Truck ----------
 	        case PICKUP_8FT:
-	            return new VehicleRateConfig(350, 2, 25, 23, 20);
+	            return new VehicleRateConfig(300, 2, 22, 20, 18);
 
 	        case TRUCK_10FT:
-	            return new VehicleRateConfig(400, 2, 32, 30, 28);
+	            return new VehicleRateConfig(350, 2, 30, 28, 26);
 
 	        case TRUCK_14FT_OPEN:
-	            return new VehicleRateConfig(450, 2, 40, 36, 32);
+	            return new VehicleRateConfig(400, 2, 35, 32, 30);
 
 	        case TRUCK_15FT_OPEN:
-	            return new VehicleRateConfig(500, 2, 45, 40, 35);
+	            return new VehicleRateConfig(450, 2, 40, 36, 32);
 
 	        case TRUCK_17FT_OPEN:
 	            return new VehicleRateConfig(550, 2, 48, 45, 40);

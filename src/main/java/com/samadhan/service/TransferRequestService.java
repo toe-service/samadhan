@@ -45,6 +45,8 @@ public interface TransferRequestService{
 
 	public List<TransferRequestDetails> getRecentOverduePickups(int withinMinutes);
 
+	public TransferRequestDetails rateRide(Long transferId, Long userId, Integer rating, String comment);
+
 	public com.samadhan.dto.RideFeedResponse showRidestoVendorsPaged(
 			Long transferId, String statusFilter, LocalDate pickupDate, int page, int size);
 

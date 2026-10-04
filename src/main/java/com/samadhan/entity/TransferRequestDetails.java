@@ -344,6 +344,42 @@ public class TransferRequestDetails {
 		this.vehicleLastLocation = vehicleLastLocation;
 	 }
 
+	 // Customer's post-ride rating — 1 to 5, set once via POST /transfer/rateRide after this ride
+	 // reaches COMPLETED. ratedAt null means not yet rated, which is what the user app's "has this
+	 // ride already been rated" check (whether to still show the popup) is keyed on.
+	 @Column(name="rating")
+	 private Integer rating;
+
+	 @Column(name="rating_comment")
+	 private String ratingComment;
+
+	 @Column(name="rated_at")
+	 private LocalDateTime ratedAt;
+
+	 public Integer getRating() {
+		return rating;
+	 }
+
+	 public void setRating(Integer rating) {
+		this.rating = rating;
+	 }
+
+	 public String getRatingComment() {
+		return ratingComment;
+	 }
+
+	 public void setRatingComment(String ratingComment) {
+		this.ratingComment = ratingComment;
+	 }
+
+	 public LocalDateTime getRatedAt() {
+		return ratedAt;
+	 }
+
+	 public void setRatedAt(LocalDateTime ratedAt) {
+		this.ratedAt = ratedAt;
+	 }
+
 	public Integer getFromFloor() {
 		return fromFloor;
 	}

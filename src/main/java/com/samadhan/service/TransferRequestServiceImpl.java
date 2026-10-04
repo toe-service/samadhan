@@ -997,8 +997,38 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	public List<TransferRequestDetails> getRidesByDriverId(Long driverId) {
 		List<TransferRequestDetails> transferRidesByDriverId = transferRepo.findTransferRideByDriverId(driverId);
 		System.out.println("transferRidesByDriverId" + transferRidesByDriverId);
-		
+
 		return transferRidesByDriverId;
+	}
+
+	// Backs the post-ride rating popup shown in the user app right after RIDE_COMPLETED. userId
+	// comes from the caller's own JWT (see V1TransferRequestController#rateRide), not a request
+	// param, so one customer can never rate a ride that isn't theirs by just guessing a transferId.
+	@Override
+	public TransferRequestDetails rateRide(Long transferId, Long userId, Integer rating, String comment) {
+		TransferRequestDetails transfer = transferRepo.findById(transferId)
+				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
+
+		if (transfer.getUserDetails() == null || userId == null || !userId.equals(transfer.getUserDetails().getId())) {
+			throw new AccessDeniedException("You are not authorized to rate this ride");
+		}
+
+		if (transfer.getTransferStatus() != rideStatusEnum.COMPLETED) {
+			throw new IllegalStateException("Only a completed ride can be rated");
+		}
+
+		if (transfer.getRatedAt() != null) {
+			throw new IllegalStateException("This ride has already been rated");
+		}
+
+		if (rating == null || rating < 1 || rating > 5) {
+			throw new IllegalArgumentException("Rating must be between 1 and 5");
+		}
+
+		transfer.setRating(rating);
+		transfer.setRatingComment(comment);
+		transfer.setRatedAt(LocalDateTime.now());
+		return transferRepo.save(transfer);
 	}
 
 	// Feeds the vendor dashboard's notification bell — see TransferRequestRepository#
