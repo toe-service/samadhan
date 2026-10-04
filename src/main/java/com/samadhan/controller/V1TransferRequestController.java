@@ -198,6 +198,24 @@ TokenApi tokenApi;
 	  	return transferRequestService.getRecentOverduePickups(withinMinutes);
 	  }
 
+	  // Backs the post-ride rating popup the user app shows right after RIDE_COMPLETED. userId is
+	  // taken from the caller's own JWT, not a request param — otherwise any logged-in user could
+	  // rate (or spam-overwrite, if re-rating were ever allowed) any ride just by knowing its id.
+	  @PostMapping(value = "/rateRide")
+	  public ResponseEntity<TransferRequestDetails> rateRide(
+	  		@RequestParam Long transferId,
+	  		@RequestParam Integer rating,
+	  		@RequestParam(required = false) String comment,
+	  		HttpServletRequest httpRequest) {
+
+	  	String authHeader = httpRequest.getHeader("Authorization");
+	  	String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+	  	Long userId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+	  	TransferRequestDetails rated = transferRequestService.rateRide(transferId, userId, rating, comment);
+	  	return ResponseEntity.ok(rated);
+	  }
+
 //	  @PostMapping("/dispatchVehicleRequest/{requestId}")
 //	  public ResponseEntity<String> dispatchVehicleRequest(@PathVariable Long requestId) {
 //
