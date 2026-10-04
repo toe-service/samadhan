@@ -14,6 +14,7 @@ import com.google.firebase.messaging.Notification;
 import com.samadhan.dto.NotificationMessage;
 import com.samadhan.dto.ServiceCentreWrapper;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.ParcelDetails;
 import com.samadhan.entity.ServiceCentre;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
@@ -122,6 +123,19 @@ public class FireBaseMessagingService {
 		     return;
 		 }
 
+		 ParcelDetails pd = request.getParcelDetails();
+		 String parcelWeight = "";
+		 String parcelDimensions = "";
+		 if (pd != null) {
+		     if (pd.getParcelWeight() > 0) {
+		         parcelWeight = fmtNum(pd.getParcelWeight());
+		     }
+		     if (pd.getLength() != null && pd.getWidth() != null && pd.getHeight() != null) {
+		         String unit = pd.getDimensionUnit() != null ? " " + pd.getDimensionUnit().name().toLowerCase() : "";
+		         parcelDimensions = fmtNum(pd.getLength()) + "×" + fmtNum(pd.getWidth()) + "×" + fmtNum(pd.getHeight()) + unit;
+		     }
+		 }
+
 	    for (Vehicle vehicle : vehicles) {
 
 	        if (vehicle.getFcmToken() == null || vehicle.getFcmToken().isEmpty()) {
@@ -149,6 +163,8 @@ public class FireBaseMessagingService {
                     .putData("pickupSchedule", request.getPickupSchedule() != null ? request.getPickupSchedule() : "")
                     .putData("helperCount", request.getHelperCount() != null ? String.valueOf(request.getHelperCount()) : "0")
                     .putData("requiredVehicle", request.getVendorPickupVehicle() != null ? request.getVendorPickupVehicle().getDisplayName() : "")
+                    .putData("parcelWeight", parcelWeight)
+                    .putData("parcelDimensions", parcelDimensions)
                     .putData("title", "New Booking Available")
                     .putData("body", request.getSource() + " → " + request.getDestination())
 	                .setAndroidConfig(
@@ -239,6 +255,13 @@ public class FireBaseMessagingService {
 		}
 
 		firebaseMessaging.send(messageBuilder.build());
+	}
+
+	/** Formats a double without trailing ".0" — "10.0" → "10", "2.5" → "2.5". */
+	private static String fmtNum(double d) {
+		return d == Math.floor(d) && !Double.isInfinite(d)
+				? String.valueOf((long) d)
+				: String.valueOf(d);
 	}
 
 }
