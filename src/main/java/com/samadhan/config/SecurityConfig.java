@@ -76,6 +76,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/gaadi-dikhao/status").permitAll()
                 .antMatchers("/gaadi-dikhao/login").permitAll()
                 .antMatchers("/gaadi-dikhao/verify-token").permitAll()
+                .antMatchers(HttpMethod.GET, "/v1/app-config").permitAll()
+                .antMatchers(HttpMethod.POST, "/v1/admin/app-config").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/send-otp").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/user-otp-verify").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/user-register").permitAll()
