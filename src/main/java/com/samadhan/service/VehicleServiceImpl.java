@@ -28,10 +28,11 @@ public class VehicleServiceImpl implements VehicleService{
 	// individual vendor without a PAID (ACTIVE) subscription is capped at a small fleet; only a
 	// paying subscriber has no cap. Deliberately checked against vendor_status==ACTIVE directly,
 	// NOT TransferVendor#isSubscriber() — isSubscriber() also returns true during the free 15-day
-	// trial (Free_SUBSCRIPTION), which is correct for perks like the discounted wallet rate and
-	// posting availability (a trial vendor should get those), but the fleet-size cap still needs
-	// to bite during the trial too, otherwise a vendor could build out an unlimited fleet for free
-	// before ever paying.
+	// trial (Free_SUBSCRIPTION), which is correct for posting availability (a trial vendor should
+	// still be able to post), but the discounted wallet rate is paying-subscriber-only (see
+	// TransferRequestServiceImpl#isDiscountedRateVendor) and the fleet-size cap still needs to bite
+	// during the trial too, otherwise a vendor could build out an unlimited fleet for free before
+	// ever paying.
 	private static final int INDIVIDUAL_VEHICLE_LIMIT = 1;
 	private static final int NON_SUBSCRIBER_VEHICLE_LIMIT = 3;
 

@@ -20,6 +20,7 @@ import com.samadhan.enums.ParcelTypeEnum;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VehicleTypeEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
+import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.AccountDisabledException;
@@ -693,10 +694,19 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	private static final double SUBSCRIBER_ACCEPTANCE_RATE = 0.02;
 	private static final double SUBSCRIBER_COMPLETION_RATE = 0.04;
 
+	// Deliberately checked against vendor_status==ACTIVE directly, NOT TransferVendor#isSubscriber()
+	// — isSubscriber() also returns true during the free 15-day trial (Free_SUBSCRIPTION), but the
+	// discounted 8% rate is meant for a paying subscriber only. Free-trial and individual vendors
+	// both default to Free_SUBSCRIPTION and never reach ACTIVE without actually paying, so this one
+	// check also covers individual vendors without needing a separate isIndividual check.
+	private boolean isDiscountedRateVendor(TransferVendor vendor) {
+		return vendor != null && vendor.getVendorStatus() == VendorStatusEnum.ACTIVE;
+	}
+
 	private double calculateAcceptanceFee(TransferVendor vendor, TransferRequestDetails transferdetails) {
 
 		double rideCost=transferdetails.getRideCost();
-		double rate = (vendor != null && vendor.isSubscriber()) ? SUBSCRIBER_ACCEPTANCE_RATE : NON_SUBSCRIBER_ACCEPTANCE_RATE;
+		double rate = isDiscountedRateVendor(vendor) ? SUBSCRIBER_ACCEPTANCE_RATE : NON_SUBSCRIBER_ACCEPTANCE_RATE;
 
 		return Math.round(rideCost * rate * 100.0) / 100.0;
 	}
@@ -704,7 +714,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	private double calculateCompletioneFee(TransferVendor vendor, TransferRequestDetails transferdetails) {
 
 		double rideCost=transferdetails.getRideCost();
-		double rate = (vendor != null && vendor.isSubscriber()) ? SUBSCRIBER_COMPLETION_RATE : NON_SUBSCRIBER_COMPLETION_RATE;
+		double rate = isDiscountedRateVendor(vendor) ? SUBSCRIBER_COMPLETION_RATE : NON_SUBSCRIBER_COMPLETION_RATE;
 
 		return Math.round(rideCost * rate * 100.0) / 100.0;
 	}
