@@ -1005,6 +1005,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	// comes from the caller's own JWT (see V1TransferRequestController#rateRide), not a request
 	// param, so one customer can never rate a ride that isn't theirs by just guessing a transferId.
 	@Override
+	@Transactional
 	public TransferRequestDetails rateRide(Long transferId, Long userId, Integer rating, String comment) {
 		TransferRequestDetails transfer = transferRepo.findById(transferId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transfer not found with id: " + transferId));
@@ -1028,7 +1029,43 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		transfer.setRating(rating);
 		transfer.setRatingComment(comment);
 		transfer.setRatedAt(LocalDateTime.now());
-		return transferRepo.save(transfer);
+		TransferRequestDetails saved = transferRepo.save(transfer);
+
+		// Feed the same rating into whichever vehicle actually fulfilled this ride, and the vendor
+		// it was booked under (either directly, or via that vehicle) — both get their own running
+		// average, not just the ride itself. A ride can have a vehicle with no vendor (shouldn't
+		// normally happen, but no assumption is made either way) or a vendor with no vehicle (an
+		// agent-handoff ride accepted but not yet assigned a vehicle at completion time — doesn't
+		// apply here since completion requires a vehicle, but the null-check costs nothing).
+		if (transfer.getVehicleId() != null) {
+			applyRatingToVehicle(transfer.getVehicleId(), rating);
+		}
+		if (transfer.getTransferVendor() != null) {
+			applyRatingToVendor(transfer.getTransferVendor(), rating);
+		}
+
+		return saved;
+	}
+
+	// Incremental mean update (newAvg = (oldAvg*oldCount + rating) / (oldCount+1)) instead of an
+	// AVG() query over every rated ride on every write — this entity is read far more often
+	// (vehicle lists, vendor public page) than written (once per newly-rated ride).
+	private void applyRatingToVehicle(Vehicle vehicle, int rating) {
+		int oldCount = vehicle.getRatingCount() == null ? 0 : vehicle.getRatingCount();
+		double oldAvg = vehicle.getAvgRating() == null ? 0.0 : vehicle.getAvgRating();
+		double newAvg = (oldAvg * oldCount + rating) / (oldCount + 1);
+		vehicle.setAvgRating(Math.round(newAvg * 100.0) / 100.0);
+		vehicle.setRatingCount(oldCount + 1);
+		vehicleRepo.save(vehicle);
+	}
+
+	private void applyRatingToVendor(TransferVendor vendor, int rating) {
+		int oldCount = vendor.getRatingCount() == null ? 0 : vendor.getRatingCount();
+		double oldAvg = vendor.getAvgRating() == null ? 0.0 : vendor.getAvgRating();
+		double newAvg = (oldAvg * oldCount + rating) / (oldCount + 1);
+		vendor.setAvgRating(Math.round(newAvg * 100.0) / 100.0);
+		vendor.setRatingCount(oldCount + 1);
+		transferVendorRepo.save(vendor);
 	}
 
 	// Feeds the vendor dashboard's notification bell — see TransferRequestRepository#
