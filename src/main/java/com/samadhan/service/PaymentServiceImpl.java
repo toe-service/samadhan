@@ -1825,19 +1825,19 @@ public class PaymentServiceImpl {
 	        // below are B2B freight pricing with no comparable market reference to benchmark against.
 	        case SCOOTER:
 	        case TWO_WHEELER:
-	            return new VehicleRateConfig(30, 1, 6, 5, 4);
+	            return new VehicleRateConfig(30, 1, 5, 4, 3.5);
 
 	        case E_LOADER:
-	            return new VehicleRateConfig(45, 1, 8, 7, 6);
+	            return new VehicleRateConfig(45, 1, 7, 6, 5);
 
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(55, 1, 10, 9, 8);
+	            return new VehicleRateConfig(55, 1, 8, 7, 6);
 
 	        case EECO:
-	            return new VehicleRateConfig(130, 1, 14, 12, 10);
+	            return new VehicleRateConfig(130, 1, 13, 11, 10);
 
 	        case TATA_ACE:
-	            return new VehicleRateConfig(230, 1, 16, 14, 12);
+	            return new VehicleRateConfig(230, 1, 15, 14, 12);
 
 	        // ---------- Open Body Truck ----------
 	        case PICKUP_8FT:
