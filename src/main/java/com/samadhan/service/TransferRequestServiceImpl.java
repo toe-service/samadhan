@@ -29,6 +29,7 @@ import com.samadhan.exception.RequestAlreadyAcceptedException;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
 import com.samadhan.exception.VehicleTooFarException;
+import com.samadhan.exception.RegistrationFeeRequiredException;
 import com.samadhan.exception.WalletLowBalanceException;
 
 import org.slf4j.Logger;
@@ -259,6 +260,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
+			// Individual accounts can't create their own rides either until the one-time Rs 199
+			// registration fee is paid — same reasoning as the accept-path gate in
+			// requestTransferApproval and the vehicle-creation gate in VehicleServiceImpl.
+			if (vendor != null && Boolean.TRUE.equals(vendor.getIsIndividual()) && !vendor.isRegistrationFeePaid()) {
+				throw new RegistrationFeeRequiredException(
+						"Please pay the Rs 199 registration fee to activate your account before creating rides.");
+			}
 //			TransferVendor vendor = null;
 			UserDetails userDetail = userRepo
 			        .findByUserContactNumber(userContact)
@@ -439,6 +447,15 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
+
+		// Individual accounts can't accept new rides until the one-time Rs 199 registration fee is
+		// paid — same reasoning as VehicleServiceImpl#enforceVehicleLimit. Scoped to accept(1) only,
+		// same as the wallet-balance gate just below: a vendor already holding a request can still
+		// decline(2)/cancel(3) it regardless of this flag.
+		if (transferApproval == 1 && Boolean.TRUE.equals(transferVendor.getIsIndividual()) && !transferVendor.isRegistrationFeePaid()) {
+			throw new RegistrationFeeRequiredException(
+					"Please pay the Rs 199 registration fee to activate your account before accepting rides.");
+		}
 
 		// Gate on wallet balance, not subscription status — a vendor with a low/negative wallet
 		// can't take on new rides, but can still decline(2)/cancel(3) work they're already
@@ -893,8 +910,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			Vehicle vehicle = vehicleRepo.findById(Long.valueOf(vehicleId))
 		                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + vehicleId));
 
-			vehicle.setOngoingStatus(true);
-			vehicleRepo.save(vehicle);
+			// Deliberately NOT touching ongoingStatus here (or anywhere) — this was the only place
+			// in the codebase that ever set it to true, and it did so at ride COMPLETION with
+			// nothing anywhere ever setting it back to false. That meant the first ride a vehicle
+			// ever completed permanently excluded it from findNearbyVehicles' "ongoing_status =
+			// false" matching requirement forever after — a vehicle sitting idle and available
+			// would silently stop receiving any new ride notifications for good. Leaving the column
+			// untouched keeps every vehicle permanently eligible (its default is false), same as
+			// today's actual behavior for any vehicle that hasn't completed a ride yet.
 			transfer.setRideendTime(dateTime);
 			transfer.setVehicleLastLocation(vehicle.getCurrentLocation());
 			transfer.setTransferStatus(rideStatusEnum.COMPLETED);

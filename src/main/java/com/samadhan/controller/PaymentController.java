@@ -1052,6 +1052,108 @@ public class PaymentController {
 	    return ResponseEntity.ok("SUCCESS");
 	}
 
+	// One-time Rs 199 fee an INDIVIDUAL (owner-operator) vendor pays to activate their account —
+	// see TransferVendor#registrationFeePaid and VehicleServiceImpl#enforceVehicleLimit, which
+	// blocks creating even their first vehicle until this is paid. The money isn't a separate,
+	// lost fee: it lands directly in the vendor's own wallet as real spendable credit, covering
+	// (or most of) the Rs 200 minimum wallet balance they'd otherwise have had to top up
+	// separately before accepting their first ride.
+	private static final int REGISTRATION_FEE_PAISE = 19900;
+
+	@PostMapping("/registration-fee/create-order")
+	public Map<String,Object> createRegistrationFeeOrder(
+	        @RequestParam Long vendorId) throws Exception {
+
+	    RazorpayClient client = paymentService.getPaymentClient();
+
+	    JSONObject orderRequest = new JSONObject();
+	    orderRequest.put("amount", REGISTRATION_FEE_PAISE);
+	    orderRequest.put("currency", "INR");
+	    orderRequest.put("receipt", "registration_" + vendorId);
+
+	    Order order = client.orders.create(orderRequest);
+
+	    Map<String,Object> response = new HashMap<>();
+	    response.put("orderId", order.get("id"));
+	    response.put("amount", REGISTRATION_FEE_PAISE / 100.0);
+
+	    return response;
+	}
+
+	@PostMapping("/registration-fee/verifyPayment")
+	@Transactional
+	public ResponseEntity<?> verifyRegistrationFeePayment(
+	        @RequestBody PaymentVerificationRequest req,
+	        HttpServletRequest httpRequest)
+	        throws Exception {
+
+	    if (!isValidPaymentSignature(req.getRazorpayOrderId(), req.getRazorpayPaymentId(), req.getRazorpaySignature())) {
+	        return ResponseEntity.badRequest().body("Invalid Signature");
+	    }
+
+	    // Same ownership check as /wallet/payment-success — otherwise any authenticated
+	    // vendor/driver/customer could activate (and credit the wallet of) someone else's account.
+	    String authHeader = httpRequest.getHeader("Authorization");
+	    String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+	    Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+	    if (tokenVendorId == null || !tokenVendorId.equals(req.getVendorId())) {
+	        throw new AccessDeniedException("You are not authorized to activate this vendor's account");
+	    }
+
+	    // Idempotency — see the identical check/comment in /wallet/payment-success.
+	    if (walletTransactionRepository.existsByRazorpayPaymentId(req.getRazorpayPaymentId())) {
+	        return ResponseEntity.ok("Registration fee already processed");
+	    }
+
+	    // The signature only proves this is a genuine payment, not that it was for the right
+	    // amount — re-fetch the order and check it's actually the fixed Rs 199 fee, the same
+	    // defensive pattern /subscription/verifyPayment uses against its plan price.
+	    RazorpayClient client = paymentService.getPaymentClient();
+	    Order order = client.orders.fetch(req.getRazorpayOrderId());
+	    Integer orderAmountPaise = order.get("amount");
+	    if (orderAmountPaise == null || orderAmountPaise != REGISTRATION_FEE_PAISE) {
+	        logger.warn("Registration fee amount mismatch for vendor {}: order {} paid {} paise, expected {} paise",
+	                req.getVendorId(), req.getRazorpayOrderId(), orderAmountPaise, REGISTRATION_FEE_PAISE);
+	        return ResponseEntity.badRequest().body("Paid amount does not match the registration fee");
+	    }
+	    double verifiedAmount = orderAmountPaise / 100.0;
+
+	    Optional<TransferVendor> vendorOpt = transferVendorRepo.findById(req.getVendorId());
+	    if (vendorOpt.isEmpty()) {
+	        throw new ResourceNotFoundException("Vendor not found with id: " + req.getVendorId());
+	    }
+	    TransferVendor vendor = vendorOpt.get();
+
+	    VendorWallet wallet = VendorWalletRepo.findByVendor(req.getVendorId());
+	    if (wallet == null) {
+	        wallet = new VendorWallet();
+	        wallet.setBalance(verifiedAmount);
+	    } else {
+	        wallet.setBalance(wallet.getBalance() + verifiedAmount);
+	    }
+	    wallet.setVendor(vendor);
+	    VendorWalletRepo.save(wallet);
+
+	    vendor.setRegistrationFeePaid(true);
+	    transferVendorRepo.save(vendor);
+
+	    WalletTransaction txn = new WalletTransaction();
+	    txn.setAmount(verifiedAmount);
+	    // "CREDIT" (not a custom type) deliberately -- this is what applyReversal checks for to
+	    // decide whether a later refund/chargeback webhook should automatically deduct the wallet
+	    // back out. Since this genuinely put spendable money in the wallet, a reversal should
+	    // behave exactly like reversing a normal wallet recharge. "Registration Fee" goes in the
+	    // description instead, for audit readability.
+	    txn.setTransactionType("CREDIT");
+	    txn.setDescription("Registration Fee");
+	    txn.setVendor(vendor);
+	    txn.setRazorpayOrderId(req.getRazorpayOrderId());
+	    txn.setRazorpayPaymentId(req.getRazorpayPaymentId());
+	    walletTransactionRepository.save(txn);
+
+	    return ResponseEntity.ok("Registration fee paid — account activated");
+	}
+
 	// Safety net for "Razorpay charged the customer, but our server never got to record it" —
 	// e.g. the app is killed or loses its connection the instant after paying, before it can call
 	// /wallet/payment-success or /subscription/verifyPayment itself. Razorpay calls this
@@ -1138,6 +1240,8 @@ public class PaymentController {
 	            reconcileWalletRecharge(receipt, orderId, paymentId, amountPaise);
 	        } else if (receipt.startsWith("subscription_")) {
 	            reconcileSubscriptionPurchase(receipt, orderId, paymentId, amountPaise);
+	        } else if (receipt.startsWith("registration_")) {
+	            reconcileRegistrationFee(receipt, orderId, paymentId, amountPaise);
 	        } else {
 	            logger.warn("payment.captured webhook for payment {} / order {}: unrecognised receipt '{}'",
 	                    paymentId, orderId, receipt);
@@ -1329,6 +1433,9 @@ public class PaymentController {
 	    } else if (receipt.startsWith("subscription_")) {
 	        reconcileSubscriptionPurchase(receipt, orderId, paymentId, amountPaise);
 	        return ResponseEntity.ok("Subscription purchase reconciled for payment " + paymentId + " (order " + orderId + ")");
+	    } else if (receipt.startsWith("registration_")) {
+	        reconcileRegistrationFee(receipt, orderId, paymentId, amountPaise);
+	        return ResponseEntity.ok("Registration fee reconciled for payment " + paymentId + " (order " + orderId + ")");
 	    }
 	    return ResponseEntity.badRequest().body("Unrecognised receipt '" + receipt + "' on order " + orderId);
 	}
@@ -1379,6 +1486,47 @@ public class PaymentController {
 	    walletTransactionRepository.save(txn);
 
 	    logger.warn("Webhook reconciled a wallet recharge the client-side confirmation call apparently missed: "
+	            + "vendor {}, amount {}, payment {}", vendorId, amount, paymentId);
+	}
+
+	// receipt is "registration_<vendorId>" (see /registration-fee/create-order) — same crediting
+	// + activation logic as /registration-fee/verifyPayment's happy path, triggered independently
+	// by the webhook for the case where the app paid but never got to call back (killed, lost
+	// connection, etc. right after Razorpay captured the payment).
+	private void reconcileRegistrationFee(String receipt, String orderId, String paymentId, int amountPaise) {
+	    Long vendorId = Long.valueOf(receipt.substring("registration_".length()));
+	    double amount = amountPaise / 100.0;
+
+	    Optional<TransferVendor> vendorOpt = transferVendorRepo.findById(vendorId);
+	    if (vendorOpt.isEmpty()) {
+	        logger.warn("Webhook reconciliation: vendor {} not found for registration fee, payment {}", vendorId, paymentId);
+	        return;
+	    }
+	    TransferVendor vendor = vendorOpt.get();
+
+	    VendorWallet wallet = VendorWalletRepo.findByVendor(vendorId);
+	    if (wallet == null) {
+	        wallet = new VendorWallet();
+	        wallet.setBalance(amount);
+	    } else {
+	        wallet.setBalance(wallet.getBalance() + amount);
+	    }
+	    wallet.setVendor(vendor);
+	    VendorWalletRepo.save(wallet);
+
+	    vendor.setRegistrationFeePaid(true);
+	    transferVendorRepo.save(vendor);
+
+	    WalletTransaction txn = new WalletTransaction();
+	    txn.setAmount(amount);
+	    txn.setTransactionType("CREDIT");
+	    txn.setDescription("Registration Fee (reconciled via webhook)");
+	    txn.setVendor(vendor);
+	    txn.setRazorpayOrderId(orderId);
+	    txn.setRazorpayPaymentId(paymentId);
+	    walletTransactionRepository.save(txn);
+
+	    logger.warn("Webhook reconciled a registration fee the client-side confirmation call apparently missed: "
 	            + "vendor {}, amount {}, payment {}", vendorId, amount, paymentId);
 	}
 

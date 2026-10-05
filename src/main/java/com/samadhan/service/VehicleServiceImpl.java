@@ -16,6 +16,7 @@ import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.exception.AccountDisabledException;
+import com.samadhan.exception.RegistrationFeeRequiredException;
 import com.samadhan.exception.VehicleLimitExceededException;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VehicleRepository;
@@ -141,6 +142,14 @@ public class VehicleServiceImpl implements VehicleService{
 		int activeVehicleCount = vehicleRepo.findByVendorId(transferVendorId).size();
 
 		if (Boolean.TRUE.equals(vendor.getIsIndividual())) {
+			// One-time Rs 199 registration fee gate — an individual account can't add even its
+			// first vehicle until it's paid (see PaymentController's /pay/registration-fee
+			// endpoints). Checked ahead of the fleet-size limit below since "haven't paid yet" is
+			// the more specific, more actionable reason to surface first.
+			if (!vendor.isRegistrationFeePaid()) {
+				throw new RegistrationFeeRequiredException(
+						"Please pay the Rs 199 registration fee to activate your account before adding a vehicle.");
+			}
 			if (activeVehicleCount >= INDIVIDUAL_VEHICLE_LIMIT) {
 				throw new VehicleLimitExceededException(
 						"Individual accounts are limited to " + INDIVIDUAL_VEHICLE_LIMIT + " vehicle. "
