@@ -9,6 +9,7 @@ public class TransferVendorLoginResponse {
     private String userRole;
     private Long expiresIn;
     private Boolean isIndividual;
+    private Boolean registrationFeePaid;
 
     public Long getVendorId() {
         return vendorId;
@@ -72,5 +73,13 @@ public class TransferVendorLoginResponse {
 
     public void setIsIndividual(Boolean isIndividual) {
         this.isIndividual = isIndividual;
+    }
+
+    public Boolean getRegistrationFeePaid() {
+        return registrationFeePaid;
+    }
+
+    public void setRegistrationFeePaid(Boolean registrationFeePaid) {
+        this.registrationFeePaid = registrationFeePaid;
     }
 }

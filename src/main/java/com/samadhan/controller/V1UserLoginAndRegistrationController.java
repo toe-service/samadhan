@@ -307,6 +307,12 @@ public class V1UserLoginAndRegistrationController {
         vendorLoginResponse.setUserRole(UserRole.VENDOR.getValue());
         vendorLoginResponse.setExpiresIn(900000L);
         vendorLoginResponse.setIsIndividual(transferv.getIsIndividual());
+        // Without this, the frontend's registrationFeePaid state always re-reads as undefined
+        // (falsy) on a fresh login — the registration response (which returns the raw entity)
+        // shows it correctly, but this hand-picked login DTO simply never carried it, so an
+        // already-activated vendor was incorrectly shown the "pay to activate" gate again on
+        // every subsequent login.
+        vendorLoginResponse.setRegistrationFeePaid(transferv.isRegistrationFeePaid());
 
         ResponseObject<TransferVendorLoginResponse> response = ResponseUtil.populateResponseObject(
                 vendorLoginResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
