@@ -1052,22 +1052,25 @@ public class PaymentController {
 	    return ResponseEntity.ok("SUCCESS");
 	}
 
-	// One-time Rs 199 fee an INDIVIDUAL (owner-operator) vendor pays to activate their account —
-	// see TransferVendor#registrationFeePaid and VehicleServiceImpl#enforceVehicleLimit, which
-	// blocks creating even their first vehicle until this is paid. The money isn't a separate,
-	// lost fee: it lands directly in the vendor's own wallet as real spendable credit, covering
-	// (or most of) the Rs 200 minimum wallet balance they'd otherwise have had to top up
-	// separately before accepting their first ride.
-	private static final int REGISTRATION_FEE_PAISE = 19900;
-
+	// One-time fee every vendor pays to activate their account — Rs 199 for an individual
+	// (owner-operator), Rs 399 for a full (fleet) vendor (see TransferVendor#getRegistrationFeeRupees
+	// for why the two live in one place). Blocks creating even a first vehicle, posting
+	// availability, and accepting/creating rides until paid (VehicleServiceImpl#enforceVehicleLimit,
+	// VendorAvailabilityServiceImpl#postAvailability/#updateAvailability, TransferRequestServiceImpl#
+	// requestTransferApproval/#requestRideTransfer). The money isn't a separate, lost fee: it lands
+	// directly in the vendor's own wallet as real spendable credit.
 	@PostMapping("/registration-fee/create-order")
 	public Map<String,Object> createRegistrationFeeOrder(
 	        @RequestParam Long vendorId) throws Exception {
 
+	    TransferVendor vendor = transferVendorRepo.findById(vendorId)
+	            .orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
+	    int feePaise = vendor.getRegistrationFeeRupees() * 100;
+
 	    RazorpayClient client = paymentService.getPaymentClient();
 
 	    JSONObject orderRequest = new JSONObject();
-	    orderRequest.put("amount", REGISTRATION_FEE_PAISE);
+	    orderRequest.put("amount", feePaise);
 	    orderRequest.put("currency", "INR");
 	    orderRequest.put("receipt", "registration_" + vendorId);
 
@@ -1075,7 +1078,7 @@ public class PaymentController {
 
 	    Map<String,Object> response = new HashMap<>();
 	    response.put("orderId", order.get("id"));
-	    response.put("amount", REGISTRATION_FEE_PAISE / 100.0);
+	    response.put("amount", feePaise / 100.0);
 
 	    return response;
 	}
@@ -1105,24 +1108,26 @@ public class PaymentController {
 	        return ResponseEntity.ok("Registration fee already processed");
 	    }
 
-	    // The signature only proves this is a genuine payment, not that it was for the right
-	    // amount — re-fetch the order and check it's actually the fixed Rs 199 fee, the same
-	    // defensive pattern /subscription/verifyPayment uses against its plan price.
-	    RazorpayClient client = paymentService.getPaymentClient();
-	    Order order = client.orders.fetch(req.getRazorpayOrderId());
-	    Integer orderAmountPaise = order.get("amount");
-	    if (orderAmountPaise == null || orderAmountPaise != REGISTRATION_FEE_PAISE) {
-	        logger.warn("Registration fee amount mismatch for vendor {}: order {} paid {} paise, expected {} paise",
-	                req.getVendorId(), req.getRazorpayOrderId(), orderAmountPaise, REGISTRATION_FEE_PAISE);
-	        return ResponseEntity.badRequest().body("Paid amount does not match the registration fee");
-	    }
-	    double verifiedAmount = orderAmountPaise / 100.0;
-
 	    Optional<TransferVendor> vendorOpt = transferVendorRepo.findById(req.getVendorId());
 	    if (vendorOpt.isEmpty()) {
 	        throw new ResourceNotFoundException("Vendor not found with id: " + req.getVendorId());
 	    }
 	    TransferVendor vendor = vendorOpt.get();
+	    int expectedFeePaise = vendor.getRegistrationFeeRupees() * 100;
+
+	    // The signature only proves this is a genuine payment, not that it was for the right
+	    // amount — re-fetch the order and check it's actually this vendor's registration fee (199
+	    // or 399 depending on isIndividual), the same defensive pattern /subscription/verifyPayment
+	    // uses against its plan price.
+	    RazorpayClient client = paymentService.getPaymentClient();
+	    Order order = client.orders.fetch(req.getRazorpayOrderId());
+	    Integer orderAmountPaise = order.get("amount");
+	    if (orderAmountPaise == null || orderAmountPaise != expectedFeePaise) {
+	        logger.warn("Registration fee amount mismatch for vendor {}: order {} paid {} paise, expected {} paise",
+	                req.getVendorId(), req.getRazorpayOrderId(), orderAmountPaise, expectedFeePaise);
+	        return ResponseEntity.badRequest().body("Paid amount does not match the registration fee");
+	    }
+	    double verifiedAmount = orderAmountPaise / 100.0;
 
 	    VendorWallet wallet = VendorWalletRepo.findByVendor(req.getVendorId());
 	    if (wallet == null) {

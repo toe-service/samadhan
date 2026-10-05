@@ -130,13 +130,14 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		TransferVendor vendor = transferVendorRepository.findById(request.vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found: " + request.vendorId));
 
-		// Individual accounts can't do anything vendor-facing (post availability, add a vehicle,
-		// accept/create rides — see the same check in VehicleServiceImpl#enforceVehicleLimit,
-		// TransferRequestServiceImpl#requestTransferApproval/#requestRideTransfer) until the
-		// one-time Rs 199 registration fee is paid.
-		if (Boolean.TRUE.equals(vendor.getIsIndividual()) && !vendor.isRegistrationFeePaid()) {
+		// No vendor (individual or full) can do anything vendor-facing (post availability, add a
+		// vehicle, accept/create rides — see the same check in VehicleServiceImpl#enforceVehicleLimit,
+		// TransferRequestServiceImpl#requestTransferApproval/#requestRideTransfer) until their
+		// one-time registration fee is paid — Rs 199 or Rs 399, see TransferVendor#getRegistrationFeeRupees.
+		if (!vendor.isRegistrationFeePaid()) {
 			throw new RegistrationFeeRequiredException(
-					"Please pay the Rs 199 registration fee to activate your account before posting availability.");
+					"Please pay the Rs " + vendor.getRegistrationFeeRupees()
+					+ " registration fee to activate your account before posting availability.");
 		}
 
 		// Same subscription gate TransferRequestServiceImpl.requestRideTransfer applies before
@@ -236,9 +237,10 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		// Same registration-fee gate postAvailability applies — see the comment there.
 		TransferVendor vendor = availability.getTransferVendor();
-		if (Boolean.TRUE.equals(vendor.getIsIndividual()) && !vendor.isRegistrationFeePaid()) {
+		if (!vendor.isRegistrationFeePaid()) {
 			throw new RegistrationFeeRequiredException(
-					"Please pay the Rs 199 registration fee to activate your account before editing availability.");
+					"Please pay the Rs " + vendor.getRegistrationFeeRupees()
+					+ " registration fee to activate your account before editing availability.");
 		}
 
 		// Same subscription gate postAvailability applies when the posting is first created — a

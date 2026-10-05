@@ -365,6 +365,15 @@ public class TransferVendor {
 		return vendorStatus == VendorStatusEnum.Free_SUBSCRIPTION || vendorStatus == VendorStatusEnum.ACTIVE;
 	}
 
+	// One-time registration fee amount for THIS vendor — Rs 199 for an individual (owner-operator)
+	// account, Rs 399 for a full (fleet) vendor. Centralized here rather than duplicated as a
+	// ternary in PaymentController and every registrationFeePaid gate (VehicleServiceImpl,
+	// VendorAvailabilityServiceImpl, TransferRequestServiceImpl) so the two numbers only ever live
+	// in one place.
+	public int getRegistrationFeeRupees() {
+		return Boolean.TRUE.equals(isIndividual) ? 199 : 399;
+	}
+
 	public String getGstNumber() {
 		return gstNumber;
 	}

@@ -141,15 +141,18 @@ public class VehicleServiceImpl implements VehicleService{
 
 		int activeVehicleCount = vehicleRepo.findByVendorId(transferVendorId).size();
 
+		// One-time registration fee gate — Rs 199 (individual) or Rs 399 (full vendor), see
+		// TransferVendor#getRegistrationFeeRupees. No vendor of either kind can add even their
+		// first vehicle until it's paid (see PaymentController's /pay/registration-fee endpoints).
+		// Checked ahead of either fleet-size limit below since "haven't paid yet" is the more
+		// specific, more actionable reason to surface first.
+		if (!vendor.isRegistrationFeePaid()) {
+			throw new RegistrationFeeRequiredException(
+					"Please pay the Rs " + vendor.getRegistrationFeeRupees()
+					+ " registration fee to activate your account before adding a vehicle.");
+		}
+
 		if (Boolean.TRUE.equals(vendor.getIsIndividual())) {
-			// One-time Rs 199 registration fee gate — an individual account can't add even its
-			// first vehicle until it's paid (see PaymentController's /pay/registration-fee
-			// endpoints). Checked ahead of the fleet-size limit below since "haven't paid yet" is
-			// the more specific, more actionable reason to surface first.
-			if (!vendor.isRegistrationFeePaid()) {
-				throw new RegistrationFeeRequiredException(
-						"Please pay the Rs 199 registration fee to activate your account before adding a vehicle.");
-			}
 			if (activeVehicleCount >= INDIVIDUAL_VEHICLE_LIMIT) {
 				throw new VehicleLimitExceededException(
 						"Individual accounts are limited to " + INDIVIDUAL_VEHICLE_LIMIT + " vehicle. "
