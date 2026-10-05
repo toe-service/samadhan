@@ -96,6 +96,20 @@ public class GlobalExceptionHandler {
          );
     }
 
+    @ExceptionHandler(RegistrationFeeRequiredException.class)
+    public ResponseEntity<Object> handleRegistrationFeeRequired(
+    		RegistrationFeeRequiredException ex) {
+
+    	 logger.warn("Registration fee required: {}", ex.getMessage());
+    	 return ResponseEntity.status(403).body(
+                 ResponseUtil.populateResponseObject(
+                         null,
+                         "403",
+                         new Error("RegistrationFee", ex.getMessage())
+                 )
+         );
+    }
+
     // The vendor picked a vehicle that's too far from the pickup point to be assigned to this
     // ride — a specific, expected rejection (not a server fault), so the client can show
     // "pick a closer vehicle" instead of a generic error.

@@ -97,6 +97,23 @@ public class TransferVendor {
 	 @Column(name = "is_individual")
 	 private Boolean isIndividual;
 
+	 // Separate from vendorStatus/isSubscriber() — this gates whether an INDIVIDUAL (owner-
+	 // operator) vendor has paid the one-time Rs 199 registration fee (see
+	 // PaymentController's /pay/registration-fee endpoints), not whether they've bought a
+	 // subscription plan. Only ever checked for isIndividual=true vendors (see
+	 // VehicleServiceImpl#createVehicle); a non-individual vendor's value here is simply never
+	 // consulted, so it staying false by default for everyone is harmless.
+	 @Column(name = "registration_fee_paid")
+	 private boolean registrationFeePaid;
+
+	 public boolean isRegistrationFeePaid() {
+		 return registrationFeePaid;
+	 }
+
+	 public void setRegistrationFeePaid(boolean registrationFeePaid) {
+		 this.registrationFeePaid = registrationFeePaid;
+	 }
+
 	 // Legal record of Terms & Conditions acceptance at registration time. termsText is a full
 	 // snapshot of the exact wording shown to the vendor (not just a version number) so that if
 	 // the Terms are edited later, there is still an immutable record of what was actually

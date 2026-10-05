@@ -34,6 +34,7 @@ import com.samadhan.entity.VendorAvailabilityMatch;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
+import com.samadhan.exception.RegistrationFeeRequiredException;
 import com.samadhan.exception.ResourceNotFoundException;
 import com.samadhan.exception.SubscriptionSuspendedException;
 import com.samadhan.repository.AvailablePostingProjection;
@@ -128,6 +129,15 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 		TransferVendor vendor = transferVendorRepository.findById(request.vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found: " + request.vendorId));
+
+		// Individual accounts can't do anything vendor-facing (post availability, add a vehicle,
+		// accept/create rides — see the same check in VehicleServiceImpl#enforceVehicleLimit,
+		// TransferRequestServiceImpl#requestTransferApproval/#requestRideTransfer) until the
+		// one-time Rs 199 registration fee is paid.
+		if (Boolean.TRUE.equals(vendor.getIsIndividual()) && !vendor.isRegistrationFeePaid()) {
+			throw new RegistrationFeeRequiredException(
+					"Please pay the Rs 199 registration fee to activate your account before posting availability.");
+		}
 
 		// Same subscription gate TransferRequestServiceImpl.requestRideTransfer applies before
 		// letting a vendor take on new rides — an expired/suspended vendor shouldn't be able to
@@ -224,10 +234,16 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			throw new AccessDeniedException("You are not authorized to edit this availability posting");
 		}
 
+		// Same registration-fee gate postAvailability applies — see the comment there.
+		TransferVendor vendor = availability.getTransferVendor();
+		if (Boolean.TRUE.equals(vendor.getIsIndividual()) && !vendor.isRegistrationFeePaid()) {
+			throw new RegistrationFeeRequiredException(
+					"Please pay the Rs 199 registration fee to activate your account before editing availability.");
+		}
+
 		// Same subscription gate postAvailability applies when the posting is first created — a
 		// vendor whose trial/plan has since lapsed shouldn't be able to keep an existing posting
 		// fresh by editing it either, since that's effectively still soliciting new rides on it.
-		TransferVendor vendor = availability.getTransferVendor();
 		if (vendor.getVendorStatus().name().equals("SUSPENDED")) {
 			throw new SubscriptionSuspendedException("Your subscription is suspended. Please contact support or renew your subscription.");
 		} else if (vendor.getVendorStatus().name().equals("SUBSCRIPTION_PENDING")) {
