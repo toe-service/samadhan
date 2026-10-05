@@ -260,12 +260,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		//transferRequest.setTransferCalculation(rideCost);
 		if(userType!=null && userType.equalsIgnoreCase("Vendor")){
-			// Individual accounts can't create their own rides either until the one-time Rs 199
-			// registration fee is paid — same reasoning as the accept-path gate in
+			// No vendor (individual or full) can create their own rides either until their
+			// one-time registration fee is paid — same reasoning as the accept-path gate in
 			// requestTransferApproval and the vehicle-creation gate in VehicleServiceImpl.
-			if (vendor != null && Boolean.TRUE.equals(vendor.getIsIndividual()) && !vendor.isRegistrationFeePaid()) {
+			if (vendor != null && !vendor.isRegistrationFeePaid()) {
 				throw new RegistrationFeeRequiredException(
-						"Please pay the Rs 199 registration fee to activate your account before creating rides.");
+						"Please pay the Rs " + vendor.getRegistrationFeeRupees()
+						+ " registration fee to activate your account before creating rides.");
 			}
 //			TransferVendor vendor = null;
 			UserDetails userDetail = userRepo
@@ -448,13 +449,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		TransferVendor transferVendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendor not found with id: " + vendorId));
 
-		// Individual accounts can't accept new rides until the one-time Rs 199 registration fee is
-		// paid — same reasoning as VehicleServiceImpl#enforceVehicleLimit. Scoped to accept(1) only,
-		// same as the wallet-balance gate just below: a vendor already holding a request can still
-		// decline(2)/cancel(3) it regardless of this flag.
-		if (transferApproval == 1 && Boolean.TRUE.equals(transferVendor.getIsIndividual()) && !transferVendor.isRegistrationFeePaid()) {
+		// No vendor (individual or full) can accept new rides until their one-time registration
+		// fee is paid — same reasoning as VehicleServiceImpl#enforceVehicleLimit. Scoped to
+		// accept(1) only, same as the wallet-balance gate just below: a vendor already holding a
+		// request can still decline(2)/cancel(3) it regardless of this flag.
+		if (transferApproval == 1 && !transferVendor.isRegistrationFeePaid()) {
 			throw new RegistrationFeeRequiredException(
-					"Please pay the Rs 199 registration fee to activate your account before accepting rides.");
+					"Please pay the Rs " + transferVendor.getRegistrationFeeRupees()
+					+ " registration fee to activate your account before accepting rides.");
 		}
 
 		// Gate on wallet balance, not subscription status — a vendor with a low/negative wallet
