@@ -12,6 +12,8 @@ public class PublicVendorProfileDto {
 	private Boolean isIndividual;
 	private Boolean verified;
 	private List<String> services;
+	private Double avgRating;
+	private Integer ratingCount;
 
 	public String getVendorName() {
 		return vendorName;
@@ -75,5 +77,21 @@ public class PublicVendorProfileDto {
 
 	public void setServices(List<String> services) {
 		this.services = services;
+	}
+
+	public Double getAvgRating() {
+		return avgRating;
+	}
+
+	public void setAvgRating(Double avgRating) {
+		this.avgRating = avgRating;
+	}
+
+	public Integer getRatingCount() {
+		return ratingCount;
+	}
+
+	public void setRatingCount(Integer ratingCount) {
+		this.ratingCount = ratingCount;
 	}
 }

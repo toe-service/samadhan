@@ -276,6 +276,8 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		dto.setVendorEmail(vendor.getVendorEmail());
 		dto.setIsIndividual(vendor.getIsIndividual());
 		dto.setVerified(true);
+		dto.setAvgRating(vendor.getAvgRating());
+		dto.setRatingCount(vendor.getRatingCount());
 
 		List<String> services = vendor.getVendorServices() == null
 				? List.of()
