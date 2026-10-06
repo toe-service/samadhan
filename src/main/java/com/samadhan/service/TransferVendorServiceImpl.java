@@ -259,11 +259,16 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		// registerVendor flow (every new vendor lands on Free_SUBSCRIPTION immediately — see
 		// there), but it's still the enum's ordinal-0 value, so any legacy row predating that
 		// flow (or with a null vendor_status) would be a real, active vendor incorrectly hidden
-		// by a whitelist. Only REJECTED/SUSPENDED vendors are actually excluded from the public
-		// page, 404'ing the same as a name that doesn't exist so as not to leak which case it is.
+		// by a whitelist. REJECTED/SUSPENDED are excluded for cause; SUBSCRIPTION_PENDING means
+		// the free trial ended without the vendor paying, so the page goes away the same as it
+		// would for any other lapsed subscriber -- Free_SUBSCRIPTION (still mid-trial) and ACTIVE
+		// (paid) both keep the page, matching the same trial-counts-as-subscribed rule
+		// VendorAvailabilityServiceImpl#postAvailability already uses. 404s the same as a name
+		// that doesn't exist at all, so as not to leak which case it is.
 		VendorStatusEnum status = vendor.getVendorStatus();
 		boolean publiclyHidden = status == VendorStatusEnum.REJECTED
-				|| status == VendorStatusEnum.SUSPENDED;
+				|| status == VendorStatusEnum.SUSPENDED
+				|| status == VendorStatusEnum.SUBSCRIPTION_PENDING;
 		if (publiclyHidden) {
 			throw new NotFoundException("Vendor not found");
 		}
@@ -276,6 +281,8 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		dto.setVendorEmail(vendor.getVendorEmail());
 		dto.setIsIndividual(vendor.getIsIndividual());
 		dto.setVerified(true);
+		dto.setAvgRating(vendor.getAvgRating());
+		dto.setRatingCount(vendor.getRatingCount());
 
 		List<String> services = vendor.getVendorServices() == null
 				? List.of()
