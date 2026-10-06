@@ -1376,6 +1376,19 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			return false;
 		}
 
+		// Only Book-Vehicle and Package-shift requests are ever offered to a vehicle directly —
+		// Bike-shift, Car-shift, and Home Shifting are vendor-only (vendor assigns one of their
+		// own vehicles after accepting), so they must never show up in a vehicle's own feed either,
+		// same rule as FireBaseMessagingService.notifyVehicles.
+		if (ride.getServiceType() == serviceTypeEnum.TRANSFERSERVICE) {
+			ParcelTypeEnum actualParcelType = ride.getParcelDetails() != null ? ride.getParcelDetails().getParcelType() : null;
+			if (actualParcelType != ParcelTypeEnum.Package) {
+				return false;
+			}
+		} else if (ride.getServiceType() != serviceTypeEnum.BOOKVEHICLE) {
+			return false;
+		}
+
 		// Long-haul rides (over 100km) are only offered to vendor/fleet vehicles, not
 		// individual (single-vehicle owner-operator) registrants. A missing vendor link or an
 		// unset isIndividual (legacy vendors predating this flag) is treated as "not

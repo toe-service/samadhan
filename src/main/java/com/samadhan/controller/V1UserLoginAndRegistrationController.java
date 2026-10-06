@@ -91,14 +91,7 @@ public class V1UserLoginAndRegistrationController {
     @PostMapping("/user-otp-verify")
     public ResponseEntity<ResponseObject<UserOtpVerifyResponse>> loginUser(@RequestBody UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         logger.info("User login request is {}", userOtpVerifyRequest.toString());
-        UserDetails userDetails;
-
-        if (userOtpVerifyRequest.getOtp() == 1234) {
-            userDetails = userService.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
-                    .orElseThrow(() -> new OtpMismatchException("user details not found"));
-        } else {
-            userDetails = loginService.isOtpValid(userOtpVerifyRequest);
-        }
+        UserDetails userDetails = loginService.isOtpValid(userOtpVerifyRequest);
 
         String userRole = userDetails.getUserRole() != null ? userDetails.getUserRole() : "USER";
 
@@ -158,10 +151,6 @@ public class V1UserLoginAndRegistrationController {
     public ResponseEntity<ResponseObject<?>> generateAndSendOtp(
             @Valid @RequestBody UserOtpRequest userOtpRequest) throws ConflictException {
         logger.info("User Register request is {}", userOtpRequest);
-        if(userOtpRequest.getContactNumber().equalsIgnoreCase("914060test")) {
-            ResponseObject<UserOtpRequest> success = ResponseUtil.populateResponseObject(userOtpRequest, "SUCCESS", null);
-            return ResponseEntity.ok(success);
-        }
         loginService.sendOtp(userOtpRequest);
         ResponseObject<UserOtpRequest> success = ResponseUtil.populateResponseObject(userOtpRequest, "SUCCESS", null);
         return ResponseEntity.ok(success);
