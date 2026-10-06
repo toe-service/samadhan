@@ -89,9 +89,28 @@ public class FireBaseMessagingService {
 		    log.warn("Request {} has no pickup coordinates, cannot notify nearby vehicles", request.getId());
 		    return;
 		}
-		
+
 		if(request.getVendorPickupVehicle() == null && request.getUserType().equalsIgnoreCase("Vendor")) {
 			  return;
+		}
+
+		// Only Book-Vehicle and Package-shift requests are ever offered to a vehicle directly —
+		// Bike-shift, Car-shift (TRANSFERSERVICE with those parcel types) and Home Shifting are
+		// vendor-only (vendor assigns one of their own vehicles after accepting), so a vehicle must
+		// never be pushed a request for those, regardless of vendorPickupVehicle being set.
+		boolean vehicleEligibleServiceType;
+		if (request.getServiceType() == com.samadhan.enums.serviceTypeEnum.BOOKVEHICLE) {
+			vehicleEligibleServiceType = true;
+		} else if (request.getServiceType() == com.samadhan.enums.serviceTypeEnum.TRANSFERSERVICE) {
+			com.samadhan.enums.ParcelTypeEnum actualParcelType =
+					request.getParcelDetails() != null ? request.getParcelDetails().getParcelType() : null;
+			vehicleEligibleServiceType = actualParcelType == com.samadhan.enums.ParcelTypeEnum.Package;
+		} else {
+			vehicleEligibleServiceType = false;
+		}
+		if (!vehicleEligibleServiceType) {
+			log.info("Request {} is a {} request, not eligible for vehicle notifications", request.getId(), request.getServiceType());
+			return;
 		}
 
 		// The requested vehicle type plus the next larger ones: a bigger vehicle standing

@@ -1831,7 +1831,7 @@ public class PaymentServiceImpl {
 	            return new VehicleRateConfig(45, 1, 7, 6, 5);
 
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(55, 1, 8, 7, 6);
+	            return new VehicleRateConfig(48, 1, 8, 7, 6);
 
 	        case EECO:
 	            return new VehicleRateConfig(130, 1, 13, 11, 10);
