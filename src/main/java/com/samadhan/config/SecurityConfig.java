@@ -93,6 +93,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/location/search").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/source/search").permitAll()
                 .antMatchers(HttpMethod.GET, "/location/latlong").permitAll()
+                // Reverse geocode (lat/lng -> address) for "Use Current Location" — same
+                // read-only, non-sensitive nature as the forward geocode above, and needed by
+                // CreateTransfer/BookVehicle/HomeShifting on the vendor website, which are also
+                // reachable as public, no-login customer-facing pages (see axiosConfig.js), not
+                // just by logged-in vendors.
+                .antMatchers(HttpMethod.GET, "/location").permitAll()
                 .antMatchers(HttpMethod.GET, "/pay/bookVehicleCostList").permitAll()
                 .antMatchers(HttpMethod.GET, "/pay/rideCostCalculation").permitAll()
                 // Razorpay calls this server-to-server with no JWT — protected instead by its own
