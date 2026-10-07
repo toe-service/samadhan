@@ -29,6 +29,7 @@ import com.samadhan.dto.RouteResponse;
 import com.samadhan.dto.RouteWaypoint;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.TransferVendor;
+import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VendorAvailability;
 import com.samadhan.entity.VendorAvailabilityMatch;
 import com.samadhan.enums.VendorPickupVehicleEnum;
@@ -85,6 +86,9 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 
 	@Autowired
 	TransferVendorRepository transferVendorRepository;
+
+	@Autowired
+	com.samadhan.repository.VehicleRepository vehicleRepository;
 
 	@Autowired
 	TransferRequestRepository transferRequestRepository;
@@ -148,6 +152,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		} else if (vendor.getVendorStatus().name().equals("SUBSCRIPTION_PENDING")) {
 			throw new SubscriptionSuspendedException("Your free subscription Period is over. Buy your subscription.");
 		}
+
+		validateVehicleOwnership(request.vendorId, request.vehicleNumber);
 
 		VendorAvailability availability = new VendorAvailability();
 		availability.setTransferVendor(vendor);
@@ -252,6 +258,8 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 			throw new SubscriptionSuspendedException("Your free subscription Period is over. Buy your subscription.");
 		}
 
+		validateVehicleOwnership(vendorId, request.vehicleNumber);
+
 		availability.setFromLocation(request.fromLocation);
 		availability.setFromLatitude(request.fromLatitude);
 		availability.setFromLongitude(request.fromLongitude);
@@ -330,6 +338,27 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		vendorAvailabilityRepository.save(availability);
 		// A cancelled posting should stop contributing matches immediately.
 		safeRecomputeForVendor(vendorId);
+	}
+
+	// Confirms a posted vehicleNumber actually belongs to the posting vendor's own fleet, before
+	// postAvailability/updateAvailability save anything. Without this, any vendor could advertise
+	// any vehicle on the platform -- including another vendor's real registered truck (misleading
+	// whoever calls expecting it) or a vehicle number that doesn't exist at all -- since the
+	// dashboard's vehicle dropdown only restricts this client-side, not something a direct API
+	// call has to go through. A blank/missing vehicleNumber is left alone (not an error) -- it
+	// means "any vehicle from my fleet" (see PostingContext.postingVehicle's null case), a
+	// legitimate choice with nothing to validate against.
+	private void validateVehicleOwnership(Long vendorId, String vehicleNumber) {
+		if (vehicleNumber == null || vehicleNumber.isBlank()) {
+			return;
+		}
+		Vehicle vehicle = vehicleRepository.findByVehicleNumber(vehicleNumber);
+		if (vehicle == null) {
+			throw new ResourceNotFoundException("Vehicle not found: " + vehicleNumber);
+		}
+		if (vehicle.getTransferVendor() == null || !vendorId.equals(vehicle.getTransferVendor().getId())) {
+			throw new AccessDeniedException("Vehicle " + vehicleNumber + " does not belong to this vendor");
+		}
 	}
 
 	// Wraps recomputeAndPersistForVendor so a failure here (e.g. a transient DB hiccup) can never
