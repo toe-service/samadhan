@@ -45,6 +45,13 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	@Query(value="select * from vehicle where LOWER(user_name)=LOWER(:userName) ORDER BY id ASC LIMIT 1",nativeQuery=true)
 	Vehicle findByUserName(@Param("userName") String userName);
 
+	// Ownership lookup for VendorAvailabilityServiceImpl#postAvailability/#updateAvailability —
+	// confirms a posted vehicleNumber actually belongs to the posting vendor before saving. LIMIT 1
+	// + deterministic ORDER BY for the same reason as findByUserName above: vehicle_number has no
+	// DB-level unique constraint, so a single-result query needs a tiebreaker against duplicates.
+	@Query(value="select * from vehicle where vehicle_number=:vehicleNumber ORDER BY id ASC LIMIT 1",nativeQuery=true)
+	Vehicle findByVehicleNumber(@Param("vehicleNumber") String vehicleNumber);
+
 
 	@Query(value =
 	        "SELECT v.* " +
