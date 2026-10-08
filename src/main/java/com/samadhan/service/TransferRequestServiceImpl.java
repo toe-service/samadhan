@@ -1555,13 +1555,34 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	}
 
 	@Override
-	public List<TransferRequestDetails> getVehicleRideHistory(Long vehicleId, Long vendorId) {
-		return transferRepo.findByVehicleIdOrderByRequestCreatedDateDesc(vehicleId, vendorId);
+	public com.samadhan.dto.RideHistoryPageDto getVehicleRideHistory(Long vehicleId, Long vendorId, int page, int size) {
+		int safePage = Math.max(page, 0);
+		int safeSize = Math.max(size, 1);
+		org.springframework.data.domain.Page<TransferRequestDetails> result = transferRepo
+				.findByVehicleIdOrderByRequestCreatedDateDesc(vehicleId, vendorId,
+						org.springframework.data.domain.PageRequest.of(safePage, safeSize));
+		return toRideHistoryPage(result, safePage, safeSize);
 	}
 
 	@Override
-	public List<TransferRequestDetails> getAgentRideHistory(Long driverId, Long vendorId) {
-		return transferRepo.findByDriverIdOrderByRequestCreatedDateDesc(driverId, vendorId);
+	public com.samadhan.dto.RideHistoryPageDto getAgentRideHistory(Long driverId, Long vendorId, int page, int size) {
+		int safePage = Math.max(page, 0);
+		int safeSize = Math.max(size, 1);
+		org.springframework.data.domain.Page<TransferRequestDetails> result = transferRepo
+				.findByDriverIdOrderByRequestCreatedDateDesc(driverId, vendorId,
+						org.springframework.data.domain.PageRequest.of(safePage, safeSize));
+		return toRideHistoryPage(result, safePage, safeSize);
+	}
+
+	private com.samadhan.dto.RideHistoryPageDto toRideHistoryPage(
+			org.springframework.data.domain.Page<TransferRequestDetails> result, int page, int size) {
+		com.samadhan.dto.RideHistoryPageDto dto = new com.samadhan.dto.RideHistoryPageDto();
+		dto.setRides(result.getContent());
+		dto.setTotalElements(result.getTotalElements());
+		dto.setTotalPages(result.getTotalPages());
+		dto.setPage(page);
+		dto.setSize(size);
+		return dto;
 	}
 
 	

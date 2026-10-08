@@ -714,25 +714,33 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	List<AgentPerformanceProjection> findAgentPerformanceByVendor(@Param("vendorId") Long vendorId);
 
-	// Full ride history for one vehicle/agent -- backs the drill-down view from the Fleet/Team
-	// Performance page (tap a vehicle or agent to see every job it's ever done, not just the
-	// aggregate counts above).
-	// Vendor ownership enforced in the query itself (not just the controller) -- the vehicle must
-	// belong to :vendorId, so one vendor can't read another vendor's fleet history by guessing ids.
+	// Full ride history for one vehicle/agent, paginated -- backs the drill-down popup from the
+	// Fleet/Team Performance page (tap a vehicle or agent to see every job it's ever done, not
+	// just the aggregate counts above). Vendor ownership enforced in the query itself (not just
+	// the controller) -- the vehicle/driver must belong to :vendorId, so one vendor can't read
+	// another vendor's fleet history by guessing ids.
 	@Query(value = "SELECT trd.* FROM transfer_request_details trd " +
 	        "JOIN vehicle v ON v.id = trd.vehicle_id " +
 	        "WHERE trd.vehicle_id = :vehicleId AND v.transfer_id = :vendorId " +
 	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) ORDER BY trd.request_created_date DESC",
+	        countQuery = "SELECT COUNT(*) FROM transfer_request_details trd " +
+	        "JOIN vehicle v ON v.id = trd.vehicle_id " +
+	        "WHERE trd.vehicle_id = :vehicleId AND v.transfer_id = :vendorId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0)",
 	        nativeQuery = true)
-	List<TransferRequestDetails> findByVehicleIdOrderByRequestCreatedDateDesc(
-	        @Param("vehicleId") Long vehicleId, @Param("vendorId") Long vendorId);
+	Page<TransferRequestDetails> findByVehicleIdOrderByRequestCreatedDateDesc(
+	        @Param("vehicleId") Long vehicleId, @Param("vendorId") Long vendorId, Pageable pageable);
 
 	@Query(value = "SELECT trd.* FROM transfer_request_details trd " +
 	        "JOIN driver d ON d.id = trd.driver_id " +
 	        "WHERE trd.driver_id = :driverId AND d.transfer_id = :vendorId " +
 	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) ORDER BY trd.request_created_date DESC",
+	        countQuery = "SELECT COUNT(*) FROM transfer_request_details trd " +
+	        "JOIN driver d ON d.id = trd.driver_id " +
+	        "WHERE trd.driver_id = :driverId AND d.transfer_id = :vendorId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0)",
 	        nativeQuery = true)
-	List<TransferRequestDetails> findByDriverIdOrderByRequestCreatedDateDesc(
-	        @Param("driverId") Long driverId, @Param("vendorId") Long vendorId);
+	Page<TransferRequestDetails> findByDriverIdOrderByRequestCreatedDateDesc(
+	        @Param("driverId") Long driverId, @Param("vendorId") Long vendorId, Pageable pageable);
 
 }

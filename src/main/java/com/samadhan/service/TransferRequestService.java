@@ -74,8 +74,8 @@ public interface TransferRequestService{
 
 	public List<com.samadhan.dto.AgentPerformanceDto> getAgentPerformance(Long vendorId);
 
-	public List<TransferRequestDetails> getVehicleRideHistory(Long vehicleId, Long vendorId);
+	public com.samadhan.dto.RideHistoryPageDto getVehicleRideHistory(Long vehicleId, Long vendorId, int page, int size);
 
-	public List<TransferRequestDetails> getAgentRideHistory(Long driverId, Long vendorId);
+	public com.samadhan.dto.RideHistoryPageDto getAgentRideHistory(Long driverId, Long vendorId, int page, int size);
 
 }
