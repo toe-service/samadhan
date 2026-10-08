@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.samadhan.dto.PublicVendorProfileDto;
+import com.samadhan.dto.StoredImageResponse;
 import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorWallet;
@@ -27,5 +28,11 @@ public interface TransferVendorService {
 	void deductLeadCost(Long vendorId, Long requestId, String userType);
 
 	PublicVendorProfileDto getPublicVendorProfile(String vendorSlug) throws NotFoundException;
+
+	TransferVendor updateProfileContent(Long vendorId, String businessTagline, String aboutText);
+
+	TransferVendor uploadProfileImage(Long vendorId, String type, MultipartFile file);
+
+	StoredImageResponse getPublicProfileImage(String vendorSlug, String type) throws NotFoundException;
 
 }

@@ -14,6 +14,10 @@ public class PublicVendorProfileDto {
 	private List<String> services;
 	private Double avgRating;
 	private Integer ratingCount;
+	private String businessTagline;
+	private String aboutText;
+	private String logoUrl;
+	private String coverImageUrl;
 
 	public String getVendorName() {
 		return vendorName;
@@ -93,5 +97,37 @@ public class PublicVendorProfileDto {
 
 	public void setRatingCount(Integer ratingCount) {
 		this.ratingCount = ratingCount;
+	}
+
+	public String getBusinessTagline() {
+		return businessTagline;
+	}
+
+	public void setBusinessTagline(String businessTagline) {
+		this.businessTagline = businessTagline;
+	}
+
+	public String getAboutText() {
+		return aboutText;
+	}
+
+	public void setAboutText(String aboutText) {
+		this.aboutText = aboutText;
+	}
+
+	public String getLogoUrl() {
+		return logoUrl;
+	}
+
+	public void setLogoUrl(String logoUrl) {
+		this.logoUrl = logoUrl;
+	}
+
+	public String getCoverImageUrl() {
+		return coverImageUrl;
+	}
+
+	public void setCoverImageUrl(String coverImageUrl) {
+		this.coverImageUrl = coverImageUrl;
 	}
 }

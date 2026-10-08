@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.samadhan.dto.PublicVendorProfileDto;
+import com.samadhan.dto.StoredImageResponse;
 import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
@@ -255,21 +256,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 			throw new NotFoundException("Vendor not found");
 		}
 
-		// Blacklist, not whitelist: VERIFICATION_PENDING is never actually set by the current
-		// registerVendor flow (every new vendor lands on Free_SUBSCRIPTION immediately — see
-		// there), but it's still the enum's ordinal-0 value, so any legacy row predating that
-		// flow (or with a null vendor_status) would be a real, active vendor incorrectly hidden
-		// by a whitelist. REJECTED/SUSPENDED are excluded for cause; SUBSCRIPTION_PENDING means
-		// the free trial ended without the vendor paying, so the page goes away the same as it
-		// would for any other lapsed subscriber -- Free_SUBSCRIPTION (still mid-trial) and ACTIVE
-		// (paid) both keep the page, matching the same trial-counts-as-subscribed rule
-		// VendorAvailabilityServiceImpl#postAvailability already uses. 404s the same as a name
-		// that doesn't exist at all, so as not to leak which case it is.
-		VendorStatusEnum status = vendor.getVendorStatus();
-		boolean publiclyHidden = status == VendorStatusEnum.REJECTED
-				|| status == VendorStatusEnum.SUSPENDED
-				|| status == VendorStatusEnum.SUBSCRIPTION_PENDING;
-		if (publiclyHidden) {
+		if (isPubliclyHidden(vendor)) {
 			throw new NotFoundException("Vendor not found");
 		}
 
@@ -283,6 +270,18 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		dto.setVerified(true);
 		dto.setAvgRating(vendor.getAvgRating());
 		dto.setRatingCount(vendor.getRatingCount());
+		dto.setBusinessTagline(vendor.getBusinessTagline());
+		dto.setAboutText(vendor.getAboutText());
+		// Proxy URLs, not direct storage links -- the bucket may not be publicly readable, and
+		// this keeps the storage key itself out of the public response. Null (not an empty-image
+		// link) when the vendor never uploaded one, so the frontend can fall back to a generated
+		// placeholder instead of requesting a 404.
+		if (vendor.getLogoStorageKey() != null && !vendor.getLogoStorageKey().isBlank()) {
+			dto.setLogoUrl("/transferVendor/public-profile/" + vendorSlug + "/logo");
+		}
+		if (vendor.getCoverImageStorageKey() != null && !vendor.getCoverImageStorageKey().isBlank()) {
+			dto.setCoverImageUrl("/transferVendor/public-profile/" + vendorSlug + "/cover");
+		}
 
 		List<String> services = vendor.getVendorServices() == null
 				? List.of()
@@ -293,6 +292,100 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		dto.setServices(services);
 
 		return dto;
+	}
+
+	// Same cases getPublicVendorProfile already excluded, pulled out so getPublicProfileImage
+	// below enforces the identical rule — a lapsed/suspended/rejected vendor's logo or cover
+	// photo shouldn't be fetchable even if someone already has the direct image URL cached from
+	// before their page went away.
+	private boolean isPubliclyHidden(TransferVendor vendor) {
+		VendorStatusEnum status = vendor.getVendorStatus();
+		return status == VendorStatusEnum.REJECTED
+				|| status == VendorStatusEnum.SUSPENDED
+				|| status == VendorStatusEnum.SUBSCRIPTION_PENDING;
+	}
+
+	private static final int BUSINESS_TAGLINE_MAX_LENGTH = 150;
+	private static final int ABOUT_TEXT_MAX_LENGTH = 2000;
+
+	// Vendor-editable public-page copy (TransferVendorController's /profile-content) — separate
+	// from registerVendor's one-time KYC fields, this can be changed as often as the vendor likes.
+	// Length-capped so the public page's layout can't be blown out by an arbitrarily long paste.
+	@Override
+	public TransferVendor updateProfileContent(Long vendorId, String businessTagline, String aboutText) {
+		TransferVendor vendor = transferVendorRepo.findById(vendorId)
+				.orElseThrow(() -> new com.samadhan.exception.ResourceNotFoundException("Vendor not found: " + vendorId));
+
+		if (businessTagline != null && businessTagline.length() > BUSINESS_TAGLINE_MAX_LENGTH) {
+			throw new IllegalArgumentException(
+					"Business tagline must be " + BUSINESS_TAGLINE_MAX_LENGTH + " characters or fewer");
+		}
+		if (aboutText != null && aboutText.length() > ABOUT_TEXT_MAX_LENGTH) {
+			throw new IllegalArgumentException(
+					"About text must be " + ABOUT_TEXT_MAX_LENGTH + " characters or fewer");
+		}
+
+		vendor.setBusinessTagline(businessTagline != null && businessTagline.isBlank() ? null : businessTagline);
+		vendor.setAboutText(aboutText != null && aboutText.isBlank() ? null : aboutText);
+		return transferVendorRepo.save(vendor);
+	}
+
+	// Vendor-editable public-page branding image (TransferVendorController's /profile-image) —
+	// "logo" or "cover", reuses the same upload mechanics as the KYC documents (uploadVendorDocument
+	// below) but under its own folder and with an image-only content-type check, since this one's
+	// served back to the public (see getPublicProfileImage) rather than staying private.
+	@Override
+	public TransferVendor uploadProfileImage(Long vendorId, String type, MultipartFile file) {
+		TransferVendor vendor = transferVendorRepo.findById(vendorId)
+				.orElseThrow(() -> new com.samadhan.exception.ResourceNotFoundException("Vendor not found: " + vendorId));
+
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("No file provided");
+		}
+		String contentType = file.getContentType();
+		if (contentType == null || !contentType.startsWith("image/")) {
+			throw new IllegalArgumentException("Only image files are allowed");
+		}
+
+		String storageKey = uploadVendorDocument(vendorId, file, "branding/" + type);
+		if ("cover".equalsIgnoreCase(type)) {
+			vendor.setCoverImageStorageKey(storageKey);
+		} else {
+			vendor.setLogoStorageKey(storageKey);
+		}
+		return transferVendorRepo.save(vendor);
+	}
+
+	private static final java.util.Map<String, String> IMAGE_CONTENT_TYPES_BY_EXTENSION = java.util.Map.of(
+			"png", "image/png",
+			"jpg", "image/jpeg",
+			"jpeg", "image/jpeg",
+			"webp", "image/webp",
+			"gif", "image/gif",
+			"svg", "image/svg+xml"
+	);
+
+	// Public, no-auth image proxy backing getPublicVendorProfile's logoUrl/coverImageUrl — streams
+	// the stored bytes back rather than redirecting to a direct bucket URL, since the bucket isn't
+	// necessarily publicly readable and this keeps the storage key itself out of any response.
+	@Override
+	public StoredImageResponse getPublicProfileImage(String vendorSlug, String type) throws NotFoundException {
+		TransferVendor vendor = transferVendorRepo.findByVendorNameSlug(vendorSlug);
+		if (vendor == null || isPubliclyHidden(vendor)) {
+			throw new NotFoundException("Vendor not found");
+		}
+
+		String storageKey = "cover".equalsIgnoreCase(type)
+				? vendor.getCoverImageStorageKey() : vendor.getLogoStorageKey();
+		if (storageKey == null || storageKey.isBlank()) {
+			throw new NotFoundException("Image not found");
+		}
+
+		byte[] data = storageService.getObjectAsBytes(storageKey);
+		String extension = storageKey.contains(".")
+				? storageKey.substring(storageKey.lastIndexOf('.') + 1).toLowerCase() : "";
+		String contentType = IMAGE_CONTENT_TYPES_BY_EXTENSION.getOrDefault(extension, "image/jpeg");
+		return new StoredImageResponse(data, contentType);
 	}
 
 	private String uploadVendorDocument(Long vendorId, MultipartFile file, String folderName) {
