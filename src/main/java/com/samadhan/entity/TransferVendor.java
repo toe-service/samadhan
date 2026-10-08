@@ -114,6 +114,56 @@ public class TransferVendor {
 		 this.registrationFeePaid = registrationFeePaid;
 	 }
 
+	 // Vendor-editable public-page branding content (see TransferVendorController's
+	 // /profile-content and /profile-image endpoints) -- all optional, all null until a vendor
+	 // deliberately sets them from the dashboard. getPublicVendorProfile falls back to generated
+	 // copy (vendor name, city, services) when these are blank, so an un-customized page still
+	 // looks complete rather than empty.
+	 @Column(name = "business_tagline")
+	 private String businessTagline;
+
+	 @Lob
+	 @Column(name = "about_text", columnDefinition = "TEXT")
+	 private String aboutText;
+
+	 @Column(name = "logo_storage_key")
+	 private String logoStorageKey;
+
+	 @Column(name = "cover_image_storage_key")
+	 private String coverImageStorageKey;
+
+	 public String getBusinessTagline() {
+		 return businessTagline;
+	 }
+
+	 public void setBusinessTagline(String businessTagline) {
+		 this.businessTagline = businessTagline;
+	 }
+
+	 public String getAboutText() {
+		 return aboutText;
+	 }
+
+	 public void setAboutText(String aboutText) {
+		 this.aboutText = aboutText;
+	 }
+
+	 public String getLogoStorageKey() {
+		 return logoStorageKey;
+	 }
+
+	 public void setLogoStorageKey(String logoStorageKey) {
+		 this.logoStorageKey = logoStorageKey;
+	 }
+
+	 public String getCoverImageStorageKey() {
+		 return coverImageStorageKey;
+	 }
+
+	 public void setCoverImageStorageKey(String coverImageStorageKey) {
+		 this.coverImageStorageKey = coverImageStorageKey;
+	 }
+
 	 // Legal record of Terms & Conditions acceptance at registration time. termsText is a full
 	 // snapshot of the exact wording shown to the vendor (not just a version number) so that if
 	 // the Terms are edited later, there is still an immutable record of what was actually

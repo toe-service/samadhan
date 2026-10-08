@@ -85,6 +85,71 @@ public class TransferVendorController {
 		return ResponseEntity.ok(success);
 	}
 
+	// Public, no auth — streams the vendor's uploaded logo/cover bytes back with a real
+	// Content-Type so a plain <img src="..."> tag works, same not-found-vs-hidden ambiguity as
+	// getPublicVendorProfile above (see TransferVendorServiceImpl#getPublicProfileImage).
+	@GetMapping(value = "/public-profile/{vendorSlug}/logo")
+	public ResponseEntity<byte[]> getPublicLogo(@PathVariable String vendorSlug) throws NotFoundException {
+		com.samadhan.dto.StoredImageResponse image = transferVendorService.getPublicProfileImage(vendorSlug, "logo");
+		return ResponseEntity.ok()
+				.header("Content-Type", image.getContentType())
+				.header("Cache-Control", "public, max-age=3600")
+				.body(image.getData());
+	}
+
+	@GetMapping(value = "/public-profile/{vendorSlug}/cover")
+	public ResponseEntity<byte[]> getPublicCover(@PathVariable String vendorSlug) throws NotFoundException {
+		com.samadhan.dto.StoredImageResponse image = transferVendorService.getPublicProfileImage(vendorSlug, "cover");
+		return ResponseEntity.ok()
+				.header("Content-Type", image.getContentType())
+				.header("Cache-Control", "public, max-age=3600")
+				.body(image.getData());
+	}
+
+	// Vendor-editable public-page copy. Ownership-checked the same way as wallet transactions
+	// below — the JWT's own vendorId must match the vendorId being edited.
+	@org.springframework.web.bind.annotation.PutMapping(value = "/profile-content/{vendorId}")
+	public ResponseEntity<ResponseObject<TransferVendor>> updateProfileContent(
+			@PathVariable Long vendorId,
+			@RequestBody com.samadhan.request.VendorProfileContentRequest request,
+			HttpServletRequest httpRequest) {
+
+		String authHeader = httpRequest.getHeader("Authorization");
+		String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+		Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+		if (tokenVendorId == null || !tokenVendorId.equals(vendorId)) {
+			throw new AccessDeniedException("You are not authorized to edit this vendor's public page");
+		}
+
+		TransferVendor updated = transferVendorService.updateProfileContent(
+				vendorId, request.getBusinessTagline(), request.getAboutText());
+		ResponseObject<TransferVendor> success = ResponseUtil.populateResponseObject(updated, "SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
+	// Vendor-editable public-page branding image — type is "logo" or "cover". Same ownership
+	// check as updateProfileContent above.
+	@PostMapping(value = "/profile-image/{vendorId}")
+	public ResponseEntity<ResponseObject<TransferVendor>> uploadProfileImage(
+			@PathVariable Long vendorId,
+			@RequestParam String type,
+			@RequestParam("file") MultipartFile file,
+			HttpServletRequest httpRequest) {
+
+		String authHeader = httpRequest.getHeader("Authorization");
+		String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+		Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+
+		if (tokenVendorId == null || !tokenVendorId.equals(vendorId)) {
+			throw new AccessDeniedException("You are not authorized to edit this vendor's public page");
+		}
+
+		TransferVendor updated = transferVendorService.uploadProfileImage(vendorId, type, file);
+		ResponseObject<TransferVendor> success = ResponseUtil.populateResponseObject(updated, "SUCCESS", null);
+		return ResponseEntity.ok(success);
+	}
+
 	@GetMapping(value = "/wallet-vendor/{vendorId}")
 	public VendorWallet walletByVendor(@PathVariable Long vendorId) {
 
