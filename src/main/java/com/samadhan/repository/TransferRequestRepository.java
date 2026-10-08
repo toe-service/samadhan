@@ -655,4 +655,77 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	List<TransferRequestDetails> findRecentOverduePickups(@Param("since") LocalDateTime since);
 
+	// Per-vehicle summary for the vendor dashboard's Fleet Performance page: current job (if any),
+	// how many rides this vehicle has completed/has in progress, how much ride revenue it's
+	// brought in, and how much platform fee those completed rides cost the vendor's wallet
+	// ("Ride Acceptance/Start/Completion Fee" rows in wallet_transaction, joined back via
+	// transfer_request_id since that table has no vehicle_id of its own). Ongoing = statuses
+	// 3/4/5/6/7 (ReadyForPickup/Handover/VehicleAssigned/Transferring/YetToBeCompleted); Completed
+	// = 8 (see rideStatusEnum). One row per vehicle in the vendor's fleet, including idle ones
+	// with zero rides (LEFT JOIN), so the page always reflects the whole fleet, not just
+	// vehicles that have done at least one job.
+	@Query(value =
+	        "SELECT v.id AS vehicleId, v.vehicle_number AS vehicleNumber, v.vendor_vehicle_type AS vehicleType, " +
+	        "v.vehicle_category AS vehicleCategory, v.is_active AS isActive, v.avg_rating AS avgRating, " +
+	        "v.rating_count AS ratingCount, " +
+	        "MAX(CASE WHEN t.transfer_status IN (3,4,5,6,7) THEN t.id END) AS currentRideId, " +
+	        "COALESCE(SUM(CASE WHEN t.transfer_status = 8 THEN 1 ELSE 0 END), 0) AS completedRides, " +
+	        "COALESCE(SUM(CASE WHEN t.transfer_status IN (3,4,5,6,7) THEN 1 ELSE 0 END), 0) AS ongoingRides, " +
+	        "COALESCE(SUM(CASE WHEN t.transfer_status = 8 THEN t.ride_cost ELSE 0 END), 0) AS totalRevenue, " +
+	        "COALESCE((SELECT SUM(wt.amount) FROM wallet_transaction wt " +
+	        "          WHERE wt.transfer_request_id IN ( " +
+	        "              SELECT t3.id FROM transfer_request_details t3 " +
+	        "              WHERE t3.vehicle_id = v.id AND t3.transfer_status = 8 " +
+	        "          ) " +
+	        "          AND wt.transaction_type IN ('Ride Acceptance Fee','Ride Start Fee','Ride Completion Fee') " +
+	        "         ), 0) AS totalPlatformFee " +
+	        "FROM vehicle v " +
+	        "LEFT JOIN transfer_request_details t ON t.vehicle_id = v.id " +
+	        "WHERE v.transfer_id = :vendorId " +
+	        "GROUP BY v.id, v.vehicle_number, v.vendor_vehicle_type, v.vehicle_category, v.is_active, " +
+	        "v.avg_rating, v.rating_count " +
+	        "ORDER BY v.id",
+	        nativeQuery = true)
+	List<VehiclePerformanceProjection> findVehiclePerformanceByVendor(@Param("vendorId") Long vendorId);
+
+	// Same shape as findVehiclePerformanceByVendor above, but for agents: "ride value" is the
+	// total ride_cost of jobs they handed off (agents aren't separately wallet-charged -- the
+	// platform fee is already counted once against the vehicle that completed the job), and
+	// ongoing covers from the moment they're assigned (HANDOVER=4) through completion.
+	@Query(value =
+	        "SELECT d.id AS driverId, d.driver_name AS driverName, d.driver_contact_number AS driverContactNumber, " +
+	        "d.is_active AS isActive, " +
+	        "MAX(CASE WHEN t.transfer_status IN (4,5,6,7) THEN t.id END) AS currentRideId, " +
+	        "COALESCE(SUM(CASE WHEN t.transfer_status = 8 THEN 1 ELSE 0 END), 0) AS completedHandoffs, " +
+	        "COALESCE(SUM(CASE WHEN t.transfer_status IN (4,5,6,7) THEN 1 ELSE 0 END), 0) AS ongoingHandoffs, " +
+	        "COALESCE(SUM(CASE WHEN t.transfer_status = 8 THEN t.ride_cost ELSE 0 END), 0) AS totalRideValue " +
+	        "FROM driver d " +
+	        "LEFT JOIN transfer_request_details t ON t.driver_id = d.id " +
+	        "WHERE d.transfer_id = :vendorId " +
+	        "GROUP BY d.id, d.driver_name, d.driver_contact_number, d.is_active " +
+	        "ORDER BY d.id",
+	        nativeQuery = true)
+	List<AgentPerformanceProjection> findAgentPerformanceByVendor(@Param("vendorId") Long vendorId);
+
+	// Full ride history for one vehicle/agent -- backs the drill-down view from the Fleet/Team
+	// Performance page (tap a vehicle or agent to see every job it's ever done, not just the
+	// aggregate counts above).
+	// Vendor ownership enforced in the query itself (not just the controller) -- the vehicle must
+	// belong to :vendorId, so one vendor can't read another vendor's fleet history by guessing ids.
+	@Query(value = "SELECT trd.* FROM transfer_request_details trd " +
+	        "JOIN vehicle v ON v.id = trd.vehicle_id " +
+	        "WHERE trd.vehicle_id = :vehicleId AND v.transfer_id = :vendorId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) ORDER BY trd.request_created_date DESC",
+	        nativeQuery = true)
+	List<TransferRequestDetails> findByVehicleIdOrderByRequestCreatedDateDesc(
+	        @Param("vehicleId") Long vehicleId, @Param("vendorId") Long vendorId);
+
+	@Query(value = "SELECT trd.* FROM transfer_request_details trd " +
+	        "JOIN driver d ON d.id = trd.driver_id " +
+	        "WHERE trd.driver_id = :driverId AND d.transfer_id = :vendorId " +
+	        "AND (trd.is_deleted IS NULL OR trd.is_deleted = 0) ORDER BY trd.request_created_date DESC",
+	        nativeQuery = true)
+	List<TransferRequestDetails> findByDriverIdOrderByRequestCreatedDateDesc(
+	        @Param("driverId") Long driverId, @Param("vendorId") Long vendorId);
+
 }

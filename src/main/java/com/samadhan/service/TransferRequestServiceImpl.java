@@ -1495,6 +1495,75 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		return transfer;
 	}
 
+	// Converts the tinyint ordinal columns vendor_vehicle_type/vehicle_category store into their
+	// enum names for display -- out-of-range or null just falls back to null rather than throwing,
+	// since a vehicle registered before either enum gained new entries could have a now-stale ordinal.
+	private String vehicleTypeOrdinalToName(Integer ordinal) {
+		if (ordinal == null) return null;
+		VendorPickupVehicleEnum[] values = VendorPickupVehicleEnum.values();
+		return (ordinal >= 0 && ordinal < values.length) ? values[ordinal].name() : null;
+	}
+
+	private String vehicleCategoryOrdinalToName(Integer ordinal) {
+		if (ordinal == null) return null;
+		VehicleCategoryEnum[] values = VehicleCategoryEnum.values();
+		return (ordinal >= 0 && ordinal < values.length) ? values[ordinal].name() : null;
+	}
+
+	@Override
+	public List<com.samadhan.dto.VehiclePerformanceDto> getVehiclePerformance(Long vendorId) {
+		List<VehiclePerformanceProjection> rows = transferRepo.findVehiclePerformanceByVendor(vendorId);
+		List<com.samadhan.dto.VehiclePerformanceDto> result = new ArrayList<>();
+		for (VehiclePerformanceProjection row : rows) {
+			com.samadhan.dto.VehiclePerformanceDto dto = new com.samadhan.dto.VehiclePerformanceDto();
+			dto.setVehicleId(row.getVehicleId());
+			dto.setVehicleNumber(row.getVehicleNumber());
+			dto.setVehicleType(vehicleTypeOrdinalToName(row.getVehicleType()));
+			dto.setVehicleCategory(vehicleCategoryOrdinalToName(row.getVehicleCategory()));
+			dto.setIsActive(row.getIsActive());
+			dto.setCurrentRideId(row.getCurrentRideId());
+			dto.setStatus(row.getCurrentRideId() != null ? "ON_RIDE" : "IDLE");
+			dto.setCompletedRides(row.getCompletedRides());
+			dto.setOngoingRides(row.getOngoingRides());
+			dto.setTotalRevenue(row.getTotalRevenue());
+			dto.setTotalPlatformFee(row.getTotalPlatformFee());
+			dto.setAvgRating(row.getAvgRating());
+			dto.setRatingCount(row.getRatingCount());
+			result.add(dto);
+		}
+		return result;
+	}
+
+	@Override
+	public List<com.samadhan.dto.AgentPerformanceDto> getAgentPerformance(Long vendorId) {
+		List<AgentPerformanceProjection> rows = transferRepo.findAgentPerformanceByVendor(vendorId);
+		List<com.samadhan.dto.AgentPerformanceDto> result = new ArrayList<>();
+		for (AgentPerformanceProjection row : rows) {
+			com.samadhan.dto.AgentPerformanceDto dto = new com.samadhan.dto.AgentPerformanceDto();
+			dto.setDriverId(row.getDriverId());
+			dto.setDriverName(row.getDriverName());
+			dto.setDriverContactNumber(row.getDriverContactNumber());
+			dto.setIsActive(row.getIsActive());
+			dto.setCurrentRideId(row.getCurrentRideId());
+			dto.setStatus(row.getCurrentRideId() != null ? "ON_DUTY" : "IDLE");
+			dto.setCompletedHandoffs(row.getCompletedHandoffs());
+			dto.setOngoingHandoffs(row.getOngoingHandoffs());
+			dto.setTotalRideValue(row.getTotalRideValue());
+			result.add(dto);
+		}
+		return result;
+	}
+
+	@Override
+	public List<TransferRequestDetails> getVehicleRideHistory(Long vehicleId, Long vendorId) {
+		return transferRepo.findByVehicleIdOrderByRequestCreatedDateDesc(vehicleId, vendorId);
+	}
+
+	@Override
+	public List<TransferRequestDetails> getAgentRideHistory(Long driverId, Long vendorId) {
+		return transferRepo.findByDriverIdOrderByRequestCreatedDateDesc(driverId, vendorId);
+	}
+
 	
 	
 	
