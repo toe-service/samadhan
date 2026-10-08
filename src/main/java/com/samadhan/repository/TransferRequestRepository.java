@@ -665,8 +665,15 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	// with zero rides (LEFT JOIN), so the page always reflects the whole fleet, not just
 	// vehicles that have done at least one job.
 	@Query(value =
-	        "SELECT v.id AS vehicleId, v.vehicle_number AS vehicleNumber, v.vendor_vehicle_type AS vehicleType, " +
-	        "v.vehicle_category AS vehicleCategory, v.is_active AS isActive, v.avg_rating AS avgRating, " +
+	        // vendor_vehicle_type/vehicle_category are tinyint(1) columns storing enum ordinals (not
+	        // real booleans) -- MySQL Connector/J's tinyInt1isBit default auto-converts any
+	        // tinyint(1) to Java Boolean regardless of what it actually holds, which collides with
+	        // these getters' Integer type ("Cannot project java.lang.Boolean to java.lang.Integer").
+	        // Explicit CAST forces a real integer back out.
+	        "SELECT v.id AS vehicleId, v.vehicle_number AS vehicleNumber, " +
+	        "CAST(v.vendor_vehicle_type AS UNSIGNED) AS vehicleType, " +
+	        "CAST(v.vehicle_category AS UNSIGNED) AS vehicleCategory, " +
+	        "v.is_active AS isActive, v.avg_rating AS avgRating, " +
 	        "v.rating_count AS ratingCount, " +
 	        "MAX(CASE WHEN t.transfer_status IN (3,4,5,6,7) THEN t.id END) AS currentRideId, " +
 	        "COALESCE(SUM(CASE WHEN t.transfer_status = 8 THEN 1 ELSE 0 END), 0) AS completedRides, " +
