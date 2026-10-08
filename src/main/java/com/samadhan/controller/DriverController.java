@@ -9,21 +9,29 @@ import java.util.stream.Collectors;
 import com.samadhan.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
 
 //import com.kent.smartassist.constant.SmartAssistanceConstant;
 //import com.kent.smartassist.exception.SmartAssistanceException;
 //import com.kent.smartassist.reponse.util.ResponseUtil;
 import com.samadhan.response.*;
 import com.samadhan.response.Error;
+import com.samadhan.dto.AgentPerformanceDto;
+import com.samadhan.dto.VehiclePerformanceDto;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
+import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.exception.SamadhanException;
+import com.samadhan.security.TokenApi;
+import com.samadhan.service.TransferRequestService;
 import com.samadhan.service.VehicleService;
 import com.samadhan.service.driversService;
 import com.samadhan.util.ResponseUtil;
@@ -36,10 +44,67 @@ public class DriverController {
 
 	@Autowired
 	private driversService driversService;
-	
+
 	@Autowired
 	private VehicleService vehicleService;
-	
+
+	@Autowired
+	private TransferRequestService transferRequestService;
+
+	@Autowired
+	private TokenApi tokenApi;
+
+	// Vendor-only JWT ownership check, same pattern as VendorAvailabilityController -- a vendor's
+	// token must match the vendorId path/query param it's calling about, so one vendor can't pull
+	// another vendor's fleet earnings by guessing ids.
+	private void requireOwnVendor(Long vendorId, HttpServletRequest httpRequest) {
+		String authHeader = httpRequest.getHeader("Authorization");
+		String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+		Long tokenVendorId = jwt != null ? tokenApi.extractUserId(jwt) : null;
+		if (tokenVendorId == null || !tokenVendorId.equals(vendorId)) {
+			throw new AccessDeniedException("You are not authorized to view this vendor's fleet performance");
+		}
+	}
+
+	// Fleet Performance (vendor dashboard): one row per vehicle in the vendor's fleet -- current
+	// job (if any), completed/ongoing ride counts, ride revenue earned, and platform fee those
+	// completed rides cost the vendor's wallet.
+	@GetMapping(value = "/vehicle-performance/{vendorId}")
+	public ResponseEntity<ResponseObject<List<VehiclePerformanceDto>>> getVehiclePerformance(
+			@PathVariable Long vendorId, HttpServletRequest httpRequest) {
+		requireOwnVendor(vendorId, httpRequest);
+		List<VehiclePerformanceDto> performance = transferRequestService.getVehiclePerformance(vendorId);
+		return ResponseEntity.ok(ResponseUtil.populateResponseObject(performance, "SUCCESS", null));
+	}
+
+	// Full ride history for one vehicle -- the drill-down from the Fleet Performance table.
+	@GetMapping(value = "/vehicle-performance/{vendorId}/{vehicleId}/history")
+	public ResponseEntity<ResponseObject<List<TransferRequestDetails>>> getVehicleRideHistory(
+			@PathVariable Long vendorId, @PathVariable Long vehicleId, HttpServletRequest httpRequest) {
+		requireOwnVendor(vendorId, httpRequest);
+		List<TransferRequestDetails> history = transferRequestService.getVehicleRideHistory(vehicleId, vendorId);
+		return ResponseEntity.ok(ResponseUtil.populateResponseObject(history, "SUCCESS", null));
+	}
+
+	// Team Performance (vendor dashboard): same shape as vehicle-performance, but for agents.
+	@GetMapping(value = "/agent-performance/{vendorId}")
+	public ResponseEntity<ResponseObject<List<AgentPerformanceDto>>> getAgentPerformance(
+			@PathVariable Long vendorId, HttpServletRequest httpRequest) {
+		requireOwnVendor(vendorId, httpRequest);
+		List<AgentPerformanceDto> performance = transferRequestService.getAgentPerformance(vendorId);
+		return ResponseEntity.ok(ResponseUtil.populateResponseObject(performance, "SUCCESS", null));
+	}
+
+	// Full ride history for one agent -- the drill-down from the Team Performance table.
+	@GetMapping(value = "/agent-performance/{vendorId}/{driverId}/history")
+	public ResponseEntity<ResponseObject<List<TransferRequestDetails>>> getAgentRideHistory(
+			@PathVariable Long vendorId, @PathVariable Long driverId, HttpServletRequest httpRequest) {
+		requireOwnVendor(vendorId, httpRequest);
+		List<TransferRequestDetails> history = transferRequestService.getAgentRideHistory(driverId, vendorId);
+		return ResponseEntity.ok(ResponseUtil.populateResponseObject(history, "SUCCESS", null));
+	}
+
+
 	@GetMapping(value = "/driver-details")
     public ResponseEntity<Driver> driverDetailsById(@RequestParam Long id) {
 		Driver response = driversService.getById(id);

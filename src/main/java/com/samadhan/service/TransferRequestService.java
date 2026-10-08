@@ -66,6 +66,16 @@ public interface TransferRequestService{
 			VendorPickupVehicleEnum vendorPickupVehicle, Boolean helperRequired, Integer helperCount, VehicleCategoryEnum vehicleCategory, 
 			Boolean instantBooking, String homeType, String packingType, String goodsType, Integer fromFloor, Boolean liftAvailable,
 			String receiverName, String receiverContact, Double distanceInKm, Boolean isMovable) throws FirebaseMessagingException;
-	
+
+	// Fleet/Team Performance (vendor dashboard): per-vehicle/per-agent current job, completed and
+	// ongoing ride counts, revenue/ride-value totals, and (for vehicles) the platform fee their
+	// completed rides cost the vendor's wallet.
+	public List<com.samadhan.dto.VehiclePerformanceDto> getVehiclePerformance(Long vendorId);
+
+	public List<com.samadhan.dto.AgentPerformanceDto> getAgentPerformance(Long vendorId);
+
+	public List<TransferRequestDetails> getVehicleRideHistory(Long vehicleId, Long vendorId);
+
+	public List<TransferRequestDetails> getAgentRideHistory(Long driverId, Long vendorId);
 
 }
