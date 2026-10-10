@@ -132,6 +132,45 @@ public class TransferVendor {
 	 @Column(name = "cover_image_storage_key")
 	 private String coverImageStorageKey;
 
+	 @Column(name = "years_in_business")
+	 private Integer yearsInBusiness;
+
+	 // JSON-serialized List<VendorTestimonialDto> / List<String> -- same ad hoc
+	 // ObjectMapper(de)serialization pattern used elsewhere in this codebase (see
+	 // LocationService), rather than a separate child table, since these are small,
+	 // vendor-owned lists with no independent query needs.
+	 @Lob
+	 @Column(name = "testimonials", columnDefinition = "TEXT")
+	 private String testimonialsJson;
+
+	 @Lob
+	 @Column(name = "gallery_image_urls", columnDefinition = "TEXT")
+	 private String galleryImageUrlsJson;
+
+	 public Integer getYearsInBusiness() {
+		 return yearsInBusiness;
+	 }
+
+	 public void setYearsInBusiness(Integer yearsInBusiness) {
+		 this.yearsInBusiness = yearsInBusiness;
+	 }
+
+	 public String getTestimonialsJson() {
+		 return testimonialsJson;
+	 }
+
+	 public void setTestimonialsJson(String testimonialsJson) {
+		 this.testimonialsJson = testimonialsJson;
+	 }
+
+	 public String getGalleryImageUrlsJson() {
+		 return galleryImageUrlsJson;
+	 }
+
+	 public void setGalleryImageUrlsJson(String galleryImageUrlsJson) {
+		 this.galleryImageUrlsJson = galleryImageUrlsJson;
+	 }
+
 	 public String getBusinessTagline() {
 		 return businessTagline;
 	 }
