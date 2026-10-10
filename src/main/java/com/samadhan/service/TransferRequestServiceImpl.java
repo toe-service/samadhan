@@ -99,6 +99,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 	 @Autowired
 	 private VendorAvailabilityService vendorAvailabilityService;
 
+	 // Same optional-autowire pattern as LogEmailScheduler: spring.mail.host is hardcoded in every
+	 // profile so this bean always exists, but it's only actually usable once MAIL_USERNAME is set.
+	 @Autowired(required = false)
+	 private org.springframework.mail.javamail.JavaMailSender mailSender;
+
+	 @org.springframework.beans.factory.annotation.Value("${spring.mail.username:}")
+	 private String mailUsername;
+
 	 @PersistenceContext
 	 private EntityManager entityManager;
 
@@ -497,11 +505,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		     throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
 		}
 
+		double balanceBeforeFee = wallet.getBalance();
+
 		wallet.setBalance(
 			    wallet.getBalance() - acceptanceFee
 			);
 
 		walletRepository.save(wallet);
+		alertLowWalletBalanceIfJustCrossed(balanceBeforeFee, wallet, transferVendor);
 
 		WalletTransaction walletTransaction=new WalletTransaction();
 		walletTransaction.setAmount(acceptanceFee);
@@ -511,7 +522,7 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 
 		walletTransactionRepo.save(walletTransaction);
 		}
-		
+
 		if(transferApproval==2) {
 
 			CancelledRequest cancelRequest=new CancelledRequest();
@@ -639,8 +650,11 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 				throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
 			}
 
+			double balanceBeforeFee = wallet.getBalance();
+
 			wallet.setBalance(wallet.getBalance() - acceptanceFee);
 			walletRepository.save(wallet);
+			alertLowWalletBalanceIfJustCrossed(balanceBeforeFee, wallet, transferVendor);
 
 			WalletTransaction walletTransaction = new WalletTransaction();
 			walletTransaction.setAmount(acceptanceFee);
@@ -736,6 +750,40 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		double rate = isDiscountedRateVendor(vendor) ? SUBSCRIBER_COMPLETION_RATE : NON_SUBSCRIBER_COMPLETION_RATE;
 
 		return Math.round(rideCost * rate * 100.0) / 100.0;
+	}
+
+	// Fires only on the exact transition from a non-negative balance into a negative one — not on
+	// every deduction — by comparing the balance just before this specific fee against the balance
+	// just after it. A vendor who's already negative (and therefore blocked by the -200 floor
+	// enforced at each call site above) won't get re-emailed on every subsequent ride; recharging
+	// back above zero and then dipping again naturally re-triggers it. No separate "already
+	// alerted" flag/column needed. Best-effort and never throws — a failed alert email must never
+	// fail the ride action that triggered it.
+	private void alertLowWalletBalanceIfJustCrossed(double balanceBeforeFee, VendorWallet wallet, TransferVendor vendor) {
+		if (!(balanceBeforeFee >= 0 && wallet.getBalance() < 0)) {
+			return;
+		}
+		if (mailSender == null || mailUsername == null || mailUsername.isBlank()
+				|| vendor.getVendorEmail() == null || vendor.getVendorEmail().isBlank()) {
+			return;
+		}
+		try {
+			javax.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+			org.springframework.mail.javamail.MimeMessageHelper helper =
+					new org.springframework.mail.javamail.MimeMessageHelper(message, true);
+			helper.setFrom(mailUsername);
+			helper.setTo(vendor.getVendorEmail());
+			helper.setSubject("TransferEaze: Your wallet balance has gone negative");
+			helper.setText(
+					"Hi " + (vendor.getVendorName() != null ? vendor.getVendorName() : "there") + ",\n\n"
+					+ "Your TransferEaze wallet balance is now Rs " + String.format("%.2f", wallet.getBalance()) + ".\n\n"
+					+ "Once it drops below -Rs 200, new rides will stop being accepted until you recharge. "
+					+ "Please top up your wallet soon to avoid any interruption to your bookings.\n\n"
+					+ "— TransferEaze");
+			mailSender.send(message);
+		} catch (Exception e) {
+			logger.warn("Failed to send low-wallet-balance email to vendor {}: {}", vendor.getId(), e.getMessage(), e);
+		}
 	}
 
 	// Shared by every customer-facing status-change push in this class (accept, agent-assigned,
@@ -885,11 +933,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			    throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
 			}
 
+			double balanceBeforeFee = wallet.getBalance();
+
 			wallet.setBalance(
 				    wallet.getBalance() - acceptanceFee
 				);
 
 			walletRepository.save(wallet);
+			alertLowWalletBalanceIfJustCrossed(balanceBeforeFee, wallet, transferVendor);
 
 			WalletTransaction walletTransaction=new WalletTransaction();
 			walletTransaction.setAmount(acceptanceFee);
@@ -976,11 +1027,14 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			    throw new WalletLowBalanceException("Low wallet balance. Please recharge your wallet.");
 			}
 
+			double balanceBeforeFee = wallet.getBalance();
+
 			wallet.setBalance(
 				    wallet.getBalance() - acceptanceFee
 				);
 
 			walletRepository.save(wallet);
+			alertLowWalletBalanceIfJustCrossed(balanceBeforeFee, wallet, transferVendor);
 
 			WalletTransaction walletTransaction=new WalletTransaction();
 			walletTransaction.setAmount(acceptanceFee);
