@@ -21,11 +21,11 @@ import javax.servlet.http.HttpServletRequest;
 import com.samadhan.response.*;
 import com.samadhan.response.Error;
 import com.samadhan.dto.AgentPerformanceDto;
+import com.samadhan.dto.RideHistoryPageDto;
 import com.samadhan.dto.VehiclePerformanceDto;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.ServiceCentre;
-import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
@@ -77,12 +77,15 @@ public class DriverController {
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(performance, "SUCCESS", null));
 	}
 
-	// Full ride history for one vehicle -- the drill-down from the Fleet Performance table.
+	// Full ride history for one vehicle, paginated -- the drill-down popup from the Fleet
+	// Performance table.
 	@GetMapping(value = "/vehicle-performance/{vendorId}/{vehicleId}/history")
-	public ResponseEntity<ResponseObject<List<TransferRequestDetails>>> getVehicleRideHistory(
-			@PathVariable Long vendorId, @PathVariable Long vehicleId, HttpServletRequest httpRequest) {
+	public ResponseEntity<ResponseObject<RideHistoryPageDto>> getVehicleRideHistory(
+			@PathVariable Long vendorId, @PathVariable Long vehicleId,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
+			HttpServletRequest httpRequest) {
 		requireOwnVendor(vendorId, httpRequest);
-		List<TransferRequestDetails> history = transferRequestService.getVehicleRideHistory(vehicleId, vendorId);
+		RideHistoryPageDto history = transferRequestService.getVehicleRideHistory(vehicleId, vendorId, page, size);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(history, "SUCCESS", null));
 	}
 
@@ -95,12 +98,15 @@ public class DriverController {
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(performance, "SUCCESS", null));
 	}
 
-	// Full ride history for one agent -- the drill-down from the Team Performance table.
+	// Full ride history for one agent, paginated -- the drill-down popup from the Team
+	// Performance table.
 	@GetMapping(value = "/agent-performance/{vendorId}/{driverId}/history")
-	public ResponseEntity<ResponseObject<List<TransferRequestDetails>>> getAgentRideHistory(
-			@PathVariable Long vendorId, @PathVariable Long driverId, HttpServletRequest httpRequest) {
+	public ResponseEntity<ResponseObject<RideHistoryPageDto>> getAgentRideHistory(
+			@PathVariable Long vendorId, @PathVariable Long driverId,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
+			HttpServletRequest httpRequest) {
 		requireOwnVendor(vendorId, httpRequest);
-		List<TransferRequestDetails> history = transferRequestService.getAgentRideHistory(driverId, vendorId);
+		RideHistoryPageDto history = transferRequestService.getAgentRideHistory(driverId, vendorId, page, size);
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(history, "SUCCESS", null));
 	}
 
