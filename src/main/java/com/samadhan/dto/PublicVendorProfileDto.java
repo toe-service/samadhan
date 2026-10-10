@@ -18,6 +18,9 @@ public class PublicVendorProfileDto {
 	private String aboutText;
 	private String logoUrl;
 	private String coverImageUrl;
+	private Integer yearsInBusiness;
+	private List<VendorTestimonialDto> testimonials;
+	private List<String> galleryImageUrls;
 
 	public String getVendorName() {
 		return vendorName;
@@ -129,5 +132,29 @@ public class PublicVendorProfileDto {
 
 	public void setCoverImageUrl(String coverImageUrl) {
 		this.coverImageUrl = coverImageUrl;
+	}
+
+	public Integer getYearsInBusiness() {
+		return yearsInBusiness;
+	}
+
+	public void setYearsInBusiness(Integer yearsInBusiness) {
+		this.yearsInBusiness = yearsInBusiness;
+	}
+
+	public List<VendorTestimonialDto> getTestimonials() {
+		return testimonials;
+	}
+
+	public void setTestimonials(List<VendorTestimonialDto> testimonials) {
+		this.testimonials = testimonials;
+	}
+
+	public List<String> getGalleryImageUrls() {
+		return galleryImageUrls;
+	}
+
+	public void setGalleryImageUrls(List<String> galleryImageUrls) {
+		this.galleryImageUrls = galleryImageUrls;
 	}
 }

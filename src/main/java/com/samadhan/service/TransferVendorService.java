@@ -11,6 +11,7 @@ import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.NotFoundException;
+import com.samadhan.request.VendorProfileContentRequest;
 
 public interface TransferVendorService {
 
@@ -29,7 +30,7 @@ public interface TransferVendorService {
 
 	PublicVendorProfileDto getPublicVendorProfile(String vendorSlug) throws NotFoundException;
 
-	TransferVendor updateProfileContent(Long vendorId, String businessTagline, String aboutText);
+	TransferVendor updateProfileContent(Long vendorId, VendorProfileContentRequest request);
 
 	TransferVendor uploadProfileImage(Long vendorId, String type, MultipartFile file);
 

@@ -122,8 +122,7 @@ public class TransferVendorController {
 			throw new AccessDeniedException("You are not authorized to edit this vendor's public page");
 		}
 
-		TransferVendor updated = transferVendorService.updateProfileContent(
-				vendorId, request.getBusinessTagline(), request.getAboutText());
+		TransferVendor updated = transferVendorService.updateProfileContent(vendorId, request);
 		ResponseObject<TransferVendor> success = ResponseUtil.populateResponseObject(updated, "SUCCESS", null);
 		return ResponseEntity.ok(success);
 	}

@@ -13,8 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samadhan.dto.PublicVendorProfileDto;
 import com.samadhan.dto.StoredImageResponse;
+import com.samadhan.dto.VendorTestimonialDto;
 import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
@@ -37,6 +41,7 @@ import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.repository.VendorWalletRepository;
 import com.samadhan.repository.WalletTransactionRepo;
+import com.samadhan.request.VendorProfileContentRequest;
 
 @Service
 public class TransferVendorServiceImpl implements TransferVendorService{
@@ -272,6 +277,9 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		dto.setRatingCount(vendor.getRatingCount());
 		dto.setBusinessTagline(vendor.getBusinessTagline());
 		dto.setAboutText(vendor.getAboutText());
+		dto.setYearsInBusiness(vendor.getYearsInBusiness());
+		dto.setTestimonials(readTestimonialsJson(vendor.getTestimonialsJson()));
+		dto.setGalleryImageUrls(readStringListJson(vendor.getGalleryImageUrlsJson()));
 		// Proxy URLs, not direct storage links -- the bucket may not be publicly readable, and
 		// this keeps the storage key itself out of the public response. Null (not an empty-image
 		// link) when the vendor never uploaded one, so the frontend can fall back to a generated
@@ -307,14 +315,28 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 	private static final int BUSINESS_TAGLINE_MAX_LENGTH = 150;
 	private static final int ABOUT_TEXT_MAX_LENGTH = 2000;
+	private static final int YEARS_IN_BUSINESS_MAX = 100;
+	private static final int TESTIMONIALS_MAX_COUNT = 5;
+	private static final int TESTIMONIAL_QUOTE_MAX_LENGTH = 500;
+	private static final int TESTIMONIAL_NAME_MAX_LENGTH = 100;
+	private static final int GALLERY_IMAGE_URLS_MAX_COUNT = 8;
+	private static final int GALLERY_IMAGE_URL_MAX_LENGTH = 1000;
+
+	private static final ObjectMapper PROFILE_CONTENT_MAPPER = new ObjectMapper();
 
 	// Vendor-editable public-page copy (TransferVendorController's /profile-content) — separate
 	// from registerVendor's one-time KYC fields, this can be changed as often as the vendor likes.
 	// Length-capped so the public page's layout can't be blown out by an arbitrarily long paste.
 	@Override
-	public TransferVendor updateProfileContent(Long vendorId, String businessTagline, String aboutText) {
+	public TransferVendor updateProfileContent(Long vendorId, VendorProfileContentRequest request) {
 		TransferVendor vendor = transferVendorRepo.findById(vendorId)
 				.orElseThrow(() -> new com.samadhan.exception.ResourceNotFoundException("Vendor not found: " + vendorId));
+
+		String businessTagline = request.getBusinessTagline();
+		String aboutText = request.getAboutText();
+		Integer yearsInBusiness = request.getYearsInBusiness();
+		List<VendorTestimonialDto> testimonials = request.getTestimonials();
+		List<String> galleryImageUrls = request.getGalleryImageUrls();
 
 		if (businessTagline != null && businessTagline.length() > BUSINESS_TAGLINE_MAX_LENGTH) {
 			throw new IllegalArgumentException(
@@ -324,10 +346,86 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 			throw new IllegalArgumentException(
 					"About text must be " + ABOUT_TEXT_MAX_LENGTH + " characters or fewer");
 		}
+		if (yearsInBusiness != null && (yearsInBusiness < 0 || yearsInBusiness > YEARS_IN_BUSINESS_MAX)) {
+			throw new IllegalArgumentException(
+					"Years in business must be between 0 and " + YEARS_IN_BUSINESS_MAX);
+		}
+		if (testimonials != null) {
+			if (testimonials.size() > TESTIMONIALS_MAX_COUNT) {
+				throw new IllegalArgumentException(
+						"At most " + TESTIMONIALS_MAX_COUNT + " testimonials are allowed");
+			}
+			for (VendorTestimonialDto testimonial : testimonials) {
+				if (testimonial.getQuote() != null && testimonial.getQuote().length() > TESTIMONIAL_QUOTE_MAX_LENGTH) {
+					throw new IllegalArgumentException(
+							"Each testimonial quote must be " + TESTIMONIAL_QUOTE_MAX_LENGTH + " characters or fewer");
+				}
+				if (testimonial.getName() != null && testimonial.getName().length() > TESTIMONIAL_NAME_MAX_LENGTH) {
+					throw new IllegalArgumentException(
+							"Each testimonial name must be " + TESTIMONIAL_NAME_MAX_LENGTH + " characters or fewer");
+				}
+			}
+		}
+		if (galleryImageUrls != null) {
+			if (galleryImageUrls.size() > GALLERY_IMAGE_URLS_MAX_COUNT) {
+				throw new IllegalArgumentException(
+						"At most " + GALLERY_IMAGE_URLS_MAX_COUNT + " gallery photos are allowed");
+			}
+			for (String url : galleryImageUrls) {
+				if (url != null && url.length() > GALLERY_IMAGE_URL_MAX_LENGTH) {
+					throw new IllegalArgumentException(
+							"Each gallery photo link must be " + GALLERY_IMAGE_URL_MAX_LENGTH + " characters or fewer");
+				}
+			}
+		}
 
 		vendor.setBusinessTagline(businessTagline != null && businessTagline.isBlank() ? null : businessTagline);
 		vendor.setAboutText(aboutText != null && aboutText.isBlank() ? null : aboutText);
+		vendor.setYearsInBusiness(yearsInBusiness);
+		vendor.setTestimonialsJson(writeJsonOrNull(
+				testimonials == null ? null : testimonials.stream()
+						.filter(t -> t.getQuote() != null && !t.getQuote().isBlank())
+						.collect(Collectors.toList())));
+		vendor.setGalleryImageUrlsJson(writeJsonOrNull(
+				galleryImageUrls == null ? null : galleryImageUrls.stream()
+						.filter(url -> url != null && !url.isBlank())
+						.collect(Collectors.toList())));
 		return transferVendorRepo.save(vendor);
+	}
+
+	private String writeJsonOrNull(List<?> value) {
+		if (value == null || value.isEmpty()) {
+			return null;
+		}
+		try {
+			return PROFILE_CONTENT_MAPPER.writeValueAsString(value);
+		} catch (JsonProcessingException e) {
+			throw new IllegalArgumentException("Invalid profile content", e);
+		}
+	}
+
+	private List<VendorTestimonialDto> readTestimonialsJson(String json) {
+		if (json == null || json.isBlank()) {
+			return List.of();
+		}
+		try {
+			return PROFILE_CONTENT_MAPPER.readValue(json, new TypeReference<List<VendorTestimonialDto>>() {
+			});
+		} catch (IOException e) {
+			return List.of();
+		}
+	}
+
+	private List<String> readStringListJson(String json) {
+		if (json == null || json.isBlank()) {
+			return List.of();
+		}
+		try {
+			return PROFILE_CONTENT_MAPPER.readValue(json, new TypeReference<List<String>>() {
+			});
+		} catch (IOException e) {
+			return List.of();
+		}
 	}
 
 	// Vendor-editable public-page branding image (TransferVendorController's /profile-image) —
