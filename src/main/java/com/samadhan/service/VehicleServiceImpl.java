@@ -70,7 +70,12 @@ public class VehicleServiceImpl implements VehicleService{
 	@Override
 	public Vehicle createVehicle(String vehicleNumber, String vehicleContactNumber, String currentLocation,
 			VendorPickupVehicleEnum vendorVehicle, VehicleCategoryEnum vehicleCategory, String vehicleLatitude,
-			String vehicleLongitude, String fcmToken, Long transferVendorId, MultipartFile rcFile) {
+			String vehicleLongitude, String fcmToken, Long transferVendorId, MultipartFile rcFile,
+			Boolean rcVerified) {
+
+		if (rcFile == null || rcFile.isEmpty()) {
+			throw new IllegalArgumentException("Vehicle RC document is required");
+		}
 
 		if (transferVendorId != null) {
 			enforceVehicleLimit(transferVendorId);
@@ -103,6 +108,7 @@ public class VehicleServiceImpl implements VehicleService{
 			vehicleRepo.clearFcmTokenFromOtherVehicles(fcmToken, 0L);
 		}
 		vehicle.setFcmToken(fcmToken);
+		vehicle.setRcVerified(rcVerified != null && rcVerified);
 
 		if (transferVendorId != null) {
 			TransferVendor transferVendor = new TransferVendor();
