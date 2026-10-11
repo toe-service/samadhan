@@ -22,8 +22,13 @@ public class RefreshTokenService {
 
     @Transactional
     public RefreshToken createRefreshToken(String userName, String userRole, Long userId) {
-        refreshTokenRepository.deleteByUserIdAndUserRole(userId, userRole);
-        refreshTokenRepository.flush();
+        // VENDOR is deliberately exempt from the single-session wipe: the vendor web app allows
+        // the same login to be used from multiple devices/tabs at once, so a second login must
+        // not revoke the first device's refresh token. USER/VEHICLE/DRIVER keep single-session.
+        if (!"VENDOR".equalsIgnoreCase(userRole)) {
+            refreshTokenRepository.deleteByUserIdAndUserRole(userId, userRole);
+            refreshTokenRepository.flush();
+        }
 
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUserId(userId);

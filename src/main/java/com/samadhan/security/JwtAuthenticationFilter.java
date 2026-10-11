@@ -1,12 +1,10 @@
 package com.samadhan.security;
 
 import com.samadhan.entity.Driver;
-import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.UserRole;
 import com.samadhan.repository.DriverRepository;
-import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.UserRepository;
 import com.samadhan.repository.VehicleRepository;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -38,9 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private VehicleRepository vehicleRepository;
-
-    @Autowired
-    private TransferVendorRepository transferVendorRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -100,7 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return false;
     }
 
-    // Single-active-session enforcement for VENDOR/USER/VEHICLE: this token's "jti" (set at login
+    // Single-active-session enforcement for USER/VEHICLE: this token's "jti" (set at login
     // to a fresh random value — see TokenApi#generateToken(..., sessionId)) must still match the
     // value currently stored on the account. A later login anywhere overwrites that stored value,
     // so every token from this (now-superseded) login starts failing this check on its very next
@@ -111,6 +106,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // a backfill, but for a brand-new column every account's stored value is null from the same
     // moment every existing token's jti is still "admin" (the old shared default), so this only
     // starts actually mattering from each account's next fresh login onward.
+    //
+    // VENDOR is deliberately exempt: the vendor web app allows the same login to be used from
+    // multiple devices/tabs at once, so a later login must not invalidate an earlier device's
+    // still-valid access token. currentSessionId is still written on vendor login (harmless) but
+    // is no longer read here — see the matching exemption in RefreshTokenService#createRefreshToken.
     private boolean isSessionInvalid(String jwt) {
         String userRole = tokenApi.extractUserRole(jwt);
         Long userId = tokenApi.extractUserId(jwt);
@@ -119,12 +119,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String tokenSessionId = tokenApi.extractJti(jwt);
-
-        if (UserRole.VENDOR.getValue().equalsIgnoreCase(userRole)) {
-            TransferVendor vendor = transferVendorRepository.findById(userId).orElse(null);
-            return vendor != null && vendor.getCurrentSessionId() != null
-                    && !vendor.getCurrentSessionId().equals(tokenSessionId);
-        }
 
         if (UserRole.USER.getValue().equalsIgnoreCase(userRole)) {
             UserDetails user = userRepository.findById(userId).orElse(null);
