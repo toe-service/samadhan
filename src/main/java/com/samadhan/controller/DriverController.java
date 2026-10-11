@@ -207,10 +207,14 @@ public class DriverController {
 	/**
 	 * TODO: REMOVE TOKEN (done)
 	 */
+	// Multipart, not JSON — aadhaarFile is mandatory (transfer-vendor web AllDrivers.jsx "Add
+	// Agent" form), same pattern as /register-Vehicle's rcFile.
 	@PostMapping(value = "/register-Driver")
-	public Driver createDriver(@RequestBody Driver driver) {
-		System.out.println("driver"+driver.getTransferVendor());
-		Driver resp = driversService.createdriver(driver);
+	public Driver createDriver(@RequestParam String driverName,
+			@RequestParam String driverContactNumber,
+			@RequestParam(required = false) Long transferVendorId,
+			@RequestParam MultipartFile aadhaarFile) {
+		Driver resp = driversService.createdriver(driverName, driverContactNumber, transferVendorId, aadhaarFile);
 		return resp;
 	}
 	

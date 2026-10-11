@@ -105,6 +105,19 @@ public class Driver {
 	
 	@Column(name="car_number")
 	private String carNumber;
+
+	// Set at agent creation — see driversServiceImpl#createdriver. Storage key for the agent's
+	// Aadhaar card document (StorageService#uploadFile), mandatory when adding an agent.
+	@Column(name = "aadhaar_storage_key")
+	private String aadhaarStorageKey;
+
+	public String getAadhaarStorageKey() {
+		return aadhaarStorageKey;
+	}
+
+	public void setAadhaarStorageKey(String aadhaarStorageKey) {
+		this.aadhaarStorageKey = aadhaarStorageKey;
+	}
 	
 	@ManyToOne
 	@JoinColumn(name = "transfer_id")
