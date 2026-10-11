@@ -1,6 +1,8 @@
 package com.samadhan.service;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
 import com.samadhan.entity.Vehicle;
@@ -16,7 +18,7 @@ public interface driversService {
 
 	List<Driver> getAllDriversByfilters(String pickuplatitude, String pickuplongitude);
 
-	Driver createdriver(Driver driver);
+	Driver createdriver(String driverName, String driverContactNumber, Long transferVendorId, MultipartFile aadhaarFile);
 
     Ride getRideByRideId(Long rideId) throws NotFoundException;
 

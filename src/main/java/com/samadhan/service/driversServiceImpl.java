@@ -16,10 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.api.client.util.Objects;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Ride;
+import com.samadhan.entity.TransferVendor;
 import com.samadhan.enums.rideStatusEnum;
 import com.samadhan.exception.SamadhanException;
 import com.samadhan.enums.UserRole;
@@ -62,6 +64,9 @@ public class driversServiceImpl implements driversService {
 
     @Autowired
     LocationService locationService;
+
+    @Autowired
+    StorageService storageService;
 
     @Override
     public Driver getById(Long id) {
@@ -140,17 +145,39 @@ public class driversServiceImpl implements driversService {
     }
 
     @Override
-    public Driver createdriver(Driver driver) {
-    	System.out.println("Inside driver"+driver);
-    	String name=driver.getDriverName();
-    	String contactNumber=driver.getDriverContactNumber();
-    	
-    	String password = name.substring(0, Math.min(3, name.length())) +
-                contactNumber.substring(Math.max(0, contactNumber.length() - 5));
-    	
+    public Driver createdriver(String driverName, String driverContactNumber, Long transferVendorId, MultipartFile aadhaarFile) {
+    	if (aadhaarFile == null || aadhaarFile.isEmpty()) {
+    		throw new IllegalArgumentException("Aadhaar card document is required");
+    	}
+
+    	Driver driver = new Driver();
+    	driver.setDriverName(driverName);
+    	driver.setDriverContactNumber(driverContactNumber);
+    	driver.setDriverActive(true);
+
+    	if (transferVendorId != null) {
+    		TransferVendor transferVendor = new TransferVendor();
+    		transferVendor.setId(transferVendorId);
+    		driver.setTransferVendor(transferVendor);
+    	}
+
+    	String password = driverName.substring(0, Math.min(3, driverName.length())) +
+                driverContactNumber.substring(Math.max(0, driverContactNumber.length() - 5));
     	driver.setPassword(password);
+
         Driver driverData = driverRepo.save(driver);
-        return driverData;
+
+        String aadhaarKey = String.format("transfer-agents/%d/aadhaar/%d_%s", driverData.getId(),
+                System.currentTimeMillis(), aadhaarFile.getOriginalFilename());
+
+        try {
+            storageService.uploadFile(aadhaarKey, aadhaarFile.getInputStream(), aadhaarFile.getSize(), aadhaarFile.getContentType());
+            driverData.setAadhaarStorageKey(aadhaarKey);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload Aadhaar document", e);
+        }
+
+        return driverRepo.save(driverData);
     }
 
 
