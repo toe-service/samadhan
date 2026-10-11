@@ -151,6 +151,9 @@ public class Vehicle {
 	@Column(name="rc_storage_key")
 	private String rcStorageKey;
 
+	@Column(name = "rc_verified", columnDefinition = "BOOLEAN DEFAULT FALSE")
+	private Boolean rcVerified = false;
+
 	@Column(name = "is_active")
 	private Boolean isActive = true;
 
@@ -279,6 +282,14 @@ public class Vehicle {
 
 	public void setRcStorageKey(String rcStorageKey) {
 		this.rcStorageKey = rcStorageKey;
+	}
+
+	public Boolean getRcVerified() {
+		return rcVerified;
+	}
+
+	public void setRcVerified(Boolean rcVerified) {
+		this.rcVerified = rcVerified;
 	}
 
 	public Boolean getIsActive() {

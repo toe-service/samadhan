@@ -15,7 +15,8 @@ public interface VehicleService {
 
 	Vehicle createVehicle(String vehicleNumber, String vehicleContactNumber, String currentLocation,
 			VendorPickupVehicleEnum vendorVehicle, VehicleCategoryEnum vehicleCategory, String vehicleLatitude,
-			String vehicleLongitude, String fcmToken, Long transferVendorId, MultipartFile rcFile);
+			String vehicleLongitude, String fcmToken, Long transferVendorId, MultipartFile rcFile,
+			Boolean rcVerified);
 
 	Vehicle updateLocation(String address, Long vehicleId, String lat, String lng);
 

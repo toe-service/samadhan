@@ -110,7 +110,6 @@ public class DriverController {
 		return ResponseEntity.ok(ResponseUtil.populateResponseObject(history, "SUCCESS", null));
 	}
 
-
 	@GetMapping(value = "/driver-details")
     public ResponseEntity<Driver> driverDetailsById(@RequestParam Long id) {
 		Driver response = driversService.getById(id);
@@ -225,14 +224,15 @@ public class DriverController {
 			@RequestParam(required = false) String vehicleLongitude,
 			@RequestParam(required = false) String fcmToken,
 			@RequestParam(required = false) Long transferVendorId,
-			@RequestParam(required = false) MultipartFile rcFile) {
+			@RequestParam MultipartFile rcFile,
+			@RequestParam(required = false) Boolean rcVerified) {
 
 		Vehicle resp = vehicleService.createVehicle(vehicleNumber, vehicleContactNumber, currentLocation,
 				vendorVehicle, vehicleCategory, vehicleLatitude, vehicleLongitude, fcmToken, transferVendorId,
-				rcFile);
+				rcFile, rcVerified);
 		return resp;
 	}
-	
+
 	// Soft delete: marks the driver inactive instead of removing the row, so ride history tied to
 	// this driver stays intact. Deactivated drivers are excluded from every vendor/agent-facing
 	// listing (DriverRepository.findByVendorId/findAllDriversByfilters), rejected at login, and
