@@ -1828,13 +1828,13 @@ public class PaymentServiceImpl {
 	            return new VehicleRateConfig(30, 1, 5, 4, 3.5);
 
 	        case E_LOADER:
-	            return new VehicleRateConfig(45, 1, 7, 6, 5);
+	            return new VehicleRateConfig(90, 1, 10, 9, 8);
 
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(48, 1, 8, 7, 6);
+	            return new VehicleRateConfig(120, 1, 13, 11, 10);
 
 	        case EECO:
-	            return new VehicleRateConfig(130, 1, 13, 11, 10);
+	            return new VehicleRateConfig(150, 1, 14, 12, 11);
 
 	        case TATA_ACE:
 	            return new VehicleRateConfig(230, 1, 15, 14, 12);
@@ -1847,22 +1847,22 @@ public class PaymentServiceImpl {
 	            return new VehicleRateConfig(350, 2, 30, 28, 26);
 
 	        case TRUCK_14FT_OPEN:
-	            return new VehicleRateConfig(400, 2, 35, 32, 30);
+	            return new VehicleRateConfig(400, 2, 42, 38, 36);
 
 	        case TRUCK_15FT_OPEN:
-	            return new VehicleRateConfig(450, 2, 40, 36, 32);
+	            return new VehicleRateConfig(450, 2, 46, 41, 37);
 
 	        case TRUCK_17FT_OPEN:
 	            return new VehicleRateConfig(550, 2, 48, 45, 40);
 
 	        case TRUCK_19FT_OPEN:
-	            return new VehicleRateConfig(600, 2, 55, 52, 48);
+	            return new VehicleRateConfig(400, 2, 48, 45, 42);
 
 	        case TRUCK_20FT_OPEN:
-	            return new VehicleRateConfig(700, 2, 60, 55, 50);
+	            return new VehicleRateConfig(600, 2, 53, 49, 44);
 
 	        case TRUCK_22FT_OPEN:
-	            return new VehicleRateConfig(800, 2, 72, 64, 56);
+	            return new VehicleRateConfig(600, 2, 53, 47, 41);
 
 	        case TRUCK_22FT_10TYRE:
 	            return new VehicleRateConfig(850, 2, 82, 72, 64);
@@ -1889,7 +1889,7 @@ public class PaymentServiceImpl {
 	            return new VehicleRateConfig(550, 2, 58, 50, 44);
 
 	        case TRUCK_19FT:
-	            return new VehicleRateConfig(650, 2, 48, 45, 40);
+	            return new VehicleRateConfig(650, 2, 62, 54, 48);
 
 	        case CONTAINER_7FT:
 	            return new VehicleRateConfig(400, 2, 20, 18, 16);
