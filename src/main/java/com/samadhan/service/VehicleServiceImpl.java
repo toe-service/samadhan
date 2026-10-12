@@ -123,7 +123,7 @@ public class VehicleServiceImpl implements VehicleService{
 					System.currentTimeMillis(), rcFile.getOriginalFilename());
 
 			try {
-		//		storageService.uploadFile(rcKey, rcFile.getInputStream(), rcFile.getSize(), rcFile.getContentType());
+				storageService.uploadFile(rcKey, rcFile.getInputStream(), rcFile.getSize(), rcFile.getContentType());
 				vehicle.setRcStorageKey(rcKey);
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to upload RC document", e);
