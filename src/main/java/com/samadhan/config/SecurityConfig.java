@@ -111,6 +111,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/pay/admin/reconcile-payment").permitAll()
                 .antMatchers(HttpMethod.POST, "/transfer/requestRideTransfer").permitAll()
                 .antMatchers(HttpMethod.POST, "/transferVendor/register-vendor").permitAll()
+                .antMatchers(HttpMethod.POST, "/transferVendor/verify-aadhaar").permitAll()
                 .antMatchers(HttpMethod.POST, "/transferVendor/password/forgot").permitAll()
                 .antMatchers(HttpMethod.POST, "/transferVendor/password/reset").permitAll()
                 .antMatchers(HttpMethod.GET, "/transferVendor/public-profile/**").permitAll()

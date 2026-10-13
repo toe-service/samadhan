@@ -23,7 +23,8 @@ public interface TransferVendorService {
 	TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber, String vendorCity,
 			String vendorAddress, String vendorLatitude, String vendorLongitude, MultipartFile aadhaarFile,
 			MultipartFile panFile, MultipartFile signatureFile, String gst, String services, Boolean isIndividual,
-			Boolean termsAccepted, String termsVersion, String termsText) throws ConflictException;
+			Boolean termsAccepted, String termsVersion, String termsText, String aadhaarNumber,
+			Boolean aadhaarVerified) throws ConflictException;
 
 	void deductLeadCost(Long vendorId, Long requestId, String userType);
 
