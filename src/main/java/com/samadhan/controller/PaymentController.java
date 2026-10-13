@@ -601,9 +601,17 @@ public class PaymentController {
 	     HttpHeaders headers = new HttpHeaders();
 	     headers.setContentType(MediaType.APPLICATION_PDF);
 
+	     // displayRequestId already carries its own "#" (e.g. "#TR455721026") for on-screen use —
+	     // stripped here since a literal "#" in a Content-Disposition filename gets percent-encoded
+	     // by browsers instead of displaying cleanly. Falls back to the bare id for any ride that
+	     // predates this column.
+	     String invoiceFileId = transfer.getDisplayRequestId() != null
+	             ? transfer.getDisplayRequestId().replace("#", "")
+	             : String.valueOf(transferId);
+
 	     headers.setContentDisposition(
 	             ContentDisposition.builder("attachment")
-	                     .filename("Invoice_" + transferId + ".pdf")
+	                     .filename("Invoice_" + invoiceFileId + ".pdf")
 	                     .build());
 
 	     return ResponseEntity.ok()
