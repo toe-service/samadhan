@@ -88,12 +88,6 @@ public class TransferVendor {
 	 @Column(name = "aadhaar_storage_key")
 	 private String aadhaarStorageKey;
 
-	 @Column(name = "aadhaar_number")
-	 private String aadhaarNumber;
-
-	 @Column(name = "aadhaar_verified", columnDefinition = "BOOLEAN DEFAULT FALSE")
-	 private Boolean aadhaarVerified = false;
-
 	 @Column(name = "pan_storage_key")
 	 private String panStorageKey;
 
@@ -290,22 +284,6 @@ public class TransferVendor {
 
 	public void setAadhaarStorageKey(String aadhaarStorageKey) {
 		this.aadhaarStorageKey = aadhaarStorageKey;
-	}
-
-	public String getAadhaarNumber() {
-		return aadhaarNumber;
-	}
-
-	public void setAadhaarNumber(String aadhaarNumber) {
-		this.aadhaarNumber = aadhaarNumber;
-	}
-
-	public Boolean getAadhaarVerified() {
-		return aadhaarVerified;
-	}
-
-	public void setAadhaarVerified(Boolean aadhaarVerified) {
-		this.aadhaarVerified = aadhaarVerified;
 	}
 
 	public String getPanStorageKey() {

@@ -18,14 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.samadhan.entity.TransferVendor;
 import com.samadhan.entity.Vehicle;
-import com.samadhan.dto.AadhaarVerificationResult;
 import com.samadhan.dto.PublicVendorProfileDto;
 import com.samadhan.dto.WalletTransactionDto;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.exception.ConflictException;
 import com.samadhan.exception.NotFoundException;
 import com.samadhan.exception.OtpMismatchException;
-import com.samadhan.request.AadhaarVerificationRequest;
 import com.samadhan.request.ChangePasswordRequest;
 import com.samadhan.request.ForgotPasswordRequest;
 import com.samadhan.request.ResetPasswordRequest;
@@ -34,7 +32,6 @@ import com.samadhan.security.TokenApi;
 import com.samadhan.service.LoginService;
 import com.samadhan.service.TransferVendorService;
 import com.samadhan.service.VehicleService;
-import com.samadhan.service.VerificationService;
 import com.samadhan.util.ResponseUtil;
 
 @RestController
@@ -49,9 +46,6 @@ public class TransferVendorController {
 
 	 @Autowired
 	 TokenApi tokenApi;
-
-	 @Autowired
-	 VerificationService verificationService;
 
 	@PostMapping(value = "/register-vendor")
 	public TransferVendor registerVendor(
@@ -70,22 +64,11 @@ public class TransferVendorController {
 	        @RequestParam(required = false) Boolean isIndividual,
 	        @RequestParam(required = false) Boolean termsAccepted,
 	        @RequestParam(required = false) String termsVersion,
-	        @RequestParam(required = false) String termsText,
-	        @RequestParam(required = false) String aadhaarNumber,
-	        @RequestParam(required = false) Boolean aadhaarVerified
+	        @RequestParam(required = false) String termsText
 	) throws ConflictException {
 
-		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, signatureFile, gst, services, isIndividual, termsAccepted, termsVersion, termsText, aadhaarNumber, aadhaarVerified );
+		TransferVendor resp = transferVendorService.registerVendor(vendorName, vendorEmail, vendorContactNumber, vendorCity, vendorAddress, vendorLatitude, vendorLongitude, aadhaarFile,panFile, signatureFile, gst, services, isIndividual, termsAccepted, termsVersion, termsText );
 		return resp;
-	}
-
-	// Public — no auth yet, same as /register-vendor (see SecurityConfig for the matching
-	// permitAll). Lets a vendor verify their Aadhaar number during registration, before the
-	// final multipart submit; the result is carried back to that submit as aadhaarNumber/
-	// aadhaarVerified form fields rather than persisted here, since no vendor row exists yet.
-	@PostMapping(value = "/verify-aadhaar")
-	public AadhaarVerificationResult verifyAadhaar(@RequestBody AadhaarVerificationRequest request) {
-		return verificationService.verifyAadhaar(request.aadhaarNumber);
 	}
 
 	// Public — no auth. Backs the shareable /vendor/<name> page on the frontend. Looked up by

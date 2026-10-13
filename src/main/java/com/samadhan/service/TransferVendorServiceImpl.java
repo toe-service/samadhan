@@ -112,8 +112,7 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	public TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber,
 			String vendorCity, String vendorAddress, String vendorLatitude, String vendorLongitude,
 			MultipartFile aadhaarFile, MultipartFile panFile, MultipartFile signatureFile, String gst,
-			String services, Boolean isIndividual, Boolean termsAccepted, String termsVersion, String termsText,
-			String aadhaarNumber, Boolean aadhaarVerified)
+			String services, Boolean isIndividual, Boolean termsAccepted, String termsVersion, String termsText)
 			throws ConflictException {
 
 		  boolean hasAadhaar = aadhaarFile != null && !aadhaarFile.isEmpty();
@@ -170,8 +169,6 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    vendor.setTermsAcceptedAt(LocalDateTime.now());
 		    vendor.setTermsVersion(termsVersion);
 		    vendor.setTermsText(termsText);
-		    vendor.setAadhaarNumber(aadhaarNumber);
-		    vendor.setAadhaarVerified(aadhaarVerified != null && aadhaarVerified);
 		    final TransferVendor finalVendor = vendor;
 		    if (services != null && !services.isBlank()) {
 		        List<VendorService> vendorServiceList = Arrays.stream(services.split(","))
