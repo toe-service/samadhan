@@ -331,6 +331,22 @@ public class TransferRequestDetails {
 	 @Column(name="receiver_number")
 	 private String receiverNumber;
 
+	 // "#TR" + this ride's own id + the first 2 digits of the customer's contact number + the
+	 // 2-digit month and 2-digit year it was created, e.g. "#TR340721026" (id 340, contact
+	 // starting "72", created Oct(10) '26) — a vendor-facing label less bare than the raw
+	 // numeric id. Set once, right after creation, and never recomputed — same "assigned once"
+	 // convention as invoiceNumber above.
+	 @Column(name="display_request_id")
+	 private String displayRequestId;
+
+	 public String getDisplayRequestId() {
+		return displayRequestId;
+	 }
+
+	 public void setDisplayRequestId(String displayRequestId) {
+		this.displayRequestId = displayRequestId;
+	 }
+
 	 // Snapshot of Vehicle.currentLocation taken at ride completion, so a completed ride keeps
 	 // showing where it ended even after the vehicle moves on to its next job.
 	 @Column(name="vehicle_last_location")

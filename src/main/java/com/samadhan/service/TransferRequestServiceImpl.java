@@ -343,6 +343,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		
 		transferRepo.save(transferRequest);
 
+		// The id wasn't known until the save just above, so displayRequestId couldn't be built
+		// until now — every request gets one here, regardless of whether a vendor is attached yet.
+		if (transferRequest.getDisplayRequestId() == null) {
+			transferRequest.setDisplayRequestId(buildDisplayRequestId(transferRequest));
+			transferRepo.save(transferRequest);
+		}
+
 		// New pending/unassigned request — check it against every vendor's posted availability so
 		// it shows up as a match immediately, not just after that vendor's next posting edit.
 		// Best-effort: a failure here must never fail the booking itself, which is already saved.
@@ -423,6 +430,29 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 		response.setTotalElements(pageResult.getTotalElements());
 		response.setTotalPages(pageResult.getTotalPages());
 		return response;
+	}
+
+	// "#TR" + id + first 2 digits of the customer's contact + 2-digit month + 2-digit year of
+	// creation, e.g. "#TR340721026". Null if the id or user isn't attached yet, or the contact
+	// number is too short to take 2 digits from — callers only persist a non-null result (see
+	// the two call sites above/below), leaving displayRequestId null until this can be built.
+	private static String buildDisplayRequestId(TransferRequestDetails request) {
+		if (request.getId() == null || request.getUserDetails() == null) {
+			return null;
+		}
+
+		String contact = request.getUserDetails().getUserContactNumber();
+		if (contact == null || contact.length() < 2) {
+			return null;
+		}
+
+		LocalDate createdDate = request.getRequestCreatedDate() != null
+				? request.getRequestCreatedDate().toLocalDate()
+				: LocalDate.now();
+
+		return "#TR" + request.getId()
+				+ contact.substring(0, 2)
+				+ String.format("%02d%02d", createdDate.getMonthValue(), createdDate.getYear() % 100);
 	}
 
 	@Override
@@ -665,6 +695,13 @@ public class TransferRequestServiceImpl implements TransferRequestService{
 			walletTransactionRepo.save(walletTransaction);
 		}
 
+		}
+
+		// Opportunistic backfill for any request that predates this column — every request created
+		// going forward already gets its displayRequestId in requestRideTransfer, so this is a
+		// no-op for those.
+		if (transferdetails.getDisplayRequestId() == null) {
+			transferdetails.setDisplayRequestId(buildDisplayRequestId(transferdetails));
 		}
 
 		transferRepo.save(transferdetails);
