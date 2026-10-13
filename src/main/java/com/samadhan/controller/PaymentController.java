@@ -566,11 +566,22 @@ public class PaymentController {
 
 	     document.add(sign);
 
+	     Image signatureImage = null;
 	     if (signatureBytes != null) {
-	         Image signatureImage = new Image(ImageDataFactory.create(signatureBytes))
-	                 .setWidth(120)
-	                 .setHeight(50)
-	                 .setHorizontalAlignment(HorizontalAlignment.RIGHT);
+	         try {
+	             signatureImage = new Image(ImageDataFactory.create(signatureBytes))
+	                     .setWidth(120)
+	                     .setHeight(50)
+	                     .setHorizontalAlignment(HorizontalAlignment.RIGHT);
+	         } catch (Exception e) {
+	             // Stored bytes fetched fine but aren't a decodable image (corrupt upload, or a
+	             // non-image file accepted at registration) — same "don't block the invoice" intent
+	             // as the fetch try/catch above, just for the parse step it didn't cover.
+	             logger.warn("Stored signature for vendor {} isn't a decodable image: {}", sellerVendor.getId(), e.getMessage());
+	         }
+	     }
+
+	     if (signatureImage != null) {
 	         document.add(signatureImage);
 	     } else {
 	         document.add(new Paragraph("\n\n"));
