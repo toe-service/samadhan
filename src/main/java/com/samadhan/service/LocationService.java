@@ -132,22 +132,34 @@ public class LocationService {
 	        throws UnsupportedEncodingException,
 	        JsonProcessingException {
 
-	    String url =
-	            "https://maps.googleapis.com/maps/api/geocode/json?address="
-	                    + URLEncoder.encode(address, "UTF-8")
-	                    + "&key=AIzaSyBEPIJBBKO6Xg8sqvAByFrWcShWVNSdVyM";
-
 	    RestTemplate restTemplate = new RestTemplate();
-
-	    String response =
-	            restTemplate.getForObject(url, String.class);
-
 	    ObjectMapper mapper = new ObjectMapper();
 
-	    JsonNode root = mapper.readTree(response);
+	    // Plain Geocoding API matches struggle with society/plot-number addresses (e.g.
+	    // "A-308, Plot No. GH-02A, Sector 76, Noida") and silently fall back to an
+	    // approximate nearby point. Autocomplete -> Place Details resolves to the exact
+	    // place a user would get by picking the address from a suggestions dropdown, so
+	    // try that first and only fall back to the original plain-geocode behavior below
+	    // if no prediction is found, keeping this a pure accuracy improvement.
+	    JsonNode placeDetailsResult = resolveViaPlaceDetails(address, restTemplate, mapper);
 
-	    JsonNode resultNode =
-	            root.path("results").get(0);
+	    JsonNode resultNode;
+	    if (placeDetailsResult != null) {
+	        resultNode = placeDetailsResult;
+	    } else {
+	        String url =
+	                "https://maps.googleapis.com/maps/api/geocode/json?address="
+	                        + URLEncoder.encode(address, "UTF-8")
+	                        + "&key=" + apiKey;
+
+	        String response =
+	                restTemplate.getForObject(url, String.class);
+
+	        JsonNode root = mapper.readTree(response);
+
+	        resultNode =
+	                root.path("results").get(0);
+	    }
 
 	    JsonNode location =
 	            resultNode.path("geometry")
@@ -190,6 +202,46 @@ public class LocationService {
 	    result.put("pincode", pincode);
 
 	    return result;
+	}
+
+	// Best-effort: returns null on any failure (no predictions, API error, malformed
+	// response) so getLatLong always has its original plain-geocode behavior to fall back on.
+	private JsonNode resolveViaPlaceDetails(String address, RestTemplate restTemplate, ObjectMapper mapper) {
+		try {
+			String autocompleteUrl =
+					"https://maps.googleapis.com/maps/api/place/autocomplete/json?input="
+							+ URLEncoder.encode(address, "UTF-8")
+							+ "&key=" + apiKey
+							+ "&components=country:in";
+
+			JsonNode autocompleteRoot = mapper.readTree(restTemplate.getForObject(autocompleteUrl, String.class));
+			JsonNode predictions = autocompleteRoot.path("predictions");
+			if (predictions.size() == 0) {
+				return null;
+			}
+
+			String placeId = predictions.get(0).path("place_id").asText(null);
+			if (placeId == null) {
+				return null;
+			}
+
+			String detailsUrl =
+					"https://maps.googleapis.com/maps/api/place/details/json?place_id="
+							+ placeId
+							+ "&fields=geometry,address_component"
+							+ "&key=" + apiKey;
+
+			JsonNode detailsRoot = mapper.readTree(restTemplate.getForObject(detailsUrl, String.class));
+			if (!"OK".equals(detailsRoot.path("status").asText())) {
+				return null;
+			}
+
+			JsonNode result = detailsRoot.path("result");
+			return result.path("geometry").path("location").has("lat") ? result : null;
+		} catch (Exception e) {
+			logger.warn("Autocomplete->Place Details lookup failed for address '{}': {}", address, e.getMessage());
+			return null;
+		}
 	}
 
 	public List<String> sourceSearchLocation(String input) throws JsonMappingException, JsonProcessingException, RestClientException {
