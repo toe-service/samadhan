@@ -84,7 +84,7 @@ public class VehicleServiceImpl implements VehicleService{
 		Vehicle vehicle = new Vehicle();
 
 		if (vehicleNumber != null) {
-			String userName = vehicleNumber.replaceAll("\\s+", "") + "@gmail.com";
+			String userName = vehicleNumber.replaceAll("\\s+", "") + "@transfereaze";
 
 			String password = vehicleNumber.replaceAll("\\s+", "")
 					.substring(Math.max(0, vehicleNumber.replaceAll("\\s+", "").length() - 6));
