@@ -1130,10 +1130,11 @@ public class PaymentServiceImpl {
 		 }
 
 		    //---------------------------------------------------------
-		    // GST
+		    // GST — rides under 100km are handled by individual (non-GST-registered) vendors, who
+		    // can't legally charge GST, so none is added to the price at all for them.
 		    //---------------------------------------------------------
 
-		    double gst = rideCalculation * 0.18;
+		    double gst = distanceInKm < 100 ? 0 : rideCalculation * 0.18;
 
 		    //---------------------------------------------------------
 		    // TOTAL
@@ -1548,7 +1549,9 @@ public class PaymentServiceImpl {
 	    }
 
 	    double subtotal = rideCost + helperCharge + loading + packaging + laborCost + floorCharge;
-	    double gst = subtotal * 0.18;
+	    // Rides under 100km are handled by individual (non-GST-registered) vendors, who can't
+	    // legally charge GST, so none is added to the price at all for them.
+	    double gst = distance < 100 ? 0 : subtotal * 0.18;
 
 	    response.setVehicle(vehicle.getDisplayName());
 	    response.setRideCost(rideCost);
