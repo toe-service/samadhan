@@ -112,6 +112,36 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 				.collect(Collectors.toList());
 	}
 
+	// firstname + first 3 letters of last name + "@transfereaze", e.g. "Shivank Khandelwal"
+	// -> "shivankkha@transfereaze". Single-word names just get "@transfereaze" appended
+	// with no last-name prefix. Collisions (same name, or two vendors whose name reduces to the
+	// same string) get a numeric suffix: "shivankkha2@transfereaze", etc.
+	private String generateVendorUsername(String vendorName) {
+		String[] parts = (vendorName == null ? "" : vendorName.trim()).split("\\s+");
+		String first = parts.length > 0 ? sanitizeNamePart(parts[0]) : "";
+		String lastPrefix = parts.length > 1 ? sanitizeNamePart(parts[parts.length - 1]) : "";
+		if (lastPrefix.length() > 3) {
+			lastPrefix = lastPrefix.substring(0, 3);
+		}
+
+		String base = first + lastPrefix;
+		if (base.isEmpty()) {
+			base = "vendor";
+		}
+
+		String candidate = base + "@transfereaze";
+		int suffix = 1;
+		while (transferVendorRepo.findByVendorEmail(candidate) != null) {
+			suffix++;
+			candidate = base + suffix + "@transfereaze";
+		}
+		return candidate;
+	}
+
+	private String sanitizeNamePart(String part) {
+		return part.toLowerCase().replaceAll("[^a-z0-9]", "");
+	}
+
 	@Override
 	@Transactional
 	public TransferVendor registerVendor(String vendorName, String vendorEmail, String vendorContactNumber,
@@ -134,28 +164,25 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 			  throw new ConflictException("You must accept the Terms & Conditions to register");
 		  }
 
-		  // Nothing enforced this before, which is how duplicate vendor_email rows ended up in
-		  // the database — findByVendorEmail (login, forgot-password) then throws
-		  // NonUniqueResultException the moment 2+ rows share an email.
-		  if (vendorEmail != null && transferVendorRepo.findByVendorEmail(vendorEmail) != null) {
-			  throw new ConflictException("A vendor is already registered with this email");
-		  }
-
 		  TransferVendor vendor = new TransferVendor();
 
-			if(vendorEmail != null) {
+		    // Login username is always generated server-side from the vendor's name rather than
+		    // taken from client input — individual vendors often have no real email, so a
+		    // predictable, always-available username beats requiring one. The client-supplied
+		    // vendorEmail param is intentionally ignored for this; findByVendorEmail duplicate
+		    // checking is now unnecessary here since generateVendorUsername already loops until
+		    // it finds a free one.
+		    String generatedEmail = generateVendorUsername(vendorName);
 
-			// Generalizes the old "@gmail.com"-only stripping (which left the FULL email as
-			// the password for any non-Gmail address) to any domain: local-part before '@'.
-			// Hashed before storage — see LoginService for the matching verification side and
-			// why it also transparently upgrades any pre-existing plaintext passwords.
-			int atIndex = vendorEmail.indexOf('@');
-			String password = atIndex > 0 ? vendorEmail.substring(0, atIndex) : vendorEmail;
+			// Same local-part-before-'@' password derivation as before, just always sourced from
+			// the generated username now instead of a client-supplied email. Hashed before storage
+			// — see LoginService for the matching verification side.
+			int atIndex = generatedEmail.indexOf('@');
+			String password = atIndex > 0 ? generatedEmail.substring(0, atIndex) : generatedEmail;
 			vendor.setVendorPassword(passwordEncoder.encode(password));
-			}
-		 
+
 		    vendor.setVendorName(vendorName);
-		    vendor.setVendorEmail(vendorEmail);
+		    vendor.setVendorEmail(generatedEmail);
 		    vendor.setVendorContactNumber(vendorContactNumber);
 		    vendor.setVendorCity(vendorCity);
 		    vendor.setVendorAddress(vendorAddress);
