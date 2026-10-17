@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -52,6 +53,14 @@ public class LoginService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    // Single admin account, no DB row — credentials live only as env-configured values (see
+    // application-{dev,prod}.properties) so the admin panel needs no new entity/table/migration.
+    @Value("${admin.login.username:}")
+    private String adminUsername;
+
+    @Value("${admin.login.password.hash:}")
+    private String adminPasswordHash;
 
     public UserDetails isOtpValid(UserOtpVerifyRequest userOtpVerifyRequest) throws OtpMismatchException {
         UserDetails userDetails = userRepository.findByUserContactNumber(userOtpVerifyRequest.getUserContactNumber())
@@ -180,6 +189,16 @@ public class LoginService {
 		}
 
 		return transferv;
+	}
+
+	// Blank-until-deliberately-set, same reasoning as admin.reconcile.key in
+	// application-prod.properties: if the env vars haven't been configured yet, this just rejects
+	// every admin-login attempt instead of crashing the whole app on boot.
+	public void loginAdmin(String userName, String password) {
+		if (!StringUtils.hasText(adminUsername) || !StringUtils.hasText(adminPasswordHash)
+				|| !adminUsername.equals(userName) || !passwordEncoder.matches(password, adminPasswordHash)) {
+			throw new InvalidCredentialsException("Invalid credentials");
+		}
 	}
 
 	private static final int RESET_OTP_VALID_MINUTES = 10;

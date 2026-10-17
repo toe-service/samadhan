@@ -23,6 +23,7 @@ import com.samadhan.request.UserOtpRequest;
 import com.samadhan.request.UserOtpVerifyRequest;
 import com.samadhan.request.UserRegisterRequest;
 import com.samadhan.entity.RefreshToken;
+import com.samadhan.response.AdminLoginResponse;
 import com.samadhan.response.LoginResponse;
 import com.samadhan.response.ResponseObject;
 import com.samadhan.response.TokenRefreshResponse;
@@ -305,6 +306,31 @@ public class V1UserLoginAndRegistrationController {
 
         ResponseObject<TransferVendorLoginResponse> response = ResponseUtil.populateResponseObject(
                 vendorLoginResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // Single admin account, env-var credentials (see LoginService#loginAdmin) — no DB row, so no
+    // currentSessionId/single-active-session bookkeeping here (unlike /transfervendor-login) and
+    // no refresh-token flow: an expired admin token just means logging in again. The 8h TTL keeps
+    // that reasonably infrequent without touching RefreshTokenService (which expects a real
+    // vendor/user/vehicle row to validate isActive/currentSessionId against).
+    @PostMapping("/admin-login")
+    public ResponseEntity<ResponseObject<AdminLoginResponse>> loginAdmin(
+            @RequestParam String UserName, @RequestParam String password) {
+
+        loginService.loginAdmin(UserName, password);
+
+        long tokenAliveMin = 480;
+        String jwtToken = tokenApi.generateToken(UserName, UserRole.ADMIN.getValue(), 0L, (int) tokenAliveMin);
+
+        AdminLoginResponse adminLoginResponse = new AdminLoginResponse();
+        adminLoginResponse.setToken(jwtToken);
+        adminLoginResponse.setUserRole(UserRole.ADMIN.getValue());
+        adminLoginResponse.setExpiresIn(tokenAliveMin * 60 * 1000);
+
+        ResponseObject<AdminLoginResponse> response = ResponseUtil.populateResponseObject(
+                adminLoginResponse, AppConstant.USER_LOGIN_SUCCESSFUL, null);
 
         return ResponseEntity.ok(response);
     }

@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -69,6 +71,38 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 	// otherwise fail hard the moment 2+ vendors collide on the same slug.
 	@Query(value="select * from transfer_vendor where lower(replace(vendor_name, ' ', ''))=lower(:vendorSlug) ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
 	TransferVendor findByVendorNameSlug(String vendorSlug);
+
+	// Admin dashboard summary card counts — platform-wide, no single-vendor scoping (see
+	// AdminVendorStatusCounts for what each bucket means).
+	@Query(value =
+			"SELECT " +
+			"  COUNT(*) AS totalVendors, " +
+			"  SUM(CASE WHEN vendor_status IN (1,3) THEN 1 ELSE 0 END) AS onboardedVendors, " +
+			"  SUM(CASE WHEN vendor_status IN (0,2) THEN 1 ELSE 0 END) AS pendingVendors, " +
+			"  SUM(CASE WHEN vendor_status = 4 THEN 1 ELSE 0 END) AS rejectedVendors, " +
+			"  SUM(CASE WHEN vendor_status = 5 THEN 1 ELSE 0 END) AS suspendedVendors " +
+			"FROM transfer_vendor",
+			nativeQuery = true)
+	AdminVendorStatusCounts countVendorsByStatus();
+
+	// Admin vendor list: one row per vendor with vehicle/agent/pending-request counts via
+	// subqueries, so the frontend doesn't need a separate round-trip per vendor. Pending-request
+	// count only counts requests actually assigned to this vendor (transfer_id = tv.id) — not the
+	// complex geo-eligibility "available feed" matching countRidesByStatusForVendor does, which
+	// answers a different question (what could this vendor pick up) than what an admin wants here
+	// (what is this vendor actually on the hook for).
+	@Query(value =
+			"SELECT tv.id AS vendorId, tv.vendor_name AS vendorName, tv.vendor_email AS vendorEmail, " +
+			"  tv.vendor_status AS vendorStatus, " +
+			"  (SELECT COUNT(*) FROM vehicle v WHERE v.transfer_id = tv.id) AS vehicleCount, " +
+			"  (SELECT COUNT(*) FROM driver d WHERE d.transfer_id = tv.id) AS agentCount, " +
+			"  (SELECT COUNT(*) FROM transfer_request_details trd WHERE trd.transfer_id = tv.id " +
+			"     AND trd.transfer_status = 0 AND (trd.is_deleted IS NULL OR trd.is_deleted = 0)" +
+			"  ) AS pendingRequestCount " +
+			"FROM transfer_vendor tv " +
+			"ORDER BY tv.id DESC",
+			nativeQuery = true)
+	Page<AdminVendorSummary> findAllVendorSummaries(Pageable pageable);
 
 }
 
