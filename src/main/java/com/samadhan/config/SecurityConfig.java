@@ -82,6 +82,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/v1/user-otp-verify").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/user-register").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/transfervendor-login").permitAll()
+                .antMatchers(HttpMethod.POST, "/v1/admin-login").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/role-login").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/user-password/forgot").permitAll()
                 .antMatchers(HttpMethod.POST, "/v1/user-password/reset").permitAll()

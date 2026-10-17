@@ -426,6 +426,22 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 	        nativeQuery = true)
 	RideStatusCounts countRidesByStatusForVendor(@Param("vendorId") Long vendorId);
 
+	// Admin dashboard: platform-wide request counts by status, no vendor scoping and no
+	// geo-eligibility matching (unlike countRidesByStatusForVendor above, which answers "what
+	// could this vendor pick up" rather than "how many requests exist in each status").
+	@Query(value =
+			"SELECT " +
+			"  COUNT(*) AS total, " +
+			"  SUM(CASE WHEN transfer_status = 0 THEN 1 ELSE 0 END) AS pending, " +
+			"  SUM(CASE WHEN transfer_status = 1 THEN 1 ELSE 0 END) AS accepted, " +
+			"  SUM(CASE WHEN transfer_status IN (3,5,6) THEN 1 ELSE 0 END) AS ongoing, " +
+			"  SUM(CASE WHEN transfer_status = 8 THEN 1 ELSE 0 END) AS completed, " +
+			"  SUM(CASE WHEN transfer_status = 9 THEN 1 ELSE 0 END) AS cancelled " +
+			"FROM transfer_request_details " +
+			"WHERE (is_deleted IS NULL OR is_deleted = 0)",
+			nativeQuery = true)
+	AdminRideStatusCounts countAllRidesByStatus();
+
 //	@Query(value =
 //	        "SELECT * " +
 //	        "FROM transfer_request_details t " +
