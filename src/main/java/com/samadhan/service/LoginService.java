@@ -18,6 +18,8 @@ import com.samadhan.util.PasswordUtil;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,11 +34,20 @@ import java.util.stream.IntStream;
 @Service
 public class LoginService {
 
+    // Fixed-OTP test account for manual QA against non-prod backends, so login works without a
+    // real SMS gateway. Gated on the active profile (checked at call time, not cached) so it's
+    // physically impossible to trigger against production even if someone tries the number there.
+    private static final String TEST_ACCOUNT_CONTACT_NUMBER = "914060test";
+    private static final int TEST_ACCOUNT_OTP = 1234;
+
     @Value("${sms.service.provider.url}")
     private String smsProviderUrl;
 
     @Value("${sms.client.token}")
     private String smsProviderKey;
+
+    @Autowired
+    private Environment environment;
 
     @Autowired
     private UserRepository userRepository;
@@ -109,9 +120,18 @@ public class LoginService {
 //    }
 
     public Integer generateAndSendOtp(String mobileNumber) {
+        if (isTestAccountBypassActive(mobileNumber)) {
+            // No real SMS gateway call — this isn't a real phone number.
+            return TEST_ACCOUNT_OTP;
+        }
         Integer otp = generateOtp();
         sendOtpSms(mobileNumber, "Four digit OTP to login in Transfer Service is " + otp);
         return otp;
+    }
+
+    private boolean isTestAccountBypassActive(String contactNumber) {
+        return TEST_ACCOUNT_CONTACT_NUMBER.equals(contactNumber)
+                && !environment.acceptsProfiles(Profiles.of("prod"));
     }
 
     private void sendOtpSms(String mobileNumber, String message) {
