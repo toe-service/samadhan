@@ -513,25 +513,21 @@ public class PaymentController {
 	     totals.setWidth(UnitValue.createPercentValue(100));
 	     totals.setHorizontalAlignment(HorizontalAlignment.RIGHT);
 
-	     if (vendorGstRegistered) {
-	         totals.addCell(totalsCell("Taxable Value", normal, false));
-	         totals.addCell(totalsCell(money.format(taxableValue), normal, false));
+	     // Shown regardless of vendorGstRegistered now — the GST amount is always collected as
+	     // part of the ride price (see PaymentServiceImpl), so the invoice always itemizes it
+	     // instead of silently folding it into a bare "Total Value" with no breakdown.
+	     totals.addCell(totalsCell("Taxable Value", normal, false));
+	     totals.addCell(totalsCell(money.format(taxableValue), normal, false));
 
-	         if (interState) {
-	             totals.addCell(totalsCell("IGST @ 18%", normal, false));
-	             totals.addCell(totalsCell(money.format(totalGst), normal, false));
-	         } else {
-	             totals.addCell(totalsCell("CGST @ 9%", normal, false));
-	             totals.addCell(totalsCell(money.format(cgst), normal, false));
-
-	             totals.addCell(totalsCell("SGST @ 9%", normal, false));
-	             totals.addCell(totalsCell(money.format(sgst), normal, false));
-	         }
+	     if (interState) {
+	         totals.addCell(totalsCell("IGST @ 18%", normal, false));
+	         totals.addCell(totalsCell(money.format(totalGst), normal, false));
 	     } else {
-	         // Bill of Supply — an unregistered supplier can't legally charge GST, so no tax
-	         // breakup is shown at all, just the total value of the supply.
-	         totals.addCell(totalsCell("Total Value", normal, false));
-	         totals.addCell(totalsCell(money.format(grandTotal), normal, false));
+	         totals.addCell(totalsCell("CGST @ 9%", normal, false));
+	         totals.addCell(totalsCell(money.format(cgst), normal, false));
+
+	         totals.addCell(totalsCell("SGST @ 9%", normal, false));
+	         totals.addCell(totalsCell(money.format(sgst), normal, false));
 	     }
 
 	     totals.addCell(totalsCell("Grand Total", bold, true));
@@ -542,16 +538,11 @@ public class PaymentController {
 	     document.add(new Paragraph("\n" + GstInvoiceUtil.amountInWords(grandTotal))
 	             .setFont(bold).setFontSize(9));
 
-	     if (vendorGstRegistered) {
-	         String taxNote = interState
-	                 ? "Note: Inter-state supply (" + safeText(vendorState) + " to " + safeText(pickupState) + ") — IGST charged."
-	                 : "Note: Intra-state supply — CGST + SGST charged.";
-	         document.add(new Paragraph("\n" + taxNote)
-	                 .setFont(normal).setFontSize(8).setFontColor(ColorConstants.GRAY));
-	     } else {
-	         document.add(new Paragraph("\nThis is a Bill of Supply. No GST has been charged as the supplier is not registered under GST.")
-	                 .setFont(normal).setFontSize(8).setFontColor(ColorConstants.GRAY));
-	     }
+	     String taxNote = interState
+	             ? "Note: Inter-state supply (" + safeText(vendorState) + " to " + safeText(pickupState) + ") — IGST charged."
+	             : "Note: Intra-state supply — CGST + SGST charged.";
+	     document.add(new Paragraph("\n" + taxNote)
+	             .setFont(normal).setFontSize(8).setFontColor(ColorConstants.GRAY));
 
 	     document.add(new Paragraph("\nDeclaration: We certify that the particulars given above are true and correct.")
 	             .setFont(normal).setFontSize(8).setFontColor(ColorConstants.DARK_GRAY));
