@@ -1,5 +1,6 @@
 package com.samadhan.controller;
 
+import com.samadhan.dto.RideHistoryPageDto;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.UserRole;
@@ -77,5 +78,19 @@ public class AdminController {
         requireAdmin(httpRequest);
         List<Driver> agents = adminService.getVendorAgents(vendorId);
         return ResponseEntity.ok(ResponseUtil.populateResponseObject(agents, "SUCCESS", null));
+    }
+
+    // Platform-wide request list with full details (vendor, customer, vehicle/agent, addresses,
+    // cost) — not just the dashboard-summary counts. status is one of ALL/PENDING/ACCEPTED/
+    // ONGOING/COMPLETED/CANCELLED (defaults to ALL), same bucket set the vendor ride feed uses.
+    @GetMapping("/requests")
+    public ResponseEntity<ResponseObject<RideHistoryPageDto>> getRequests(
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest httpRequest) {
+        requireAdmin(httpRequest);
+        RideHistoryPageDto requests = adminService.getRequests(status, page, size);
+        return ResponseEntity.ok(ResponseUtil.populateResponseObject(requests, "SUCCESS", null));
     }
 }

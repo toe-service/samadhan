@@ -442,6 +442,34 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 			nativeQuery = true)
 	AdminRideStatusCounts countAllRidesByStatus();
 
+	// Admin dashboard: platform-wide, paginated request list with full details (vendor, customer,
+	// vehicle/agent, addresses) -- same shape/countQuery convention as
+	// findByVehicleIdOrderByRequestCreatedDateDesc above, just without the vehicle/vendor scoping.
+	// statusFilter mirrors showRidestoVendorsPaged's bucket set.
+	@Query(value = "SELECT trd.* FROM transfer_request_details trd " +
+	        "WHERE (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
+	        "AND ( " +
+	        "  :statusFilter = 'ALL' " +
+	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
+	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
+	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
+	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
+	        "  OR (:statusFilter = 'CANCELLED' AND trd.transfer_status = 9) " +
+	        ") " +
+	        "ORDER BY trd.request_created_date DESC",
+	        countQuery = "SELECT COUNT(*) FROM transfer_request_details trd " +
+	        "WHERE (trd.is_deleted IS NULL OR trd.is_deleted = 0) " +
+	        "AND ( " +
+	        "  :statusFilter = 'ALL' " +
+	        "  OR (:statusFilter = 'PENDING' AND trd.transfer_status = 0) " +
+	        "  OR (:statusFilter = 'ACCEPTED' AND trd.transfer_status = 1) " +
+	        "  OR (:statusFilter = 'ONGOING' AND trd.transfer_status IN (3,5,6)) " +
+	        "  OR (:statusFilter = 'COMPLETED' AND trd.transfer_status = 8) " +
+	        "  OR (:statusFilter = 'CANCELLED' AND trd.transfer_status = 9) " +
+	        ")",
+	        nativeQuery = true)
+	Page<TransferRequestDetails> findAllForAdmin(@Param("statusFilter") String statusFilter, Pageable pageable);
+
 //	@Query(value =
 //	        "SELECT * " +
 //	        "FROM transfer_request_details t " +
