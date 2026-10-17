@@ -1,6 +1,8 @@
 package com.samadhan.service;
 
+import com.samadhan.dto.RideHistoryPageDto;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.repository.AdminRideStatusCounts;
@@ -82,6 +84,25 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<Driver> getVendorAgents(Long vendorId) {
         return driversService.getAllDriversByVendor(vendorId);
+    }
+
+    @Override
+    public RideHistoryPageDto getRequests(String statusFilter, int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(size, 1);
+        String normalizedStatus = (statusFilter == null || statusFilter.isBlank())
+                ? "ALL" : statusFilter.trim().toUpperCase();
+
+        Page<TransferRequestDetails> pageResult = transferRequestRepository.findAllForAdmin(
+                normalizedStatus, PageRequest.of(safePage, safeSize));
+
+        RideHistoryPageDto dto = new RideHistoryPageDto();
+        dto.setRides(pageResult.getContent());
+        dto.setTotalElements(pageResult.getTotalElements());
+        dto.setTotalPages(pageResult.getTotalPages());
+        dto.setPage(safePage);
+        dto.setSize(safeSize);
+        return dto;
     }
 
     private AdminVendorRow toRow(AdminVendorSummary summary) {
