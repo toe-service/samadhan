@@ -1130,11 +1130,10 @@ public class PaymentServiceImpl {
 		 }
 
 		    //---------------------------------------------------------
-		    // GST — rides under 100km are handled by individual (non-GST-registered) vendors, who
-		    // can't legally charge GST, so none is added to the price at all for them.
+		    // GST
 		    //---------------------------------------------------------
 
-		    double gst = distanceInKm < 100 ? 0 : rideCalculation * 0.18;
+		    double gst = rideCalculation * 0.18;
 
 		    //---------------------------------------------------------
 		    // TOTAL
@@ -1549,9 +1548,7 @@ public class PaymentServiceImpl {
 	    }
 
 	    double subtotal = rideCost + helperCharge + loading + packaging + laborCost + floorCharge;
-	    // Rides under 100km are handled by individual (non-GST-registered) vendors, who can't
-	    // legally charge GST, so none is added to the price at all for them.
-	    double gst = distance < 100 ? 0 : subtotal * 0.18;
+	    double gst = subtotal * 0.18;
 
 	    response.setVehicle(vehicle.getDisplayName());
 	    response.setRideCost(rideCost);
@@ -1828,44 +1825,44 @@ public class PaymentServiceImpl {
 	        // below are B2B freight pricing with no comparable market reference to benchmark against.
 	        case SCOOTER:
 	        case TWO_WHEELER:
-	            return new VehicleRateConfig(30, 1, 5, 4, 3.5);
+	            return new VehicleRateConfig(40, 1, 5, 4, 3.5);
 
 	        case E_LOADER:
-	            return new VehicleRateConfig(90, 1, 10, 9, 8);
+	            return new VehicleRateConfig(150, 1, 10, 9, 8);
 
 	        case THREE_WHEELER:
-	            return new VehicleRateConfig(120, 1, 13, 11, 10);
+	            return new VehicleRateConfig(180, 1, 13, 11, 10);
 
 	        case EECO:
-	            return new VehicleRateConfig(150, 1, 14, 12, 11);
+	            return new VehicleRateConfig(200, 1, 14, 12, 11);
 
 	        case TATA_ACE:
-	            return new VehicleRateConfig(230, 1, 15, 14, 12);
+	            return new VehicleRateConfig(250, 1, 15, 14, 12);
 
 	        // ---------- Open Body Truck ----------
 	        case PICKUP_8FT:
-	            return new VehicleRateConfig(300, 2, 22, 20, 18);
+	            return new VehicleRateConfig(500, 2, 22, 20, 18);
 
 	        case TRUCK_10FT:
-	            return new VehicleRateConfig(350, 2, 30, 28, 26);
+	            return new VehicleRateConfig(500, 2, 30, 28, 26);
 
 	        case TRUCK_14FT_OPEN:
-	            return new VehicleRateConfig(400, 2, 42, 38, 36);
+	            return new VehicleRateConfig(550, 2, 42, 38, 36);
 
 	        case TRUCK_15FT_OPEN:
-	            return new VehicleRateConfig(450, 2, 46, 41, 37);
+	            return new VehicleRateConfig(550, 2, 46, 41, 37);
 
 	        case TRUCK_17FT_OPEN:
-	            return new VehicleRateConfig(550, 2, 48, 45, 40);
+	            return new VehicleRateConfig(700, 2, 48, 45, 40);
 
 	        case TRUCK_19FT_OPEN:
-	            return new VehicleRateConfig(400, 2, 48, 45, 42);
+	            return new VehicleRateConfig(700, 2, 48, 45, 42);
 
 	        case TRUCK_20FT_OPEN:
-	            return new VehicleRateConfig(600, 2, 53, 49, 44);
+	            return new VehicleRateConfig(800, 2, 53, 49, 44);
 
 	        case TRUCK_22FT_OPEN:
-	            return new VehicleRateConfig(600, 2, 53, 47, 41);
+	            return new VehicleRateConfig(850, 2, 53, 47, 41);
 
 	        case TRUCK_22FT_10TYRE:
 	            return new VehicleRateConfig(850, 2, 82, 72, 64);
@@ -1885,26 +1882,26 @@ public class PaymentServiceImpl {
 	        // ---------- Closed Container ----------
 	        case TRUCK_14FT:
 	        case TRUCK_14FT_CLOSED:
-	            return new VehicleRateConfig(500, 2, 40, 36, 32);
+	            return new VehicleRateConfig(550, 2, 40, 36, 32);
 
 	        case TRUCK_17FT:
 	        case TRUCK_17FT_CLOSED:
-	            return new VehicleRateConfig(550, 2, 58, 50, 44);
+	            return new VehicleRateConfig(700, 2, 58, 50, 44);
 
 	        case TRUCK_19FT:
-	            return new VehicleRateConfig(650, 2, 62, 54, 48);
+	            return new VehicleRateConfig(700, 2, 62, 54, 48);
 
 	        case CONTAINER_7FT:
 	            return new VehicleRateConfig(400, 2, 20, 18, 16);
 
 	        case CONTAINER_8FT:
-	            return new VehicleRateConfig(400, 2, 22, 20, 18);
+	            return new VehicleRateConfig(500, 2, 22, 20, 18);
 
 	        case CONTAINER_10FT:
 	            return new VehicleRateConfig(500, 2, 32, 28, 24);
 
 	        case CONTAINER_20FT:
-	            return new VehicleRateConfig(750, 2, 80, 70, 60);
+	            return new VehicleRateConfig(800, 2, 80, 70, 60);
 
 	        case CONTAINER_22FT:
 	            return new VehicleRateConfig(850, 2, 85, 75, 65);
