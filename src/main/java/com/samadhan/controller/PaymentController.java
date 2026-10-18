@@ -957,10 +957,32 @@ public class PaymentController {
 	}
 	
 	
+	// Wallet top-up floor — small enough on the vehicle/driver app (Rs 50) that a legitimate
+	// recharge should never hit it, higher on the vendor website (Rs 200) since that's the
+	// account actually paying platform fees out of this balance. Shared endpoint, so the two
+	// client apps are told apart by their JWT's role (VEHICLE vs VENDOR) rather than trusting a
+	// client-supplied flag — the vehicle/driver app's wallet.tsx also validates its own Rs 50
+	// client-side for immediate feedback, but the real enforcement is here, same "client prop
+	// can't be trusted alone" reasoning as the registration-fee amount check above.
+	private static final double MIN_WALLET_RECHARGE_VEHICLE_RUPEES = 50.0;
+	private static final double MIN_WALLET_RECHARGE_VENDOR_RUPEES = 200.0;
+
 	@PostMapping("/wallet/create-order")
 	public Map<String,Object> createOrder(
 	        @RequestParam Long vendorId,
-	        @RequestParam Double amount) throws Exception {
+	        @RequestParam Double amount,
+	        HttpServletRequest httpRequest) throws Exception {
+
+	    String authHeader = httpRequest.getHeader("Authorization");
+	    String jwt = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+	    String tokenRole = jwt != null ? tokenApi.extractUserRole(jwt) : null;
+	    boolean isVehicleToken = UserRole.VEHICLE.getValue().equalsIgnoreCase(tokenRole);
+	    double minAmount = isVehicleToken ? MIN_WALLET_RECHARGE_VEHICLE_RUPEES : MIN_WALLET_RECHARGE_VENDOR_RUPEES;
+
+	    if (amount == null || amount < minAmount) {
+	        throw new IllegalArgumentException(
+	                "Minimum wallet recharge amount is Rs " + (int) minAmount);
+	    }
 
 	    RazorpayClient client =
 	        paymentService.getPaymentClient();
@@ -1166,7 +1188,45 @@ public class PaymentController {
 	    txn.setRazorpayPaymentId(req.getRazorpayPaymentId());
 	    walletTransactionRepository.save(txn);
 
+	    creditNewVendorJoiningBonus(vendor);
+
 	    return ResponseEntity.ok("Registration fee paid — account activated");
+	}
+
+	// Launch promo paired with TransferVendor#getRegistrationFeeRupees' temporary Rs 1 individual
+	// fee: an extra Rs 51 of wallet credit, on top of whatever was actually paid, so a new
+	// individual vendor can accept their first few rides at a discount. Deliberately NOT a
+	// Razorpay-linked credit (razorpayPaymentId left null, matching WalletTransaction's own
+	// documented convention for internal, non-Razorpay entries) -- giving it the real fee
+	// payment's id would make handlePaymentFailed's `countByRazorpayPaymentId(paymentId) > 1`
+	// idempotency check see 2 rows before any reversal ever happened, so it would silently skip
+	// reversing a genuine bank-side failure. Both callers already sit behind an
+	// existsByRazorpayPaymentId(paymentId) guard for the real payment, so this can't double-credit
+	// either. Fleet vendors (still Rs 399, not Rs 1) are not eligible. Delete this method and its
+	// two call sites once the launch promo ends.
+	private static final double NEW_VENDOR_JOINING_BONUS_RUPEES = 51.0;
+
+	private void creditNewVendorJoiningBonus(TransferVendor vendor) {
+	    if (!Boolean.TRUE.equals(vendor.getIsIndividual())) {
+	        return;
+	    }
+
+	    VendorWallet wallet = VendorWalletRepo.findByVendor(vendor.getId());
+	    if (wallet == null) {
+	        wallet = new VendorWallet();
+	        wallet.setBalance(NEW_VENDOR_JOINING_BONUS_RUPEES);
+	    } else {
+	        wallet.setBalance(wallet.getBalance() + NEW_VENDOR_JOINING_BONUS_RUPEES);
+	    }
+	    wallet.setVendor(vendor);
+	    VendorWalletRepo.save(wallet);
+
+	    WalletTransaction bonusTxn = new WalletTransaction();
+	    bonusTxn.setAmount(NEW_VENDOR_JOINING_BONUS_RUPEES);
+	    bonusTxn.setTransactionType("CREDIT");
+	    bonusTxn.setDescription("New Vendor Joining Bonus");
+	    bonusTxn.setVendor(vendor);
+	    walletTransactionRepository.save(bonusTxn);
 	}
 
 	// Safety net for "Razorpay charged the customer, but our server never got to record it" —
@@ -1540,6 +1600,8 @@ public class PaymentController {
 	    txn.setRazorpayOrderId(orderId);
 	    txn.setRazorpayPaymentId(paymentId);
 	    walletTransactionRepository.save(txn);
+
+	    creditNewVendorJoiningBonus(vendor);
 
 	    logger.warn("Webhook reconciled a registration fee the client-side confirmation call apparently missed: "
 	            + "vendor {}, amount {}, payment {}", vendorId, amount, paymentId);
