@@ -72,6 +72,8 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 	@Query(value="select * from transfer_vendor where lower(replace(vendor_name, ' ', ''))=lower(:vendorSlug) ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
 	TransferVendor findByVendorNameSlug(String vendorSlug);
 
+	boolean existsByVendorNameIgnoreCase(String vendorName);
+
 	// Admin dashboard summary card counts — platform-wide, no single-vendor scoping (see
 	// AdminVendorStatusCounts for what each bucket means).
 	@Query(value =

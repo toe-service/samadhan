@@ -28,6 +28,7 @@ import com.samadhan.enums.SubscriptionPeriodEnum;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.enums.serviceTypeEnum;
 import com.samadhan.exception.ConflictException;
+import com.samadhan.exception.DuplicateUsernameException;
 import com.samadhan.exception.NotFoundException;
 import com.samadhan.exception.WalletLowBalanceException;
 import com.samadhan.repository.PaymentRepository;
@@ -157,6 +158,10 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 
 		  if (termsAccepted == null || !termsAccepted) {
 			  throw new ConflictException("You must accept the Terms & Conditions to register");
+		  }
+
+		  if (vendorName != null && transferVendorRepo.existsByVendorNameIgnoreCase(vendorName.trim())) {
+			  throw new DuplicateUsernameException("Username already exists");
 		  }
 
 		  TransferVendor vendor = new TransferVendor();

@@ -16,6 +16,7 @@ import com.samadhan.enums.VehicleCategoryEnum;
 import com.samadhan.enums.VendorPickupVehicleEnum;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.exception.AccountDisabledException;
+import com.samadhan.exception.DuplicateVehicleNumberException;
 import com.samadhan.exception.RegistrationFeeRequiredException;
 import com.samadhan.exception.VehicleLimitExceededException;
 import com.samadhan.repository.TransferVendorRepository;
@@ -75,6 +76,10 @@ public class VehicleServiceImpl implements VehicleService{
 
 		if (rcFile == null || rcFile.isEmpty()) {
 			throw new IllegalArgumentException("Vehicle RC document is required");
+		}
+
+		if (vehicleNumber != null && vehicleRepo.existsByVehicleNumber(vehicleNumber)) {
+			throw new DuplicateVehicleNumberException("Vehicle number already exists");
 		}
 
 		if (transferVendorId != null) {

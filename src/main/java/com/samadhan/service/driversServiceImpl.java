@@ -9,6 +9,7 @@ import java.util.Optional;
 import com.samadhan.entity.UserDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.exception.AccountDisabledException;
+import com.samadhan.exception.DuplicateAgentNumberException;
 import com.samadhan.exception.InvalidCredentialsException;
 import com.samadhan.exception.NotFoundException;
 
@@ -148,6 +149,10 @@ public class driversServiceImpl implements driversService {
     public Driver createdriver(String driverName, String driverContactNumber, Long transferVendorId, MultipartFile aadhaarFile) {
     	if (aadhaarFile == null || aadhaarFile.isEmpty()) {
     		throw new IllegalArgumentException("Aadhaar card document is required");
+    	}
+
+    	if (driverContactNumber != null && driverRepo.existsByDriverContactNumber(driverContactNumber)) {
+    		throw new DuplicateAgentNumberException("Agent number already exists");
     	}
 
     	Driver driver = new Driver();
