@@ -137,6 +137,42 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(DuplicateVehicleNumberException.class)
+    public ResponseEntity<Object> handleDuplicateVehicleNumber(DuplicateVehicleNumberException ex) {
+        logger.warn("Duplicate vehicle number: {}", ex.getMessage());
+        return ResponseEntity.status(409).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "409",
+                        new Error("VehicleNumber", ex.getMessage())
+                )
+        );
+    }
+
+    @ExceptionHandler(DuplicateAgentNumberException.class)
+    public ResponseEntity<Object> handleDuplicateAgentNumber(DuplicateAgentNumberException ex) {
+        logger.warn("Duplicate agent number: {}", ex.getMessage());
+        return ResponseEntity.status(409).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "409",
+                        new Error("AgentNumber", ex.getMessage())
+                )
+        );
+    }
+
+    @ExceptionHandler(DuplicateUsernameException.class)
+    public ResponseEntity<Object> handleDuplicateUsername(DuplicateUsernameException ex) {
+        logger.warn("Duplicate username: {}", ex.getMessage());
+        return ResponseEntity.status(409).body(
+                ResponseUtil.populateResponseObject(
+                        null,
+                        "409",
+                        new Error("Username", ex.getMessage())
+                )
+        );
+    }
+
     // Someone else already accepted/claimed this request before this call landed — a normal
     // race in a broadcast-then-first-accept model, not a server fault.
     @ExceptionHandler(RequestAlreadyAcceptedException.class)

@@ -52,6 +52,8 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	@Query(value="select * from vehicle where vehicle_number=:vehicleNumber ORDER BY id ASC LIMIT 1",nativeQuery=true)
 	Vehicle findByVehicleNumber(@Param("vehicleNumber") String vehicleNumber);
 
+	boolean existsByVehicleNumber(String vehicleNumber);
+
 
 	@Query(value =
 	        "SELECT v.* " +

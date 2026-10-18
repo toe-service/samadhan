@@ -40,5 +40,7 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 	@Query(value="SELECT * FROM driver WHERE driver_contact_number=:driverContactNumber ORDER BY id ASC LIMIT 1" ,nativeQuery = true)
 	Driver findByDriverContactNumber(String driverContactNumber);
 
+	boolean existsByDriverContactNumber(String driverContactNumber);
+
 }
 
