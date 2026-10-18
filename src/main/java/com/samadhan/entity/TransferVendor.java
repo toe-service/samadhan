@@ -415,13 +415,14 @@ public class TransferVendor {
 		return vendorStatus == VendorStatusEnum.Free_SUBSCRIPTION || vendorStatus == VendorStatusEnum.ACTIVE;
 	}
 
-	// One-time registration fee amount for THIS vendor — Rs 199 for an individual (owner-operator)
-	// account, Rs 399 for a full (fleet) vendor. Centralized here rather than duplicated as a
-	// ternary in PaymentController and every registrationFeePaid gate (VehicleServiceImpl,
-	// VendorAvailabilityServiceImpl, TransferRequestServiceImpl) so the two numbers only ever live
-	// in one place.
+	// One-time registration fee amount for THIS vendor — Rs 1 for an individual (owner-operator)
+	// account (launch promo, normally Rs 199 — see PaymentController#NEW_VENDOR_JOINING_BONUS_RUPEES
+	// for the matching wallet bonus), Rs 399 for a full (fleet) vendor, unchanged. Centralized here
+	// rather than duplicated as a ternary in PaymentController and every registrationFeePaid gate
+	// (VehicleServiceImpl, VendorAvailabilityServiceImpl, TransferRequestServiceImpl) so the two
+	// numbers only ever live in one place. Revert the "1" back to "199" to end the promo.
 	public int getRegistrationFeeRupees() {
-		return Boolean.TRUE.equals(isIndividual) ? 199 : 399;
+		return Boolean.TRUE.equals(isIndividual) ? 1 : 399;
 	}
 
 	public String getGstNumber() {
