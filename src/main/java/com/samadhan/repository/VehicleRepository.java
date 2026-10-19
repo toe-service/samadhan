@@ -107,6 +107,20 @@ public interface VehicleRepository   extends JpaRepository<Vehicle, Long> {
 	            @Param("pickupLongitude") String pickupLongitude,
 	            @Param("rideDistanceKm") Double rideDistanceKm);
 
-
+	// Admin panel's "By Vehicle No." search (AdminController#searchVehicles) — a flat index
+	// across every vendor's fleet, so the admin can resolve a request straight to a specific
+	// vehicle (and its owning vendor) without knowing the vendor's name first. Capped at 20 rows;
+	// this is a type-ahead lookup, not a report.
+	@Query(value =
+			"SELECT v.id AS id, v.vehicle_number AS vehicleNumber, " +
+			"  v.vehicle_contact_number AS vehicleContactNumber, v.is_active AS isActive, " +
+			"  tv.id AS vendorId, tv.vendor_name AS vendorName, tv.is_individual AS isIndividual " +
+			"FROM vehicle v " +
+			"JOIN transfer_vendor tv ON tv.id = v.transfer_id " +
+			"WHERE LOWER(v.vehicle_number) LIKE LOWER(CONCAT('%', :query, '%')) " +
+			"ORDER BY v.id DESC " +
+			"LIMIT 20",
+			nativeQuery = true)
+	List<AdminVehicleSearchRow> searchForAdmin(@Param("query") String query);
 
 }
