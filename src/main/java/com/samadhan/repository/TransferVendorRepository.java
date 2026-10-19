@@ -92,19 +92,28 @@ public interface TransferVendorRepository extends JpaRepository<TransferVendor, 
 	// count only counts requests actually assigned to this vendor (transfer_id = tv.id) — not the
 	// complex geo-eligibility "available feed" matching countRidesByStatusForVendor does, which
 	// answers a different question (what could this vendor pick up) than what an admin wants here
-	// (what is this vendor actually on the hook for).
+	// (what is this vendor actually on the hook for). walletBalance is a LEFT JOIN (not every
+	// vendor necessarily has a vendor_wallet row yet) defaulted to 0 via COALESCE so the admin
+	// panel never has to special-case a missing wallet. search is optional — blank/null matches
+	// everyone, used both for the plain paginated list and the Assign-modal's vendor-name lookup.
 	@Query(value =
 			"SELECT tv.id AS vendorId, tv.vendor_name AS vendorName, tv.vendor_email AS vendorEmail, " +
-			"  tv.vendor_status AS vendorStatus, " +
+			"  tv.vendor_status AS vendorStatus, tv.is_individual AS isIndividual, " +
+			"  COALESCE(vw.balance, 0) AS walletBalance, " +
 			"  (SELECT COUNT(*) FROM vehicle v WHERE v.transfer_id = tv.id) AS vehicleCount, " +
 			"  (SELECT COUNT(*) FROM driver d WHERE d.transfer_id = tv.id) AS agentCount, " +
 			"  (SELECT COUNT(*) FROM transfer_request_details trd WHERE trd.transfer_id = tv.id " +
 			"     AND trd.transfer_status = 0 AND (trd.is_deleted IS NULL OR trd.is_deleted = 0)" +
 			"  ) AS pendingRequestCount " +
 			"FROM transfer_vendor tv " +
+			"LEFT JOIN vendor_wallet vw ON vw.vendor_id = tv.id " +
+			"WHERE (:search IS NULL OR :search = '' OR LOWER(tv.vendor_name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
 			"ORDER BY tv.id DESC",
+			countQuery =
+			"SELECT COUNT(*) FROM transfer_vendor tv " +
+			"WHERE (:search IS NULL OR :search = '' OR LOWER(tv.vendor_name) LIKE LOWER(CONCAT('%', :search, '%')))",
 			nativeQuery = true)
-	Page<AdminVendorSummary> findAllVendorSummaries(Pageable pageable);
+	Page<AdminVendorSummary> findAllVendorSummaries(@Param("search") String search, Pageable pageable);
 
 }
 

@@ -2,15 +2,23 @@ package com.samadhan.service;
 
 import com.samadhan.dto.RideHistoryPageDto;
 import com.samadhan.entity.Driver;
+import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
+import com.samadhan.entity.VendorWallet;
 import com.samadhan.enums.VendorStatusEnum;
 import com.samadhan.repository.AdminRideStatusCounts;
+import com.samadhan.repository.AdminVehicleSearchRow;
 import com.samadhan.repository.AdminVendorStatusCounts;
 import com.samadhan.repository.AdminVendorSummary;
+import com.samadhan.repository.PaymentRepository;
 import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
+import com.samadhan.repository.VehicleRepository;
+import com.samadhan.repository.VendorWalletRepository;
 import com.samadhan.response.AdminDashboardSummaryResponse;
+import com.samadhan.response.AdminVehicleSearchResult;
+import com.samadhan.response.AdminVehicleVendorRef;
 import com.samadhan.response.AdminVendorListResponse;
 import com.samadhan.response.AdminVendorRow;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +45,25 @@ public class AdminServiceImpl implements AdminService {
     @Autowired
     private driversService driversService;
 
+    @Autowired
+    private VendorWalletRepository vendorWalletRepository;
+
+    // Despite the name, this is the Subscription repository (JpaRepository<Subscription, Long>)
+    // — see PaymentController#getSubscriptionsByVendor, the same vendor-facing endpoint this
+    // reuses the lookup from.
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
+
+    // Assignment itself (POST /admin/requests/{id}/assign) delegates to the exact same accept
+    // path a vendor's own dashboard uses (requestTransferApproval, transferApproval=1) rather
+    // than reimplementing vendor/vehicle validation and the wallet-deduction fee here — see
+    // assignRequest below.
+    @Autowired
+    private TransferRequestService transferRequestService;
+
     @Override
     public AdminDashboardSummaryResponse getDashboardSummary() {
         AdminVendorStatusCounts vendorCounts = transferVendorRepository.countVendorsByStatus();
@@ -59,11 +86,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AdminVendorListResponse getVendors(int page, int size) {
+    public AdminVendorListResponse getVendors(String search, int page, int size) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.max(size, 1);
         Pageable pageable = PageRequest.of(safePage, safeSize);
-        Page<AdminVendorSummary> pageResult = transferVendorRepository.findAllVendorSummaries(pageable);
+        String normalizedSearch = (search == null) ? "" : search.trim();
+        Page<AdminVendorSummary> pageResult =
+                transferVendorRepository.findAllVendorSummaries(normalizedSearch, pageable);
 
         List<AdminVendorRow> rows = pageResult.getContent().stream().map(this::toRow).collect(Collectors.toList());
 
@@ -84,6 +113,36 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<Driver> getVendorAgents(Long vendorId) {
         return driversService.getAllDriversByVendor(vendorId);
+    }
+
+    @Override
+    public VendorWallet getVendorWallet(Long vendorId) {
+        return vendorWalletRepository.findByVendor(vendorId);
+    }
+
+    @Override
+    public Subscription getVendorSubscription(Long vendorId) {
+        return paymentRepository.findByVendorId(vendorId);
+    }
+
+    @Override
+    public List<AdminVehicleSearchResult> searchVehicles(String query) {
+        String normalized = (query == null) ? "" : query.trim();
+        if (normalized.isEmpty()) {
+            return List.of();
+        }
+        return vehicleRepository.searchForAdmin(normalized).stream()
+                .map(this::toVehicleSearchResult)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public TransferRequestDetails assignRequest(Long requestId, Long vendorId, Long vehicleId) {
+        if (requestId == null || vendorId == null || vehicleId == null) {
+            throw new IllegalArgumentException("requestId, vendorId, and vehicleId are all required");
+        }
+        return transferRequestService.requestTransferApproval(
+                requestId, 1, vendorId, null, null, null, vehicleId.intValue(), "Vendor");
     }
 
     @Override
@@ -114,10 +173,28 @@ public class AdminServiceImpl implements AdminService {
         row.setVendorStatusLabel(summary.getVendorStatus() != null
                 ? VendorStatusEnum.getTypeById(summary.getVendorStatus())
                 : null);
+        row.setIsIndividual(summary.getIsIndividual());
+        row.setWalletBalance(summary.getWalletBalance());
         row.setVehicleCount(orZero(summary.getVehicleCount()));
         row.setAgentCount(orZero(summary.getAgentCount()));
         row.setPendingRequestCount(orZero(summary.getPendingRequestCount()));
         return row;
+    }
+
+    private AdminVehicleSearchResult toVehicleSearchResult(AdminVehicleSearchRow row) {
+        AdminVehicleSearchResult result = new AdminVehicleSearchResult();
+        result.setId(row.getId());
+        result.setVehicleNumber(row.getVehicleNumber());
+        result.setVehicleContactNumber(row.getVehicleContactNumber());
+        result.setIsActive(row.getIsActive());
+
+        AdminVehicleVendorRef vendor = new AdminVehicleVendorRef();
+        vendor.setVendorId(row.getVendorId());
+        vendor.setVendorName(row.getVendorName());
+        vendor.setIsIndividual(row.getIsIndividual());
+        result.setVendor(vendor);
+
+        return result;
     }
 
     private long orZero(Long value) {

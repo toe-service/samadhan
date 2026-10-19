@@ -8,6 +8,8 @@ public interface AdminVendorSummary {
 	String getVendorName();
 	String getVendorEmail();
 	Integer getVendorStatus();
+	Boolean getIsIndividual();
+	Double getWalletBalance();
 	Long getVehicleCount();
 	Long getAgentCount();
 	Long getPendingRequestCount();

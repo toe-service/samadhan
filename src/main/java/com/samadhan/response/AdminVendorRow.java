@@ -6,6 +6,8 @@ public class AdminVendorRow {
     private String vendorEmail;
     private Integer vendorStatusCode;
     private String vendorStatusLabel;
+    private Boolean isIndividual;
+    private Double walletBalance;
     private Long vehicleCount;
     private Long agentCount;
     private Long pendingRequestCount;
@@ -48,6 +50,22 @@ public class AdminVendorRow {
 
     public void setVendorStatusLabel(String vendorStatusLabel) {
         this.vendorStatusLabel = vendorStatusLabel;
+    }
+
+    public Boolean getIsIndividual() {
+        return isIndividual;
+    }
+
+    public void setIsIndividual(Boolean isIndividual) {
+        this.isIndividual = isIndividual;
+    }
+
+    public Double getWalletBalance() {
+        return walletBalance;
+    }
+
+    public void setWalletBalance(Double walletBalance) {
+        this.walletBalance = walletBalance;
     }
 
     public Long getVehicleCount() {
