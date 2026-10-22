@@ -18,6 +18,7 @@ import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.repository.VendorWalletRepository;
+import com.samadhan.repository.WalletTransactionRepo;
 import com.samadhan.response.AdminAbandonedFormListResponse;
 import com.samadhan.response.AdminDashboardSummaryResponse;
 import com.samadhan.response.AdminVehicleSearchResult;
@@ -70,6 +71,9 @@ public class AdminServiceImpl implements AdminService {
     @Autowired
     private AbandonedFormSessionRepository abandonedFormSessionRepository;
 
+    @Autowired
+    private WalletTransactionRepo walletTransactionRepo;
+
     @Override
     public AdminDashboardSummaryResponse getDashboardSummary() {
         AdminVendorStatusCounts vendorCounts = transferVendorRepository.countVendorsByStatus();
@@ -88,6 +92,14 @@ public class AdminServiceImpl implements AdminService {
         response.setOngoingRequests(orZero(rideCounts != null ? rideCounts.getOngoing() : null));
         response.setCompletedRequests(orZero(rideCounts != null ? rideCounts.getCompleted() : null));
         response.setCancelledRequests(orZero(rideCounts != null ? rideCounts.getCancelled() : null));
+
+        Double totalEarning = transferRequestRepository.getTotalEarning();
+        Double commissionEarning = walletTransactionRepo.getTotalCommissionEarning();
+        Double subscriptionEarning = walletTransactionRepo.getTotalSubscriptionEarning();
+        response.setTotalEarning(totalEarning != null ? totalEarning : 0.0);
+        response.setCommissionEarning(commissionEarning != null ? commissionEarning : 0.0);
+        response.setSubscriptionEarning(subscriptionEarning != null ? subscriptionEarning : 0.0);
+
         return response;
     }
 

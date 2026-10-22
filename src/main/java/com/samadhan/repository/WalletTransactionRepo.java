@@ -43,8 +43,34 @@ public interface WalletTransactionRepo  extends JpaRepository<WalletTransaction,
     @Transactional
 	@Query(value = "delete from wallet_transaction where transfer_request_id = :transferId", nativeQuery = true)
 	void deleteBydeleteByTransferRequest(Long transferId);
-    
+
 //    @Query(value = "Select * from wallet_transaction where transfer_request_id = :requestId AND vendor_id =:vendorId AND transaction_type='LEAD FEE'", nativeQuery = true)
 //   	WalletTransaction findByVendorANDRequestLEAD(Long requestId, Long vendorId);
+
+	// Admin dashboard "Commission Earning" — the per-ride cut TransferEaze takes (the four
+	// per-ride fees) plus registration fees. Deliberately excludes subscription revenue — see
+	// getTotalSubscriptionEarning, surfaced as its own separate figure instead of folded in here.
+	// Registration fee has no transaction_type of its own — it's logged as a generic "CREDIT" (it
+	// puts spendable money in the vendor's wallet, same as a recharge), so it's distinguished from
+	// "Wallet Recharge"/"New Vendor Joining Bonus" (also "CREDIT", but NOT revenue) by its
+	// description prefix instead. This is a simple additive sum, not a full ledger reconciliation
+	// — a later refund/chargeback reversal isn't netted back out here.
+	@Query(value =
+			"SELECT COALESCE(SUM(amount), 0) FROM wallet_transaction " +
+			"WHERE transaction_type IN ('Ride Acceptance Fee', 'Ride Start Fee', 'Ride Completion Fee', 'LEAD FEE') " +
+			"OR (transaction_type = 'CREDIT' AND description LIKE 'Registration Fee%')",
+			nativeQuery = true)
+	Double getTotalCommissionEarning();
+
+	// Subscription revenue, kept separate from getTotalCommissionEarning above — surfaced on its
+	// own (Vendors section) rather than folded into the per-ride commission figure.
+	@Query(value =
+			"SELECT COALESCE(SUM(amount), 0) FROM wallet_transaction " +
+			"WHERE transaction_type IN (" +
+			"  'Subscription Purchased', 'Subscription Purchased (reconciled via webhook)', " +
+			"  'Subscription Renewed Purchased'" +
+			")",
+			nativeQuery = true)
+	Double getTotalSubscriptionEarning();
 
 }

@@ -14,6 +14,21 @@ public class AdminDashboardSummaryResponse {
     private long completedRequests;
     private long cancelledRequests;
 
+    // Gross value of every COMPLETED ride (what customers paid) — see
+    // TransferRequestRepository#getTotalEarning.
+    private double totalEarning;
+
+    // TransferEaze's own per-ride cut — Ride Acceptance/Start/Completion fees, LEAD FEE, and
+    // registration fees. Deliberately excludes subscription revenue (see subscriptionEarning
+    // below, surfaced separately) and isn't the gross ride value above. See
+    // WalletTransactionRepo#getTotalCommissionEarning for exactly which transaction
+    // types/descriptions count.
+    private double commissionEarning;
+
+    // Subscription purchase/renewal revenue, kept apart from commissionEarning — shown in the
+    // Vendors section rather than folded into the per-ride commission figure.
+    private double subscriptionEarning;
+
     public long getTotalVendors() {
         return totalVendors;
     }
@@ -100,5 +115,29 @@ public class AdminDashboardSummaryResponse {
 
     public void setCancelledRequests(long cancelledRequests) {
         this.cancelledRequests = cancelledRequests;
+    }
+
+    public double getTotalEarning() {
+        return totalEarning;
+    }
+
+    public void setTotalEarning(double totalEarning) {
+        this.totalEarning = totalEarning;
+    }
+
+    public double getCommissionEarning() {
+        return commissionEarning;
+    }
+
+    public void setCommissionEarning(double commissionEarning) {
+        this.commissionEarning = commissionEarning;
+    }
+
+    public double getSubscriptionEarning() {
+        return subscriptionEarning;
+    }
+
+    public void setSubscriptionEarning(double subscriptionEarning) {
+        this.subscriptionEarning = subscriptionEarning;
     }
 }

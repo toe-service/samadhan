@@ -391,7 +391,7 @@ public class PaymentServiceImpl {
 
 		    } else if (distanceInKm <= 200) {
 
-		        perKmRate = 9;
+		        perKmRate = 6;
 
 		    } else if (distanceInKm <= 350) {
 
