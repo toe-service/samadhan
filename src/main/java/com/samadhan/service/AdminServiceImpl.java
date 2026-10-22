@@ -1,12 +1,14 @@
 package com.samadhan.service;
 
 import com.samadhan.dto.RideHistoryPageDto;
+import com.samadhan.entity.AbandonedFormSession;
 import com.samadhan.entity.Driver;
 import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.enums.VendorStatusEnum;
+import com.samadhan.repository.AbandonedFormSessionRepository;
 import com.samadhan.repository.AdminRideStatusCounts;
 import com.samadhan.repository.AdminVehicleSearchRow;
 import com.samadhan.repository.AdminVendorStatusCounts;
@@ -16,6 +18,7 @@ import com.samadhan.repository.TransferRequestRepository;
 import com.samadhan.repository.TransferVendorRepository;
 import com.samadhan.repository.VehicleRepository;
 import com.samadhan.repository.VendorWalletRepository;
+import com.samadhan.response.AdminAbandonedFormListResponse;
 import com.samadhan.response.AdminDashboardSummaryResponse;
 import com.samadhan.response.AdminVehicleSearchResult;
 import com.samadhan.response.AdminVehicleVendorRef;
@@ -64,6 +67,9 @@ public class AdminServiceImpl implements AdminService {
     @Autowired
     private TransferRequestService transferRequestService;
 
+    @Autowired
+    private AbandonedFormSessionRepository abandonedFormSessionRepository;
+
     @Override
     public AdminDashboardSummaryResponse getDashboardSummary() {
         AdminVendorStatusCounts vendorCounts = transferVendorRepository.countVendorsByStatus();
@@ -98,6 +104,22 @@ public class AdminServiceImpl implements AdminService {
 
         AdminVendorListResponse response = new AdminVendorListResponse();
         response.setVendors(rows);
+        response.setPage(safePage);
+        response.setSize(safeSize);
+        response.setTotalElements(pageResult.getTotalElements());
+        response.setTotalPages(pageResult.getTotalPages());
+        return response;
+    }
+
+    @Override
+    public AdminAbandonedFormListResponse getAbandonedFormSessions(int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(size, 1);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        Page<AbandonedFormSession> pageResult = abandonedFormSessionRepository.findByResolvedFalseOrderByLastUpdatedAtDesc(pageable);
+
+        AdminAbandonedFormListResponse response = new AdminAbandonedFormListResponse();
+        response.setSessions(pageResult.getContent());
         response.setPage(safePage);
         response.setSize(safeSize);
         response.setTotalElements(pageResult.getTotalElements());

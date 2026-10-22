@@ -6,6 +6,7 @@ import com.samadhan.entity.Subscription;
 import com.samadhan.entity.TransferRequestDetails;
 import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VendorWallet;
+import com.samadhan.response.AdminAbandonedFormListResponse;
 import com.samadhan.response.AdminDashboardSummaryResponse;
 import com.samadhan.response.AdminVehicleSearchResult;
 import com.samadhan.response.AdminVendorListResponse;
@@ -30,4 +31,6 @@ public interface AdminService {
     List<AdminVehicleSearchResult> searchVehicles(String query);
 
     TransferRequestDetails assignRequest(Long requestId, Long vendorId, Long vehicleId);
+
+    AdminAbandonedFormListResponse getAbandonedFormSessions(int page, int size);
 }
