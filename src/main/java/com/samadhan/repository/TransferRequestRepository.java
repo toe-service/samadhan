@@ -442,6 +442,14 @@ public interface TransferRequestRepository   extends JpaRepository<TransferReque
 			nativeQuery = true)
 	AdminRideStatusCounts countAllRidesByStatus();
 
+	// Admin dashboard "Total Earning" — gross value of every COMPLETED ride (what customers paid),
+	// not TransferEaze's own cut (see WalletTransactionRepo#getTotalCommissionEarning for that).
+	@Query(value =
+			"SELECT COALESCE(SUM(ride_cost), 0) FROM transfer_request_details " +
+			"WHERE transfer_status = 8 AND (is_deleted IS NULL OR is_deleted = 0)",
+			nativeQuery = true)
+	Double getTotalEarning();
+
 	// Admin dashboard: platform-wide, paginated request list with full details (vendor, customer,
 	// vehicle/agent, addresses) -- same shape/countQuery convention as
 	// findByVehicleIdOrderByRequestCreatedDateDesc above, just without the vehicle/vendor scoping.

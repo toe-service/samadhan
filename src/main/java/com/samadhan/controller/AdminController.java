@@ -8,6 +8,7 @@ import com.samadhan.entity.Vehicle;
 import com.samadhan.entity.VendorWallet;
 import com.samadhan.enums.UserRole;
 import com.samadhan.request.AdminAssignRequest;
+import com.samadhan.response.AdminAbandonedFormListResponse;
 import com.samadhan.response.AdminDashboardSummaryResponse;
 import com.samadhan.response.AdminVehicleSearchResult;
 import com.samadhan.response.AdminVendorListResponse;
@@ -153,5 +154,17 @@ public class AdminController {
         TransferRequestDetails updated =
                 adminService.assignRequest(requestId, body.getVendorId(), body.getVehicleId());
         return ResponseEntity.ok(ResponseUtil.populateResponseObject(updated, "SUCCESS", null));
+    }
+
+    // Users who started filling a request and backgrounded/closed the app before submitting —
+    // see AbandonedFormController on the user-facing side for how these rows get created/resolved.
+    @GetMapping("/abandoned-form-sessions")
+    public ResponseEntity<ResponseObject<AdminAbandonedFormListResponse>> getAbandonedFormSessions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest httpRequest) {
+        requireAdmin(httpRequest);
+        AdminAbandonedFormListResponse sessions = adminService.getAbandonedFormSessions(page, size);
+        return ResponseEntity.ok(ResponseUtil.populateResponseObject(sessions, "SUCCESS", null));
     }
 }
