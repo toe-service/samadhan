@@ -152,7 +152,7 @@ public class VehicleServiceImpl implements VehicleService{
 
 		int activeVehicleCount = vehicleRepo.findByVendorId(transferVendorId).size();
 
-		// One-time registration fee gate — Rs 199 (individual) or Rs 399 (full vendor), see
+		// One-time registration fee gate — Rs 1 (individual) or Rs 1 (full vendor) during the launch promo, see
 		// TransferVendor#getRegistrationFeeRupees. No vendor of either kind can add even their
 		// first vehicle until it's paid (see PaymentController's /pay/registration-fee endpoints).
 		// Checked ahead of either fleet-size limit below since "haven't paid yet" is the more

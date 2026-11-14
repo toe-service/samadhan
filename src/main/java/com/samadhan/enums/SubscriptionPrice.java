@@ -4,7 +4,7 @@ public enum SubscriptionPrice {
 
     SILVER("silver", 199.0),
     GOLD("gold", 299.0),
-    PLATINUM("platinum", 399.0);
+    PLATINUM("platinum", 1.0);
 
     private String subscriptionName;
     private Double price;

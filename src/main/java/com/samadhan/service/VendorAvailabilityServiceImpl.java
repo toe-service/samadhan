@@ -137,7 +137,7 @@ public class VendorAvailabilityServiceImpl implements VendorAvailabilityService 
 		// No vendor (individual or full) can do anything vendor-facing (post availability, add a
 		// vehicle, accept/create rides — see the same check in VehicleServiceImpl#enforceVehicleLimit,
 		// TransferRequestServiceImpl#requestTransferApproval/#requestRideTransfer) until their
-		// one-time registration fee is paid — Rs 199 or Rs 399, see TransferVendor#getRegistrationFeeRupees.
+		// one-time registration fee is paid — Rs 1 for either vendor kind during the launch promo, see TransferVendor#getRegistrationFeeRupees.
 		if (!vendor.isRegistrationFeePaid()) {
 			throw new RegistrationFeeRequiredException(
 					"Please pay the Rs " + vendor.getRegistrationFeeRupees()
