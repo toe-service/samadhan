@@ -167,12 +167,12 @@ public class PaymentController {
 	 // Shared by first-purchase (createOrder/verifyPayment) and renew, so both offer the same
 	 // 1/3/6/12-month plans at the same price instead of first-purchase being a fixed 3-month deal.
 	 private int amountForPlan(String plan) {
-		 if (plan == null) return 439900;
-		 if (plan.equalsIgnoreCase("MONTHLY")) return 149900;
-		 if (plan.equalsIgnoreCase("THREE_MONTH")) return 439900;
-		 if (plan.equalsIgnoreCase("SIX_MONTH")) return 859900;
-		 if (plan.equalsIgnoreCase("TWELVE_MONTH")) return 1649900;
-		 return 439900;
+		 if (plan == null) return 259900;
+		 if (plan.equalsIgnoreCase("MONTHLY")) return 99900;
+		 if (plan.equalsIgnoreCase("THREE_MONTH")) return 259900;
+		 if (plan.equalsIgnoreCase("SIX_MONTH")) return 559900;
+		 if (plan.equalsIgnoreCase("TWELVE_MONTH")) return 1049900;
+		 return 259900;
 	 }
 
 	 private void applyPlanToSubscription(Subscription subscription, String plan, LocalDate startDate) {
@@ -1084,8 +1084,9 @@ public class PaymentController {
 	    return ResponseEntity.ok("SUCCESS");
 	}
 
-	// One-time fee every vendor pays to activate their account — Rs 199 for an individual
-	// (owner-operator), Rs 399 for a full (fleet) vendor (see TransferVendor#getRegistrationFeeRupees
+	// One-time fee every vendor pays to activate their account — Rs 1 for an individual
+	// (owner-operator) and Rs 1 for a full (fleet) vendor too (launch promo, normally Rs 199 and
+	// Rs 399 respectively — see TransferVendor#getRegistrationFeeRupees
 	// for why the two live in one place). Blocks creating even a first vehicle, posting
 	// availability, and accepting/creating rides until paid (VehicleServiceImpl#enforceVehicleLimit,
 	// VendorAvailabilityServiceImpl#postAvailability/#updateAvailability, TransferRequestServiceImpl#
@@ -1148,9 +1149,9 @@ public class PaymentController {
 	    int expectedFeePaise = vendor.getRegistrationFeeRupees() * 100;
 
 	    // The signature only proves this is a genuine payment, not that it was for the right
-	    // amount — re-fetch the order and check it's actually this vendor's registration fee (199
-	    // or 399 depending on isIndividual), the same defensive pattern /subscription/verifyPayment
-	    // uses against its plan price.
+	    // amount — re-fetch the order and check it's actually this vendor's registration fee (Rs 1
+	    // for either kind of vendor during the launch promo), the same defensive pattern
+	    // /subscription/verifyPayment uses against its plan price.
 	    RazorpayClient client = paymentService.getPaymentClient();
 	    Order order = client.orders.fetch(req.getRazorpayOrderId());
 	    Integer orderAmountPaise = order.get("amount");
@@ -1202,7 +1203,7 @@ public class PaymentController {
 	// idempotency check see 2 rows before any reversal ever happened, so it would silently skip
 	// reversing a genuine bank-side failure. Both callers already sit behind an
 	// existsByRazorpayPaymentId(paymentId) guard for the real payment, so this can't double-credit
-	// either. Fleet vendors (still Rs 399, not Rs 1) are not eligible. Delete this method and its
+	// either. Fleet vendors (also Rs 1 during the promo, but not individual) are not eligible. Delete this method and its
 	// two call sites once the launch promo ends.
 	private static final double NEW_VENDOR_JOINING_BONUS_RUPEES = 51.0;
 

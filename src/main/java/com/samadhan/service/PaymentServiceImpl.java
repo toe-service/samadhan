@@ -86,10 +86,10 @@ public class PaymentServiceImpl {
     	// Prices/plans kept in sync with PaymentController.amountForPlan — same 4 plans, same
     	// amounts, whether buying for the first time or renewing.
     	return List.of(
-    			new SubscriptionResponse("MONTHLY", 1499.0, Collections.singletonList("1 month")),
-    			new SubscriptionResponse("THREE_MONTH", 4399.0, Collections.singletonList("3 months")),
-    			new SubscriptionResponse("SIX_MONTH", 8599.0, Collections.singletonList("6 months")),
-    			new SubscriptionResponse("TWELVE_MONTH", 16499.0, Collections.singletonList("12 months"))
+    			new SubscriptionResponse("MONTHLY", 999.0, Collections.singletonList("1 month")),
+    			new SubscriptionResponse("THREE_MONTH", 2599.0, Collections.singletonList("3 months")),
+    			new SubscriptionResponse("SIX_MONTH", 5599.0, Collections.singletonList("6 months")),
+    			new SubscriptionResponse("TWELVE_MONTH", 10499.0, Collections.singletonList("12 months"))
     	);
     }
 
