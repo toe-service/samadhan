@@ -400,7 +400,7 @@ public class PaymentServiceImpl {
 		    }
 		    else if (distanceInKm <= 600) {
 
-		        perKmRate = 5.5;
+		        perKmRate = 5;
 
 		    } else if (distanceInKm <= 1000) {
 
@@ -413,7 +413,7 @@ public class PaymentServiceImpl {
 		    } 
 		    else {
 
-		        perKmRate = 4;
+		        perKmRate = 3;
 
 		    }
 		    
@@ -892,28 +892,28 @@ public class PaymentServiceImpl {
 
 		        if (bikeCC <= 100) {
 
-		            fixedCharge = 500;
+		            fixedCharge = 400;
 		            packaging = 400;
 		            loadingUnloading = 300;
 
 		        }
 		        else if (bikeCC <= 125) {
 
-		            fixedCharge = 600;
+		            fixedCharge = 400;
 		            packaging = 450;
 		            loadingUnloading = 300;
 
 		        }
 		        else if (bikeCC <= 150) {
 
-		            fixedCharge = 800;
+		            fixedCharge = 500;
 		            packaging = 500;
 		            loadingUnloading = 300;
 
 		        }
 		        else if (bikeCC <= 200) {
 
-		            fixedCharge = 1200;
+		            fixedCharge = 800;
 		            packaging = 600;
 		            loadingUnloading = 400;
 
@@ -922,34 +922,34 @@ public class PaymentServiceImpl {
 
 		            // Royal Enfield / KTM
 
-		            fixedCharge = 1500;
+		            fixedCharge = 1000;
 		            packaging = 750;
 		            loadingUnloading = 500;
 
 		        }
 		        else if (bikeCC <= 500) {
 
-		            fixedCharge = 2000;
+		            fixedCharge = 1500;
 		            packaging = 1000;
 		            loadingUnloading = 600;
 
 		        }
 		        else if (bikeCC <= 800) {
 
-		            fixedCharge = 2200;
+		            fixedCharge = 1800;
 		            packaging = 1200;
 		            loadingUnloading = 600;
 
 		        }
 		        else if (bikeCC <= 1200) {
 
-		            fixedCharge = 2500;
+		            fixedCharge = 2000;
 		            packaging = 1200;
 		            loadingUnloading = 700;
 
 		        }  else if (bikeCC <= 2000) {
 
-		            fixedCharge = 3000;
+		            fixedCharge = 2500;
 		            packaging = 1200;
 		            loadingUnloading = 900;
 
@@ -958,7 +958,7 @@ public class PaymentServiceImpl {
 
 		            // Hayabusa / BMW / ZX10R etc.
 
-		            fixedCharge = 3200;
+		            fixedCharge = 3000;
 		            packaging = 1200;
 		            loadingUnloading = 1000;
 
