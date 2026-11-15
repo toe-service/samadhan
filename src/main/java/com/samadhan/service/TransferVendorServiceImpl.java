@@ -69,6 +69,9 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 	// starts on registration" flow rather than the old manual, paid "Free Subscription" button.
 	private static final int TRIAL_DAYS = 15;
 
+	// Welcome credit given to every new vendor's wallet on registration.
+	private static final double SIGNUP_BONUS = 51.0;
+
 	private final StorageService storageService;
 	
 	  public TransferVendorServiceImpl( StorageService storageService) {
@@ -274,13 +277,18 @@ public class TransferVendorServiceImpl implements TransferVendorService{
 		    
 		    
 		    VendorWallet wallet = new VendorWallet();
-			
-			
 
-			wallet.setBalance(0.0);
+			wallet.setBalance(SIGNUP_BONUS);
 			wallet.setVendor(vendor);
-			
+
 			VendorWalletRepo.save(wallet);
+
+			WalletTransaction signupBonus = new WalletTransaction();
+			signupBonus.setVendor(vendor);
+			signupBonus.setAmount(SIGNUP_BONUS);
+			signupBonus.setTransactionType("SIGNUP_BONUS");
+			signupBonus.setDescription("Welcome bonus credited on registration");
+			walletTransactionRepo.save(signupBonus);
 
 		    return vendor;
 	}
